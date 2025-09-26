@@ -1,0 +1,177 @@
+/* Government of Uganda (Ministry of Health) Official Theme */
+:root {
+  --gou-maroon: #800000;
+  --gou-white: #fff;
+  --gou-black: #000;
+  --gou-green: #008000;
+  --gou-gray: #f5f5f5;
+  --gou-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  --gou-radius: 12px;
+  --gou-font: 'Open Sans', 'Roboto', Arial, sans-serif;
+}
+
+body {
+  font-family: var(--gou-font);
+  background: var(--gou-gray);
+  color: var(--gou-black);
+  margin: 0;
+}
+
+/* Top Navbar */
+.gou-navbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 64px;
+  background: var(--gou-maroon);
+  color: var(--gou-white);
+  display: flex;
+  align-items: center;
+  box-shadow: var(--gou-shadow);
+  z-index: 1000;
+}
+.gou-navbar-logo {
+  height: 48px;
+  margin: 0 24px 0 16px;
+}
+.gou-navbar-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  flex: 1;
+}
+
+/* Sidebar */
+.gou-sidebar {
+  position: fixed;
+  top: 64px; left: 0; bottom: 0;
+  width: 220px;
+  background: var(--gou-white);
+  border-right: 1px solid #eee;
+  box-shadow: var(--gou-shadow);
+  padding-top: 24px;
+  display: flex;
+  flex-direction: column;
+  z-index: 900;
+}
+.gou-sidebar-link {
+  display: flex;
+  align-items: center;
+  padding: 14px 24px;
+  color: var(--gou-black);
+  font-size: 1.1rem;
+  text-decoration: none;
+  border-radius: var(--gou-radius);
+  margin: 0 8px 8px 8px;
+  transition: background 0.2s;
+}
+.gou-sidebar-link.active, .gou-sidebar-link:hover {
+  background: var(--gou-maroon);
+  color: var(--gou-white);
+}
+.gou-sidebar-link .icon {
+  margin-right: 14px;
+  font-size: 1.3rem;
+}
+
+/* Main Content */
+.gou-main {
+  margin-top: 64px;
+  margin-left: 280px;
+  padding: 32px 32px 32px 32px;
+  min-height: 100vh;
+  background: var(--gou-gray);
+}
+
+/* Custom Scrollbar for Sidebar */
+.ant-layout-sider::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ant-layout-sider::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.ant-layout-sider::-webkit-scrollbar-thumb {
+  background: #FFD700;
+  border-radius: 3px;
+}
+
+.ant-layout-sider::-webkit-scrollbar-thumb:hover {
+  background: #FFC107;
+}
+
+/* Card */
+.gou-card {
+  background: var(--gou-white);
+  border-radius: var(--gou-radius);
+  box-shadow: var(--gou-shadow);
+  padding: 32px;
+  margin-bottom: 32px;
+}
+
+/* Table */
+.gou-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--gou-white);
+  border-radius: var(--gou-radius);
+  box-shadow: var(--gou-shadow);
+  overflow: hidden;
+}
+.gou-table th, .gou-table td {
+  padding: 18px 16px;
+  font-size: 1.1rem;
+  border-bottom: 1px solid #eee;
+}
+.gou-table th {
+  background: var(--gou-maroon);
+  color: var(--gou-white);
+  font-weight: 700;
+}
+.gou-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Buttons */
+.gou-btn {
+  background: var(--gou-maroon);
+  color: var(--gou-white);
+  border: none;
+  border-radius: var(--gou-radius);
+  padding: 10px 22px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.gou-btn:hover, .gou-btn:focus {
+  background: var(--gou-green);
+  color: var(--gou-white);
+}
+
+/* Accessibility */
+.gou-table th, .gou-table td, .gou-btn {
+  font-size: 1.15rem;
+}
+
+/* Utility */
+.gou-shadow {
+  box-shadow: var(--gou-shadow);
+}
+.gou-radius {
+  border-radius: var(--gou-radius);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .gou-sidebar { width: 64px; }
+  .gou-main { margin-left: 64px; }
+  .gou-sidebar-link { justify-content: center; padding: 14px 0; }
+  .gou-sidebar-link .icon { margin: 0; }
+  .gou-sidebar-link span { display: none; }
+}
+@media (max-width: 600px) {
+  .gou-main { margin-left: 0; padding: 16px; }
+  .gou-card { padding: 16px; }
+}

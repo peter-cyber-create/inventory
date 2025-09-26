@@ -1,0 +1,23 @@
+import { sequelize, DataTypes } from "../../config/db.js";
+
+const VMake = sequelize.define(
+  "vmake",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+VMake.sync({ alter: true });
+
+export default VMake;

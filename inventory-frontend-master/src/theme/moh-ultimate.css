@@ -1,0 +1,381 @@
+/* Ministry of Health Uganda - Ultimate Design System */
+/* This file enhances ALL UI components across the entire application */
+
+/* ===== GLOBAL STYLES ===== */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    margin: 0;
+    padding: 0;
+}
+
+/* ===== ENHANCED LOGIN PAGE ===== */
+.moh-login-page {
+    animation: fadeInUp 0.8s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== ENHANCED DASHBOARD COMPONENTS ===== */
+
+/* Header Enhancement */
+.ant-layout-header {
+    background: linear-gradient(135deg, #1a2a6b 0%, #b21f1f 50%, #fdbb2d 100%) !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
+    border-bottom: 3px solid #FFD700 !important;
+}
+
+.moh-header {
+    background: linear-gradient(135deg, #1a2a6b 0%, #b21f1f 50%, #fdbb2d 100%) !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
+    border-bottom: 3px solid #FFD700 !important;
+}
+
+.moh-brand h1 {
+    background: linear-gradient(135deg, #FFFFFF 0%, #F0F8FF 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3) !important;
+}
+
+/* Sidebar Enhancement */
+.ant-layout-sider {
+    background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%) !important;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.1) !important;
+    border-right: 2px solid #FFD700 !important;
+}
+
+.ant-menu {
+    background: transparent !important;
+}
+
+.ant-menu-item {
+    margin: 8px 16px !important;
+    border-radius: 12px !important;
+    transition: all 0.3s ease !important;
+}
+
+.ant-menu-item:hover {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%) !important;
+    transform: translateX(8px) !important;
+    box-shadow: 0 4px 12px rgba(255,215,0,0.3) !important;
+}
+
+.ant-menu-item-selected {
+    background: linear-gradient(135deg, #1a2a6b 0%, #b21f1f 100%) !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 16px rgba(26,42,107,0.4) !important;
+}
+
+/* Card Enhancements */
+.ant-card {
+    border-radius: 16px !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1) !important;
+    border: 1px solid rgba(255,255,255,0.2) !important;
+    background: rgba(255,255,255,0.95) !important;
+    backdrop-filter: blur(20px) !important;
+    transition: all 0.3s ease !important;
+}
+
+.ant-card:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.15) !important;
+}
+
+.ant-card-head {
+    background: linear-gradient(135deg, #1a2a6b 0%, #b21f1f 100%) !important;
+    border-radius: 16px 16px 0 0 !important;
+    color: #FFFFFF !important;
+}
+
+.ant-card-head-title {
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+}
+
+/* Button Enhancements */
+.ant-btn {
+    border-radius: 12px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+}
+
+.ant-btn-primary {
+    background: linear-gradient(135deg, #1a2a6b 0%, #b21f1f 100%) !important;
+    border: none !important;
+    color: #FFFFFF !important;
+}
+
+.ant-btn-primary:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(26,42,107,0.4) !important;
+}
+
+.ant-btn-success {
+    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%) !important;
+    border: none !important;
+    color: #FFFFFF !important;
+}
+
+.ant-btn-danger {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%) !important;
+    border: none !important;
+    color: #FFFFFF !important;
+}
+
+/* Table Enhancements */
+.ant-table {
+    border-radius: 16px !important;
+    overflow: hidden !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1) !important;
+}
+
+.ant-table-thead > tr > th {
+    background: linear-gradient(135deg, #1a2a6b 0%, #b21f1f 100%) !important;
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    border: none !important;
+}
+
+.ant-table-tbody > tr:hover > td {
+    background: rgba(255,215,0,0.1) !important;
+}
+
+/* Form Enhancements */
+.ant-form-item-label > label {
+    color: #1a2a6b !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+}
+
+.ant-input, .ant-select-selector, .ant-picker {
+    border-radius: 12px !important;
+    border: 2px solid #E1E5E9 !important;
+    transition: all 0.3s ease !important;
+}
+
+.ant-input:focus, .ant-select-focused .ant-select-selector, .ant-picker-focused {
+    border-color: #FFD700 !important;
+    box-shadow: 0 0 0 4px rgba(255,215,0,0.2) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Modal Enhancements */
+.ant-modal-content {
+    border-radius: 20px !important;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3) !important;
+    border: 2px solid #FFD700 !important;
+}
+
+.ant-modal-header {
+    background: linear-gradient(135deg, #1a2a6b 0%, #b21f1f 100%) !important;
+    border-radius: 18px 18px 0 0 !important;
+    color: #FFFFFF !important;
+}
+
+.ant-modal-title {
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+}
+
+/* Dashboard Stats Cards */
+.dashboard-stat-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    border-radius: 20px !important;
+    padding: 24px !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 8px 24px rgba(102,126,234,0.3) !important;
+    transition: all 0.3s ease !important;
+}
+
+.dashboard-stat-card:hover {
+    transform: translateY(-8px) !important;
+    box-shadow: 0 16px 40px rgba(102,126,234,0.4) !important;
+}
+
+.dashboard-stat-card.success {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+}
+
+.dashboard-stat-card.warning {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+}
+
+.dashboard-stat-card.info {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+}
+
+/* Navigation Enhancements */
+.ant-breadcrumb {
+    background: rgba(255,255,255,0.9) !important;
+    padding: 16px 24px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+    margin-bottom: 24px !important;
+}
+
+/* Page Header Enhancements */
+.ant-page-header {
+    background: linear-gradient(135deg, #1a2a6b 0%, #b21f1f 100%) !important;
+    border-radius: 16px !important;
+    color: #FFFFFF !important;
+    margin-bottom: 24px !important;
+    box-shadow: 0 8px 24px rgba(26,42,107,0.3) !important;
+}
+
+.ant-page-header-heading-title {
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+}
+
+/* Alert Enhancements */
+.ant-alert {
+    border-radius: 12px !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+}
+
+.ant-alert-success {
+    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%) !important;
+    color: #FFFFFF !important;
+}
+
+.ant-alert-warning {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%) !important;
+    color: #FFFFFF !important;
+}
+
+.ant-alert-error {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%) !important;
+    color: #FFFFFF !important;
+}
+
+/* Progress Bar Enhancements */
+.ant-progress-bg {
+    background: linear-gradient(135deg, #1a2a6b 0%, #b21f1f 100%) !important;
+}
+
+/* Tag Enhancements */
+.ant-tag {
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+}
+
+/* Tooltip Enhancements */
+.ant-tooltip-inner {
+    background: linear-gradient(135deg, #1a2a6b 0%, #b21f1f 100%) !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+}
+
+/* Dropdown Enhancements */
+.ant-dropdown-menu {
+    border-radius: 12px !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15) !important;
+    border: 1px solid rgba(255,255,255,0.2) !important;
+    background: rgba(255,255,255,0.95) !important;
+    backdrop-filter: blur(20px) !important;
+}
+
+.ant-dropdown-menu-item:hover {
+    background: rgba(255,215,0,0.1) !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .ant-layout-sider {
+        position: fixed !important;
+        z-index: 1000 !important;
+    }
+    
+    .dashboard-stat-card {
+        margin-bottom: 16px !important;
+    }
+}
+
+/* Animation Classes */
+.fade-in {
+    animation: fadeIn 0.6s ease-in;
+}
+
+.slide-up {
+    animation: slideUp 0.6s ease-out;
+}
+
+.scale-in {
+    animation: scaleIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.1);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #1a2a6b 0%, #b21f1f 100%);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+}
+

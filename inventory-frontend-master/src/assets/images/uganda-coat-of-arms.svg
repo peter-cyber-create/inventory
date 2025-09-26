@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
+  <!-- Shield Background -->
+  <rect x="100" y="100" width="200" height="300" rx="20" fill="#1e3a8a" stroke="#FFD700" stroke-width="4"/>
+  
+  <!-- Central Sun -->
+  <circle cx="200" cy="200" r="40" fill="#FFD700"/>
+  <circle cx="200" cy="200" r="35" fill="#1e3a8a"/>
+  <circle cx="200" cy="200" r="30" fill="#FFD700"/>
+  
+  <!-- Drum -->
+  <ellipse cx="200" cy="280" rx="60" ry="20" fill="#8B4513"/>
+  <ellipse cx="200" cy="280" rx="55" ry="15" fill="#D2691E"/>
+  <ellipse cx="200" cy="280" rx="50" ry="10" fill="#8B4513"/>
+  
+  <!-- Spears -->
+  <line x1="150" y1="120" x2="150" y2="380" stroke="#FFD700" stroke-width="3"/>
+  <line x1="250" y1="120" x2="250" y2="380" stroke="#FFD700" stroke-width="3"/>
+  
+  <!-- Spear Heads -->
+  <polygon points="150,120 145,110 155,110" fill="#FFD700"/>
+  <polygon points="250,120 245,110 255,110" fill="#FFD700"/>
+  
+  <!-- River -->
+  <path d="M 120 350 Q 200 340 280 350" stroke="#4169E1" stroke-width="8" fill="none"/>
+  
+  <!-- Supporting Animals -->
+  <!-- Crane (Left) -->
+  <ellipse cx="80" cy="400" rx="25" ry="15" fill="#FFFFFF"/>
+  <ellipse cx="80" cy="400" rx="20" ry="10" fill="#FFD700"/>
+  
+  <!-- Crane (Right) -->
+  <ellipse cx="320" cy="400" rx="25" ry="15" fill="#FFFFFF"/>
+  <ellipse cx="320" cy="400" rx="20" ry="10" fill="#FFD700"/>
+  
+  <!-- Motto -->
+  <text x="200" y="450" text-anchor="middle" fill="#1e3a8a" font-family="serif" font-size="16" font-weight="bold">FOR GOD AND MY COUNTRY</text>
+  
+  <!-- Crown -->
+  <path d="M 180 80 L 200 60 L 220 80 L 210 85 L 200 75 L 190 85 Z" fill="#FFD700"/>
+  <circle cx="200" cy="70" r="3" fill="#1e3a8a"/>
+</svg>
+

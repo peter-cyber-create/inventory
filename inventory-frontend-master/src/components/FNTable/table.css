@@ -1,0 +1,53 @@
+.enhanced-bootstrap-table {
+    font-family: "Arial", sans-serif;
+  }
+  
+  .enhanced-bootstrap-table .table {
+    /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .enhanced-bootstrap-table .table thead th {
+    background-color: #DAE1F3;
+    color: #598BFF;
+    border-bottom: 2px solid #dee2e6;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .enhanced-bootstrap-table .table thead th:hover {
+    background-color: #e9ecef;
+  }
+  
+  .enhanced-bootstrap-table .table tbody tr:hover {
+    background-color: #f1f3f5;
+  }
+  
+  .enhanced-bootstrap-table .table td,
+  .enhanced-bootstrap-table .table th {
+    vertical-align: middle;
+    padding: 12px;
+  }
+  
+  .enhanced-bootstrap-table .pagination {
+    margin-top: 20px;
+  }
+  
+  .enhanced-bootstrap-table .pagination .page-link {
+    color: #007bff;
+    background-color: #fff;
+    border: 0.2px solid #dee2e6;
+  }
+  
+  .enhanced-bootstrap-table .pagination .page-item.active .page-link {
+    background-color: #007bff;
+    border-color: #007bff;
+  }
+  
+  .enhanced-bootstrap-table .form-control:focus {
+    border-color: #80bdff;
+    /* box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); */
+  }
+  
+  

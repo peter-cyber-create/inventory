@@ -1,0 +1,616 @@
+/* Ministry of Health Uganda - Refined Professional Design */
+/* Clean, subtle, and government-appropriate styling with Uganda colors */
+
+/* ===== GLOBAL STYLES ===== */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f8fafc;
+    margin: 0;
+    padding: 0;
+    color: #1e293b;
+}
+
+/* ===== ENHANCED LOGIN PAGE ===== */
+.moh-login-page {
+    animation: fadeInUp 0.6s ease-out;
+    overflow: hidden; /* Prevent scrolling */
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== ENHANCED DASHBOARD COMPONENTS ===== */
+
+/* Header Enhancement - Uganda Government Colors */
+.ant-layout-header {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important; /* Dark Government Blue */
+    box-shadow: 0 2px 8px rgba(15,23,42,0.2) !important;
+    border-bottom: 2px solid #FFD700 !important; /* Uganda Gold */
+}
+
+.moh-header {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important; /* Dark Government Blue */
+    box-shadow: 0 2px 8px rgba(15,23,42,0.2) !important;
+    border-bottom: 2px solid #FFD700 !important; /* Uganda Gold */
+}
+
+.moh-brand h1 {
+    color: #ffffff !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1) !important;
+}
+
+/* Sidebar Enhancement - Uganda Government Colors */
+.ant-layout-sider {
+    background: #1e293b !important;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.1) !important;
+    border-right: 1px solid #FFD700 !important; /* Uganda Gold */
+}
+
+.ant-menu {
+    background: transparent !important;
+}
+
+.ant-menu-item {
+    margin: 4px 12px !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease !important;
+}
+
+.ant-menu-item:hover {
+    background: #334155 !important;
+    transform: translateX(4px) !important;
+}
+
+.ant-menu-item-selected {
+    background: #0f172a !important; /* Good Dark Usual Shade */
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(15,23,42,0.3) !important;
+}
+
+/* Card Enhancements */
+.ant-card {
+    border-radius: 12px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+    border: 1px solid #e2e8f0 !important;
+    background: #ffffff !important;
+    transition: all 0.2s ease !important;
+}
+
+.ant-card:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1) !important;
+}
+
+.ant-card-head {
+    background: #f8fafc !important;
+    border-radius: 12px 12px 0 0 !important;
+    color: #1e293b !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.ant-card-head-title {
+    color: #1e293b !important;
+    font-weight: 600 !important;
+    font-size: 16px !important;
+}
+
+/* Button Enhancements - Uganda Government Colors */
+.ant-btn {
+    border-radius: 8px !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+}
+
+.ant-btn-primary {
+    background: #0f172a !important; /* Dark Government Blue */
+    border: none !important;
+    color: #ffffff !important;
+}
+
+.ant-btn-primary:hover {
+    background: #1e293b !important; /* Darker Government Blue */
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(15,23,42,0.4) !important;
+}
+
+.ant-btn-success {
+    background: #10b981 !important;
+    border: none !important;
+    color: #ffffff !important;
+}
+
+.ant-btn-danger {
+    background: #ef4444 !important;
+    border: none !important;
+    color: #ffffff !important;
+}
+
+/* ===== ENHANCED TABLE DESIGNS ===== */
+.ant-table {
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+.ant-table-thead > tr > th {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important; /* Dark Government Blue */
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    border: none !important;
+    padding: 16px 12px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+}
+
+.ant-table-tbody > tr > td {
+    padding: 16px 12px !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    transition: all 0.2s ease !important;
+}
+
+.ant-table-tbody > tr:hover > td {
+    background: rgba(15,23,42,0.05) !important; /* Light Dark */
+    transform: scale(1.01) !important;
+}
+
+.ant-table-tbody > tr:nth-child(even) > td {
+    background: #fafbfc !important;
+}
+
+.ant-table-tbody > tr:nth-child(odd) > td {
+    background: #ffffff !important;
+}
+
+/* Table Row Selection */
+.ant-table-tbody > tr.ant-table-row-selected > td {
+    background: rgba(15,23,42,0.1) !important; /* Light Dark */
+    border-left: 4px solid #0f172a !important; /* Good Dark Usual Shade */
+}
+
+/* ===== ENHANCED FORM DESIGNS ===== */
+.ant-form-item-label > label {
+    color: #374151 !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    margin-bottom: 8px !important;
+    display: block !important;
+}
+
+.ant-input, .ant-select-selector, .ant-picker, .ant-input-number {
+    border-radius: 8px !important;
+    border: 2px solid #d1d5db !important;
+    transition: all 0.3s ease !important;
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+    background: #ffffff !important;
+}
+
+.ant-input:hover, .ant-select-selector:hover, .ant-picker:hover, .ant-input-number:hover {
+    border-color: #0f172a !important; /* Good Dark Usual Shade */
+    box-shadow: 0 0 0 2px rgba(15,23,42,0.1) !important;
+}
+
+.ant-input:focus, .ant-select-focused .ant-select-selector, .ant-picker-focused, .ant-input-number-focused {
+    border-color: #0f172a !important; /* Good Dark Usual Shade */
+    box-shadow: 0 0 0 3px rgba(15,23,42,0.15) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Form Input Groups */
+.ant-input-group-addon {
+    background: #f8fafc !important;
+    border: 2px solid #d1d5db !important;
+    border-right: none !important;
+    color: #64748b !important;
+    font-weight: 500 !important;
+}
+
+/* Form Validation States */
+.ant-form-item-has-error .ant-input,
+.ant-form-item-has-error .ant-select-selector,
+.ant-form-item-has-error .ant-picker {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 2px rgba(239,68,68,0.1) !important;
+}
+
+.ant-form-item-has-success .ant-input,
+.ant-form-item-has-success .ant-select-selector,
+.ant-form-item-has-success .ant-picker {
+    border-color: #10b981 !important;
+    box-shadow: 0 0 0 2px rgba(16,185,129,0.1) !important;
+}
+
+/* ===== ENHANCED MODAL DESIGNS ===== */
+.ant-modal-content {
+    border-radius: 16px !important;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+    border: 2px solid #FFD700 !important; /* Uganda Gold */
+}
+
+.ant-modal-header {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important; /* Good Dark Usual Shade */
+    border-radius: 14px 14px 0 0 !important;
+    color: #ffffff !important;
+    border-bottom: 1px solid #FFD700 !important; /* Uganda Gold */
+}
+
+.ant-modal-title {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    font-size: 18px !important;
+}
+
+/* ===== ENHANCED DROPDOWN DESIGNS ===== */
+.ant-dropdown-menu {
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+    border: 1px solid #e2e8f0 !important;
+    background: #ffffff !important;
+}
+
+.ant-dropdown-menu-item:hover {
+    background: rgba(15,23,42,0.05) !important; /* Light Dark */
+}
+
+.ant-dropdown-menu-item-selected {
+    background: rgba(15,23,42,0.1) !important; /* Light Dark */
+    color: #0f172a !important; /* Good Dark Usual Shade */
+}
+
+/* ===== ENHANCED SELECT DESIGNS ===== */
+.ant-select-dropdown {
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+.ant-select-item-option-selected {
+    background: rgba(30,64,175,0.1) !important; /* Light Blue */
+    color: #1e40af !important; /* Professional Blue */
+}
+
+.ant-select-item-option-active {
+    background: rgba(30,64,175,0.05) !important; /* Light Blue */
+}
+
+/* ===== ENHANCED DATE PICKER DESIGNS ===== */
+.ant-picker-dropdown {
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+.ant-picker-cell-selected .ant-picker-cell-inner {
+    background: #1e40af !important; /* Professional Blue */
+    color: #ffffff !important;
+}
+
+.ant-picker-cell-in-view:hover .ant-picker-cell-inner {
+    background: rgba(30,64,175,0.1) !important; /* Light Blue */
+}
+
+/* ===== ENHANCED CHECKBOX AND RADIO DESIGNS ===== */
+.ant-checkbox-checked .ant-checkbox-inner {
+    background: #1e40af !important; /* Professional Blue */
+    border-color: #1e40af !important; /* Professional Blue */
+}
+
+.ant-checkbox-wrapper:hover .ant-checkbox-inner {
+    border-color: #1e40af !important; /* Professional Blue */
+}
+
+.ant-radio-checked .ant-radio-inner {
+    border-color: #1e40af !important; /* Professional Blue */
+}
+
+.ant-radio-checked .ant-radio-inner::after {
+    background: #1e40af !important; /* Professional Blue */
+}
+
+/* ===== ENHANCED SWITCH DESIGNS ===== */
+.ant-switch-checked {
+    background: #1e40af !important; /* Professional Blue */
+}
+
+/* ===== ENHANCED SLIDER DESIGNS ===== */
+.ant-slider-track {
+    background: #1e40af !important; /* Professional Blue */
+}
+
+.ant-slider-handle {
+    border-color: #1e40af !important; /* Professional Blue */
+}
+
+.ant-slider-handle:focus {
+    box-shadow: 0 0 0 3px rgba(30,64,175,0.15) !important;
+}
+
+/* ===== ENHANCED PROGRESS BAR DESIGNS ===== */
+.ant-progress-bg {
+    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%) !important; /* Professional Blue */
+}
+
+/* ===== ENHANCED TAG DESIGNS ===== */
+.ant-tag {
+    border-radius: 6px !important;
+    font-weight: 500 !important;
+    font-size: 12px !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+.ant-tag-green {
+    background: rgba(30,64,175,0.1) !important; /* Light Blue */
+    color: #1e40af !important; /* Professional Blue */
+    border-color: #1e40af !important; /* Professional Blue */
+}
+
+/* ===== ENHANCED TOOLTIP DESIGNS ===== */
+.ant-tooltip-inner {
+    background: #1e293b !important;
+    border-radius: 6px !important;
+    font-weight: 500 !important;
+    color: #ffffff !important;
+}
+
+/* ===== ENHANCED NOTIFICATION DESIGNS ===== */
+.ant-notification-notice {
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+.ant-notification-notice-message {
+    font-weight: 600 !important;
+    color: #1e293b !important;
+}
+
+/* ===== ENHANCED MESSAGE DESIGNS ===== */
+.ant-message-notice {
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+}
+
+.ant-message-success {
+    background: rgba(16,185,129,0.1) !important;
+    border: 1px solid #10b981 !important;
+    color: #065f46 !important;
+}
+
+.ant-message-error {
+    background: rgba(239,68,68,0.1) !important;
+    border: 1px solid #ef4444 !important;
+    color: #991b1b !important;
+}
+
+.ant-message-warning {
+    background: rgba(245,158,11,0.1) !important;
+    border: 1px solid #f59e0b !important;
+    color: #92400e !important;
+}
+
+.ant-message-info {
+    background: rgba(59,130,246,0.1) !important;
+    border: 1px solid #3b82f6 !important;
+    color: #1e40af !important;
+}
+
+/* ===== ENHANCED ALERT DESIGNS ===== */
+.ant-alert {
+    border-radius: 8px !important;
+    border: none !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important;
+}
+
+.ant-alert-success {
+    background: rgba(16,185,129,0.1) !important;
+    color: #065f46 !important;
+    border-left: 4px solid #10b981 !important;
+}
+
+.ant-alert-warning {
+    background: rgba(245,158,11,0.1) !important;
+    color: #92400e !important;
+    border-left: 4px solid #f59e0b !important;
+}
+
+.ant-alert-error {
+    background: rgba(239,68,68,0.1) !important;
+    color: #991b1b !important;
+    border-left: 4px solid #ef4444 !important;
+}
+
+.ant-alert-info {
+    background: rgba(59,130,246,0.1) !important;
+    color: #1e40af !important;
+    border-left: 4px solid #3b82f6 !important;
+}
+
+/* ===== ENHANCED BREADCRUMB DESIGNS ===== */
+.ant-breadcrumb {
+    background: #ffffff !important;
+    padding: 12px 16px !important;
+    border-radius: 8px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important;
+    margin-bottom: 16px !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+.ant-breadcrumb-link {
+    color: #64748b !important;
+    transition: color 0.2s ease !important;
+}
+
+.ant-breadcrumb-link:hover {
+    color: #1e40af !important; /* Professional Blue */
+}
+
+/* ===== ENHANCED PAGE HEADER DESIGNS ===== */
+.ant-page-header {
+    background: #ffffff !important;
+    border-radius: 12px !important;
+    color: #1e293b !important;
+    margin-bottom: 16px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+.ant-page-header-heading-title {
+    color: #1e293b !important;
+    font-weight: 600 !important;
+    font-size: 20px !important;
+}
+
+/* ===== ENHANCED STATISTIC DESIGNS ===== */
+.ant-statistic-title {
+    color: #64748b !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    margin-bottom: 8px !important;
+}
+
+.ant-statistic-content {
+    color: #1e293b !important;
+    font-weight: 700 !important;
+    font-size: 28px !important;
+}
+
+.ant-statistic-content-prefix {
+    color: #1e40af !important; /* Professional Blue */
+    margin-right: 8px !important;
+}
+
+/* ===== ENHANCED DIVIDER DESIGNS ===== */
+.ant-divider {
+    border-color: #e2e8f0 !important;
+    margin: 16px 0 !important;
+}
+
+.ant-divider-horizontal.ant-divider-with-text::before,
+.ant-divider-horizontal.ant-divider-with-text::after {
+    border-color: #e2e8f0 !important;
+}
+
+.ant-divider-inner-text {
+    color: #64748b !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+}
+
+/* ===== ENHANCED SPACE DESIGNS ===== */
+.ant-space {
+    gap: 16px !important;
+}
+
+.ant-space-vertical {
+    gap: 12px !important;
+}
+
+/* ===== ENHANCED ROW AND COL DESIGNS ===== */
+.ant-row {
+    margin: 0 -12px !important;
+}
+
+.ant-col {
+    padding: 0 12px !important;
+}
+
+/* ===== ENHANCED RESPONSIVE DESIGNS ===== */
+@media (max-width: 768px) {
+    .ant-layout-sider {
+        position: fixed !important;
+        z-index: 1000 !important;
+    }
+    
+    .dashboard-stat-card {
+        margin-bottom: 12px !important;
+    }
+    
+    .ant-table-thead > tr > th,
+    .ant-table-tbody > tr > td {
+        padding: 12px 8px !important;
+        font-size: 12px !important;
+    }
+    
+    .ant-form-item-label > label {
+        font-size: 13px !important;
+    }
+    
+    .ant-input, .ant-select-selector, .ant-picker, .ant-input-number {
+        padding: 10px 12px !important;
+        font-size: 13px !important;
+    }
+}
+
+/* ===== ANIMATION CLASSES ===== */
+.fade-in {
+    animation: fadeIn 0.4s ease-in;
+}
+
+.slide-up {
+    animation: slideUp 0.4s ease-out;
+}
+
+.scale-in {
+    animation: scaleIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ===== CUSTOM SCROLLBAR ===== */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
