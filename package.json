@@ -1,0 +1,45 @@
+{
+  "name": "inventory-management-system",
+  "version": "1.0.0",
+  "description": "Professional Inventory Management System with React frontend and Node.js backend",
+  "main": "backend/index.js",
+  "scripts": {
+    "start": "./scripts/setup/start-application.sh",
+    "stop": "./scripts/maintenance/stop-application.sh",
+    "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm start\"",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "build": "cd backend && npm run build && cd ../frontend && npm run build",
+    "test": "cd backend && npm test && cd ../frontend && npm test",
+    "lint": "cd backend && npm run lint && cd ../frontend && npm run lint",
+    "backend": "cd backend && npm start",
+    "frontend": "cd frontend && npm start",
+    "backend:dev": "cd backend && npm run dev",
+    "frontend:dev": "cd frontend && npm start"
+  },
+  "keywords": [
+    "inventory",
+    "management",
+    "assets",
+    "fleet",
+    "stores",
+    "finance",
+    "react",
+    "nodejs",
+    "express",
+    "mysql",
+    "postgresql"
+  ],
+  "author": "Inventory Management Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^7.6.0"
+  },
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
+  }
+}

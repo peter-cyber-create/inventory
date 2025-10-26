@@ -1,0 +1,336 @@
+/* Stores Module Design System */
+
+:root {
+  /* Uganda Flag Colors */
+  --uganda-black: #000000;
+  --uganda-yellow: #FFD100;
+  --uganda-red: #D90303;
+  
+  /* Ministry of Health Brand Colors */
+  --moh-primary: #111827;
+  --moh-secondary: #6B7280;
+  --moh-surface: #F8FAFC;
+  
+  /* Status Colors */
+  --success: #16A34A; /* Green for received items */
+  --issued: #111827;  /* Very dark for issued items */
+  --opening: #EF4444; /* Red for opening stock */
+  --closing: #0EA5E9; /* Blue for closing balance */
+  
+  /* Typography */
+  --font-family: 'Inter', system-ui, sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  
+  /* Spacing */
+  --spacing-1: 0.25rem;
+  --spacing-2: 0.5rem;
+  --spacing-3: 0.75rem;
+  --spacing-4: 1rem;
+  --spacing-6: 1.5rem;
+  --spacing-8: 2rem;
+  --spacing-12: 3rem;
+  
+  /* Border Radius */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+/* Top Stripe Component */
+.top-stripe {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 50;
+  height: 12px;
+}
+
+.top-stripe-band {
+  flex: 1;
+  height: 100%;
+}
+
+.top-stripe-band.black {
+  background-color: var(--uganda-black);
+}
+
+.top-stripe-band.yellow {
+  background-color: var(--uganda-yellow);
+}
+
+.top-stripe-band.red {
+  background-color: var(--uganda-red);
+}
+
+/* Ledger Color Coding */
+.ledger-opening {
+  border-left: 4px solid var(--opening);
+  background-color: #FEF2F2;
+}
+
+.ledger-received {
+  border-left: 4px solid var(--success);
+  background-color: #F0FDF4;
+}
+
+.ledger-issued {
+  border-left: 4px solid var(--issued);
+  background-color: #FFFFFF;
+}
+
+.ledger-closing {
+  border-left: 4px solid var(--closing);
+  background-color: #EFF6FF;
+}
+
+/* Signature Pad Styles */
+.signature-pad {
+  border: 1px solid #D1D5DB;
+  border-radius: var(--radius-md);
+  background-color: white;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.signature-pad:focus {
+  outline: 2px solid #3B82F6;
+  outline-offset: 2px;
+}
+
+/* Form Styles */
+.form-input {
+  width: 100%;
+  padding: var(--spacing-2);
+  border: 1px solid #D1D5DB;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgb(59 130 246 / 0.1);
+}
+
+.form-label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: var(--spacing-1);
+}
+
+/* Button Styles */
+.btn-primary {
+  background-color: #3B82F6;
+  color: white;
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.btn-primary:hover {
+  background-color: #2563EB;
+}
+
+.btn-secondary {
+  background-color: #F3F4F6;
+  color: #374151;
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.btn-secondary:hover {
+  background-color: #E5E7EB;
+}
+
+.btn-danger {
+  background-color: #EF4444;
+  color: white;
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.btn-danger:hover {
+  background-color: #DC2626;
+}
+
+/* Table Styles */
+.table-container {
+  overflow-x: auto;
+  border: 1px solid #D1D5DB;
+  border-radius: var(--radius-lg);
+}
+
+.table {
+  min-width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  background-color: #F9FAFB;
+  padding: var(--spacing-3) var(--spacing-4);
+  text-align: left;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: #374151;
+  border-bottom: 1px solid #D1D5DB;
+}
+
+.table td {
+  padding: var(--spacing-3) var(--spacing-4);
+  border-bottom: 1px solid #D1D5DB;
+  font-size: var(--font-size-sm);
+}
+
+.table tbody tr:hover {
+  background-color: #F9FAFB;
+}
+
+/* Card Styles */
+.card {
+  background-color: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--spacing-6);
+}
+
+.card-header {
+  margin-bottom: var(--spacing-6);
+}
+
+.card-title {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+/* Animation Classes */
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+.animate-bounce-gentle {
+  animation: bounceGentle 0.6s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes bounceGentle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .top-stripe {
+    height: 8px;
+  }
+  
+  .card {
+    padding: var(--spacing-4);
+  }
+  
+  .table th,
+  .table td {
+    padding: var(--spacing-2);
+    font-size: var(--font-size-xs);
+  }
+}
+
+/* Accessibility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Focus styles for keyboard navigation */
+.focus-visible:focus {
+  outline: 2px solid #3B82F6;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .ledger-opening {
+    background-color: #FFE5E5;
+    border-left-color: #CC0000;
+  }
+  
+  .ledger-received {
+    background-color: #E5FFE5;
+    border-left-color: #006600;
+  }
+  
+  .ledger-issued {
+    background-color: #F5F5F5;
+    border-left-color: #000000;
+  }
+  
+  .ledger-closing {
+    background-color: #E5F3FF;
+    border-left-color: #0066CC;
+  }
+}
