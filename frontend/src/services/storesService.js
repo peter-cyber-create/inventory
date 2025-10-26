@@ -80,6 +80,40 @@ export const storesService = {
   generateForm76APDF: (id) => api.get(`/stores/form76a/${id}/pdf`, { responseType: 'blob' }),
   deleteForm76A: (id) => api.delete(`/stores/form76a/${id}`),
 
+  // GRN (Goods Received Notes)
+  createGRN: (data) => api.post('/stores/grn', data),
+  getGRN: (id) => api.get(`/stores/grn/${id}`),
+  getGRNs: (params) => api.get('/stores/grn', { params }),
+  updateGRN: (id, data) => api.put(`/stores/grn/${id}`, data),
+  approveGRN: (id, data) => api.patch(`/stores/grn/${id}/status`, { status: 'approved', ...data }),
+  rejectGRN: (id, data) => api.patch(`/stores/grn/${id}/status`, { status: 'rejected', ...data }),
+  deleteGRN: (id) => api.delete(`/stores/grn/${id}`),
+
+  // Stock Ledger
+  getStockLedger: (params) => api.get('/stores/ledger', { params }),
+  getItemLedger: (itemId, params) => api.get(`/stores/ledger/item/${itemId}`, { params }),
+  getStockBalances: (params) => api.get('/stores/ledger/balance', { params }),
+  getLowStockItems: (params) => api.get('/stores/ledger/low-stock', { params }),
+  getMovementSummary: (params) => api.get('/stores/ledger/movement/summary', { params }),
+
+  // Stock Issuance
+  createIssuance: (data) => api.post('/stores/issuance', data),
+  getIssuance: (id) => api.get(`/stores/issuance/${id}`),
+  getIssuances: (params) => api.get('/stores/issuance', { params }),
+  updateIssuance: (id, data) => api.put(`/stores/issuance/${id}`, data),
+  getRequisitionIssuances: (requisitionId) => api.get(`/stores/issuance/requisition/${requisitionId}`),
+  deleteIssuance: (id) => api.delete(`/stores/issuance/${id}`),
+
+  // Reports
+  getDashboardStats: () => api.get('/stores/reports/dashboard-stats'),
+  getStockMovementReport: (params) => api.get('/stores/reports/stock-movement', { params }),
+  getStockBalanceReport: (params) => api.get('/stores/reports/stock-balance', { params }),
+  getConsumptionReport: (params) => api.get('/stores/reports/consumption', { params }),
+  getAgingReport: (params) => api.get('/stores/reports/aging', { params }),
+  getValuationReport: (params) => api.get('/stores/reports/valuation', { params }),
+  getGRNSummaryReport: (params) => api.get('/stores/reports/grn-summary', { params }),
+  getIssuanceSummaryReport: (params) => api.get('/stores/reports/issuance-summary', { params }),
+
   // Issuances
   getIssuances: (params) => api.get('/stores/issuances', { params }),
   getIssuance: (id) => api.get(`/stores/issuances/${id}`),

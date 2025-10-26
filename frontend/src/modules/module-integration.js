@@ -25,11 +25,10 @@ export const MODULE_ROUTES = {
     
     // Stores Management
     STORES: {
-        products: '/stores/products',
+        grn: '/stores/grn',
         ledger: '/stores/ledger',
-        assets: '/stores/assets/register',
-        requisitions: '/stores/requisitions',
-        form76a: '/stores/form76a',
+        issuance: '/stores/issuance',
+        requisition: '/stores/requisition',
         reports: '/stores/reports'
     },
     
@@ -74,11 +73,10 @@ export const MODULE_NAVIGATION = {
             label: 'Stores',
             icon: 'ShopOutlined',
             children: [
-                { key: 'stores-products', label: 'Products', path: MODULE_ROUTES.STORES.products },
+                { key: 'stores-grn', label: 'GRN', path: MODULE_ROUTES.STORES.grn },
                 { key: 'stores-ledger', label: 'Ledger', path: MODULE_ROUTES.STORES.ledger },
-                { key: 'stores-assets', label: 'Asset Register', path: MODULE_ROUTES.STORES.assets },
-                { key: 'stores-requisitions', label: 'Requisitions', path: MODULE_ROUTES.STORES.requisitions },
-                { key: 'stores-form76a', label: 'Form 76A', path: MODULE_ROUTES.STORES.form76a },
+                { key: 'stores-issuance', label: 'Issuance', path: MODULE_ROUTES.STORES.issuance },
+                { key: 'stores-requisition', label: 'Requisition', path: MODULE_ROUTES.STORES.requisition },
                 { key: 'stores-reports', label: 'Reports', path: MODULE_ROUTES.STORES.reports }
             ]
         },
