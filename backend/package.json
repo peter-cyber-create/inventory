@@ -4,6 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
+    "dev": "nodemon --exec babel-node index.js",
     "server": "nodemon --exec babel-node index.js",
     "start": "node index.js",
     "start:pm2": "pm2 start index.js --name inventory",
