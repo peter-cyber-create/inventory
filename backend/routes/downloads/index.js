@@ -19,8 +19,8 @@ router.get("/models", async (req, res) => {
         // Transform data to include names instead of IDs
         const transformedData = models.map((model) => ({
             Name: model.name,
-            Category: model.category?.name || "N/A",
-            Brand: model.brand?.name || "N/A",
+            Category: (model.category && model.category.name) || "N/A",
+            Brand: (model.brand && model.brand.name) || "N/A",
             Description: model.description || "",
         }));
 

@@ -45,8 +45,9 @@ router.get("/", async (req, res) => {
 
 router.patch("/:id", async (req, res) => {
     try {
+        const updateData = Object.assign({}, req.body, { updatedAt: Date.now() });
         const result = await Staff.update(
-            { ...req.body, updatedAt: Date.now() },
+            updateData,
             {
                 where: {
                     id: req.params.id,

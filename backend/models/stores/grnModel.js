@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../../config/db');
 
-const GRN = sequelize.define('grn', {
+const GRN = sequelize.define('grns', {
   grn_id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
@@ -16,89 +16,82 @@ const GRN = sequelize.define('grn', {
       len: [1, 50]
     }
   },
-  consignment_id: {
-    type: DataTypes.INTEGER,
-    references: {
-      model: 'consignment_data',
-      key: 'consignment_id'
-    }
-  },
-  item_id: {
-    type: DataTypes.INTEGER,
-    references: {
-      model: 'items',
-      key: 'item_id'
-    }
-  },
-  quantity_ordered: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
-    validate: {
-      min: 0
-    }
-  },
-  quantity_received: {
-    type: DataTypes.INTEGER,
+  date_received: {
+    type: DataTypes.DATE,
     allowNull: false,
-    validate: {
-      min: 0
-    }
+    defaultValue: DataTypes.NOW
   },
-  quantity_accepted: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
-    validate: {
-      min: 0
-    }
-  },
-  quantity_rejected: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
-    validate: {
-      min: 0
-    }
-  },
-  unit_cost: {
-    type: DataTypes.DECIMAL(10, 2),
-    allowNull: false,
-    validate: {
-      min: 0
-    }
-  },
-  total_cost: {
-    type: DataTypes.DECIMAL(15, 2),
-    allowNull: false,
-    validate: {
-      min: 0
-    }
-  },
-  batch_number: {
+  delivery_note_no: {
     type: DataTypes.STRING,
+    allowNull: true,
     validate: {
-      len: [0, 100]
+      len: [1, 100]
     }
   },
-  expiry_date: {
-    type: DataTypes.DATE
-  },
-  manufacture_date: {
-    type: DataTypes.DATE
-  },
-  location_id: {
-    type: DataTypes.INTEGER,
-    references: {
-      model: 'locations',
-      key: 'location_id'
+  tax_invoice_no: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    validate: {
+      len: [1, 100]
     }
   },
-  received_by: {
-    type: DataTypes.INTEGER,
-    references: {
-      model: 'users',
-      key: 'id'
+  lpo_no: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Local Purchase Order Number',
+    validate: {
+      len: [1, 100]
     }
   },
-  verified_by: {
+  contract_no: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Procurement Reference Number',
+    validate: {
+      len: [1, 100]
+    }
+  },
+  supplier_name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    validate: {
+      notEmpty: true,
+      len: [2, 255]
+    }
+  },
+  supplier_contact: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    validate: {
+      len: [1, 255]
+    }
+  },
+  delivery_location: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    comment: 'Store Section / Delivery Location',
+    validate: {
+      notEmpty: true,
+      len: [2, 255]
+    }
+  },
+  status: {
+    type: DataTypes.ENUM,
+    values: ['draft', 'received', 'inspected', 'approved', 'rejected'],
+    defaultValue: 'draft'
+  },
+  total_value: {
+    type: DataTypes.DECIMAL(15, 2),
+    defaultValue: 0,
+    validate: {
+      min: 0
+    }
+  },
+  remarks: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  created_by: {
     type: DataTypes.INTEGER,
     references: {
       model: 'users',
@@ -112,16 +105,14 @@ const GRN = sequelize.define('grn', {
       key: 'id'
     }
   },
-  status: {
-    type: DataTypes.ENUM,
-    values: ['pending', 'verified', 'approved', 'rejected'],
-    defaultValue: 'pending'
+  approved_at: {
+    type: DataTypes.DATE
   },
-  remarks: {
-    type: DataTypes.TEXT
+  printed_at: {
+    type: DataTypes.DATE
   }
 }, {
-  tableName: 'grn',
+  tableName: 'grns',
   timestamps: true,
   createdAt: 'created_at',
   updatedAt: 'updated_at'

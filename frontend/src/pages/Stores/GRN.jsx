@@ -1,519 +1,507 @@
 import React, { useState, useEffect } from 'react';
 import {
   Card,
-  Table,
-  Button,
-  Space,
-  message,
-  Modal,
   Form,
   Input,
+  Button,
+  Table,
+  Space,
+  Modal,
+  message,
+  Upload,
   Select,
   DatePicker,
-  InputNumber,
   Row,
   Col,
-  Tag,
-  Tooltip,
-  Divider,
   Typography,
-  Alert
+  Divider,
+  Tag,
+  Popconfirm
 } from 'antd';
 import {
   PlusOutlined,
-  EditOutlined,
+  DeleteOutlined,
+  UploadOutlined,
+  DownloadOutlined,
+  PrinterOutlined,
   EyeOutlined,
-  CheckOutlined,
-  CloseOutlined,
-  SearchOutlined,
-  DeleteOutlined
+  EditOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { storesService } from '../../services/storesService';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
 
 const GRN = () => {
+  const [form] = Form.useForm();
   const [grns, setGrns] = useState([]);
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-  const [viewModalVisible, setViewModalVisible] = useState(false);
-  const [selectedGRN, setSelectedGRN] = useState(null);
-  const [form] = Form.useForm();
+  const [editingGRN, setEditingGRN] = useState(null);
   const [items, setItems] = useState([]);
-  const [suppliers, setSuppliers] = useState([]);
-  const [locations, setLocations] = useState([]);
+  const [attachments, setAttachments] = useState([]);
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
     total: 0
   });
-  const [filters, setFilters] = useState({
-    search: '',
-    status: ''
-  });
 
-  const statusConfig = {
-    'pending': { color: 'orange', label: 'Pending' },
-    'approved': { color: 'green', label: 'Approved' },
-    'rejected': { color: 'red', label: 'Rejected' }
-  };
-
-  useEffect(() => {
-    fetchInitialData();
-    fetchGRNs();
-  }, [pagination.current, pagination.pageSize, filters]);
-
-  const fetchInitialData = async () => {
+  // Load GRNs
+  const loadGRNs = async (page = 1) => {
+    setLoading(true);
     try {
-      const [suppliersRes, locationsRes, itemsRes] = await Promise.all([
-        storesService.getActiveSuppliers(),
-        storesService.getActiveLocations(),
-        storesService.getItems({ status: 'active' })
-      ]);
-
-      if (suppliersRes.data.success) setSuppliers(suppliersRes.data.data);
-      if (locationsRes.data.success) setLocations(locationsRes.data.data);
-      if (itemsRes.data.success) setItems(itemsRes.data.data.items);
-    } catch (error) {
-      message.error('Failed to load initial data');
-    }
-  };
-
-  const fetchGRNs = async () => {
-    try {
-      setLoading(true);
       const response = await storesService.getGRNs({
-        page: pagination.current,
-        limit: pagination.pageSize,
-        ...filters
+        page,
+        limit: pagination.pageSize
       });
-
-      if (response.data.success) {
-        setGrns(response.data.data.grn);
-        setPagination(prev => ({
-          ...prev,
-          total: response.data.data.pagination.total
-        }));
-      }
+      setGrns(response.data.data);
+      setPagination(prev => ({
+        ...prev,
+        current: page,
+        total: response.data.pagination.total
+      }));
     } catch (error) {
-      message.error('Failed to fetch GRNs');
+      message.error('Failed to load GRNs');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCreate = () => {
-    setSelectedGRN(null);
-    setModalVisible(true);
-    form.resetFields();
-    form.setFieldsValue({
-      received_date: dayjs(),
-      status: 'pending'
-    });
-  };
+  useEffect(() => {
+    loadGRNs();
+  }, []);
 
-  const handleView = async (record) => {
-    try {
-      const response = await storesService.getGRN(record.grn_id);
-      if (response.data.success) {
-        setSelectedGRN(response.data.data);
-        setViewModalVisible(true);
-      }
-    } catch (error) {
-      message.error('Failed to load GRN details');
-    }
-  };
-
-  const handleApprove = async (grnId, action) => {
-    try {
-      const response = await storesService[action === 'approve' ? 'approveGRN' : 'rejectGRN'](grnId, {
-        remarks: ''
-      });
-
-      if (response.data.success) {
-        message.success(`GRN ${action}d successfully`);
-        fetchGRNs();
-      }
-    } catch (error) {
-      message.error(`Failed to ${action} GRN`);
-    }
-  };
-
-  const handleSubmit = async (values) => {
-    try {
-      if (items.length === 0) {
-        message.error('Please add at least one item to the GRN');
-        return;
-      }
-
-      const grnData = {
-        ...values,
-        received_date: values.received_date.format('YYYY-MM-DD'),
-        items: items.map(item => ({
-          item_id: item.item_id,
-          quantity_received: item.quantity_received,
-          unit_cost: item.unit_cost,
-          batch_number: item.batch_number,
-          expiry_date: item.expiry_date,
-          condition: item.condition
-        }))
-      };
-
-      const response = await storesService.createGRN(grnData);
-      
-      if (response.data.success) {
-        message.success('GRN created successfully');
-        setModalVisible(false);
-        fetchGRNs();
-      }
-    } catch (error) {
-      message.error('Failed to create GRN');
-    }
-  };
-
+  // Add item row
   const addItem = () => {
     const newItem = {
-      key: Date.now(),
-      item_id: null,
-      quantity_received: 0,
-      unit_cost: 0,
-      batch_number: '',
-      expiry_date: null,
-      condition: 'good'
+      serial_no: items.length + 1,
+      description: '',
+      unit_of_measure: '',
+      quantity_ordered: 0,
+      quantity_delivered: 0,
+      quantity_accepted: 0,
+      unit_price: 0,
+      remarks: ''
     };
     setItems([...items, newItem]);
   };
 
-  const removeItem = (key) => {
-    setItems(items.filter(item => item.key !== key));
+  // Remove item row
+  const removeItem = (index) => {
+    const newItems = items.filter((_, i) => i !== index);
+    // Re-number serial numbers
+    const renumberedItems = newItems.map((item, i) => ({
+      ...item,
+      serial_no: i + 1
+    }));
+    setItems(renumberedItems);
   };
 
-  const updateItem = (key, field, value) => {
-    const updatedItems = items.map(item => {
-      if (item.key === key) {
-        return { ...item, [field]: value };
-      }
-      return item;
-    });
-    setItems(updatedItems);
-  };
-
-  const itemColumns = [
-    {
-      title: 'Item',
-      dataIndex: 'item_id',
-      key: 'item_id',
-      width: 250,
-      render: (value, record) => (
-        <Select
-          value={value}
-          onChange={(val) => updateItem(record.key, 'item_id', val)}
-          placeholder="Select item"
-          style={{ width: '100%' }}
-          showSearch
-          optionFilterProp="children"
-        >
-          {items.map(item => (
-            <Option key={item.item_id} value={item.item_id}>
-              {item.item_name} ({item.item_code})
-            </Option>
-          ))}
-        </Select>
-      )
-    },
-    {
-      title: 'Quantity Received',
-      dataIndex: 'quantity_received',
-      key: 'quantity_received',
-      width: 150,
-      render: (value, record) => (
-        <InputNumber
-          value={value}
-          onChange={(val) => updateItem(record.key, 'quantity_received', val)}
-          style={{ width: '100%' }}
-          min={1}
-        />
-      )
-    },
-    {
-      title: 'Unit Cost',
-      dataIndex: 'unit_cost',
-      key: 'unit_cost',
-      width: 120,
-      render: (value, record) => (
-        <InputNumber
-          value={value}
-          onChange={(val) => updateItem(record.key, 'unit_cost', val)}
-          style={{ width: '100%' }}
-          min={0}
-          step={0.01}
-        />
-      )
-    },
-    {
-      title: 'Batch Number',
-      dataIndex: 'batch_number',
-      key: 'batch_number',
-      width: 150,
-      render: (value, record) => (
-        <Input
-          value={value}
-          onChange={(e) => updateItem(record.key, 'batch_number', e.target.value)}
-          placeholder="Batch number"
-        />
-      )
-    },
-    {
-      title: 'Expiry Date',
-      dataIndex: 'expiry_date',
-      key: 'expiry_date',
-      width: 150,
-      render: (value, record) => (
-        <DatePicker
-          value={value ? dayjs(value) : null}
-          onChange={(date) => updateItem(record.key, 'expiry_date', date?.format('YYYY-MM-DD'))}
-          style={{ width: '100%' }}
-        />
-      )
-    },
-    {
-      title: 'Condition',
-      dataIndex: 'condition',
-      key: 'condition',
-      width: 120,
-      render: (value, record) => (
-        <Select
-          value={value}
-          onChange={(val) => updateItem(record.key, 'condition', val)}
-          style={{ width: '100%' }}
-        >
-          <Option value="good">Good</Option>
-          <Option value="damaged">Damaged</Option>
-          <Option value="expired">Expired</Option>
-        </Select>
-      )
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      width: 80,
-      render: (_, record) => (
-        <Button
-          type="text"
-          danger
-          icon={<DeleteOutlined />}
-          onClick={() => removeItem(record.key)}
-        />
-      )
+  // Update item
+  const updateItem = (index, field, value) => {
+    const newItems = [...items];
+    newItems[index] = { ...newItems[index], [field]: value };
+    
+    // Calculate total value if unit_price and quantity_accepted are provided
+    if (field === 'unit_price' || field === 'quantity_accepted') {
+      const unitPrice = parseFloat(newItems[index].unit_price) || 0;
+      const quantityAccepted = parseInt(newItems[index].quantity_accepted) || 0;
+      newItems[index].total_value = unitPrice * quantityAccepted;
     }
-  ];
+    
+    setItems(newItems);
+  };
 
+  // Handle form submission
+  const handleSubmit = async (values) => {
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      
+      // Add GRN data
+      Object.keys(values).forEach(key => {
+        if (values[key] !== undefined && values[key] !== null) {
+          formData.append(key, values[key]);
+        }
+      });
+      
+      // Add items
+      formData.append('items', JSON.stringify(items));
+      
+      // Add attachments
+      attachments.forEach((file, index) => {
+        formData.append('attachments', file.originFileObj);
+        formData.append('document_types', JSON.stringify(['form5', 'technical_specs']));
+      });
+
+      if (editingGRN) {
+        await storesService.updateGRN(editingGRN.grn_id, formData);
+        message.success('GRN updated successfully');
+      } else {
+        await storesService.createGRN(formData);
+        message.success('GRN created successfully');
+      }
+
+      setModalVisible(false);
+      setEditingGRN(null);
+      setItems([]);
+      setAttachments([]);
+      form.resetFields();
+      loadGRNs();
+    } catch (error) {
+      message.error('Failed to save GRN');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Edit GRN
+  const editGRN = (grn) => {
+    setEditingGRN(grn);
+    form.setFieldsValue({
+      date_received: dayjs(grn.date_received),
+      delivery_note_no: grn.delivery_note_no,
+      tax_invoice_no: grn.tax_invoice_no,
+      lpo_no: grn.lpo_no,
+      contract_no: grn.contract_no,
+      supplier_name: grn.supplier_name,
+      supplier_contact: grn.supplier_contact,
+      delivery_location: grn.delivery_location,
+      remarks: grn.remarks
+    });
+    setItems(grn.items || []);
+    setModalVisible(true);
+  };
+
+  // Delete GRN
+  const deleteGRN = async (id) => {
+    try {
+      await storesService.deleteGRN(id);
+      message.success('GRN deleted successfully');
+      loadGRNs();
+    } catch (error) {
+      message.error('Failed to delete GRN');
+    }
+  };
+
+  // Generate PDF
+  const generatePDF = async (id) => {
+    try {
+      const response = await storesService.generateGRNPDF(id);
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `GRN-${id}.pdf`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      message.error('Failed to generate PDF');
+    }
+  };
+
+  // Update status
+  const updateStatus = async (id, status) => {
+    try {
+      await storesService.updateGRNStatus(id, { status });
+      message.success('Status updated successfully');
+      loadGRNs();
+    } catch (error) {
+      message.error('Failed to update status');
+    }
+  };
+
+  // Table columns
   const columns = [
     {
-      title: 'GRN Number',
+      title: 'GRN No.',
       dataIndex: 'grn_number',
       key: 'grn_number',
-      width: 150,
-      render: (number, record) => (
-        <Button type="link" onClick={() => handleView(record)}>
-          {number}
-        </Button>
-      )
     },
     {
-      title: 'Received Date',
-      dataIndex: 'received_date',
-      key: 'received_date',
-      width: 120,
-      render: (date) => dayjs(date).format('DD/MM/YYYY')
+      title: 'Date Received',
+      dataIndex: 'date_received',
+      key: 'date_received',
+      render: (date) => dayjs(date).format('DD/MM/YYYY'),
     },
     {
       title: 'Supplier',
-      dataIndex: ['supplier', 'supplier_name'],
-      key: 'supplier',
-      width: 200,
-      ellipsis: true
+      dataIndex: 'supplier_name',
+      key: 'supplier_name',
     },
     {
-      title: 'Location',
-      dataIndex: ['location', 'location_name'],
-      key: 'location',
-      width: 150,
-      ellipsis: true
-    },
-    {
-      title: 'Total Amount',
-      dataIndex: 'total_amount',
-      key: 'total_amount',
-      width: 120,
-      align: 'right',
-      render: (amount) => `UGX ${amount?.toLocaleString() || 0}`
+      title: 'LPO No.',
+      dataIndex: 'lpo_no',
+      key: 'lpo_no',
     },
     {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      width: 120,
       render: (status) => {
-        const config = statusConfig[status] || statusConfig['pending'];
-        return <Tag color={config.color}>{config.label}</Tag>;
-      }
+        const colors = {
+          draft: 'default',
+          received: 'processing',
+          inspected: 'warning',
+          approved: 'success',
+          rejected: 'error'
+        };
+        return <Tag color={colors[status]}>{status.toUpperCase()}</Tag>;
+      },
     },
     {
       title: 'Actions',
       key: 'actions',
-      width: 200,
-      fixed: 'right',
       render: (_, record) => (
-        <Space size="small">
-          <Tooltip title="View Details">
-            <Button 
-              type="text" 
-              icon={<EyeOutlined />} 
-              onClick={() => handleView(record)}
-            />
-          </Tooltip>
-          
-          {record.status === 'pending' && (
-            <>
-              <Tooltip title="Approve">
-                <Button 
-                  type="text" 
-                  icon={<CheckOutlined />}
-                  style={{ color: '#52c41a' }}
-                  onClick={() => handleApprove(record.grn_id, 'approve')}
-                />
-              </Tooltip>
-              <Tooltip title="Reject">
-                <Button 
-                  type="text" 
-                  icon={<CloseOutlined />}
-                  danger
-                  onClick={() => handleApprove(record.grn_id, 'reject')}
-                />
-              </Tooltip>
-            </>
-          )}
+        <Space>
+          <Button
+            type="link"
+            icon={<EyeOutlined />}
+            onClick={() => editGRN(record)}
+          >
+            View
+          </Button>
+          <Button
+            type="link"
+            icon={<EditOutlined />}
+            onClick={() => editGRN(record)}
+          >
+            Edit
+          </Button>
+          <Button
+            type="link"
+            icon={<PrinterOutlined />}
+            onClick={() => generatePDF(record.grn_id)}
+          >
+            PDF
+          </Button>
+          <Popconfirm
+            title="Are you sure you want to delete this GRN?"
+            onConfirm={() => deleteGRN(record.grn_id)}
+            okText="Yes"
+            cancelText="No"
+          >
+            <Button type="link" danger icon={<DeleteOutlined />}>
+              Delete
+            </Button>
+          </Popconfirm>
         </Space>
-      )
-    }
+      ),
+    },
+  ];
+
+  // Item table columns
+  const itemColumns = [
+    {
+      title: 'Serial No.',
+      dataIndex: 'serial_no',
+      key: 'serial_no',
+      width: 80,
+    },
+    {
+      title: 'Description',
+      dataIndex: 'description',
+      key: 'description',
+      render: (text, record, index) => (
+        <Input
+          value={text}
+          onChange={(e) => updateItem(index, 'description', e.target.value)}
+          placeholder="Item description"
+        />
+      ),
+    },
+    {
+      title: 'Unit of Measure',
+      dataIndex: 'unit_of_measure',
+      key: 'unit_of_measure',
+      render: (text, record, index) => (
+        <Input
+          value={text}
+          onChange={(e) => updateItem(index, 'unit_of_measure', e.target.value)}
+          placeholder="Unit"
+        />
+      ),
+    },
+    {
+      title: 'Qty Ordered',
+      dataIndex: 'quantity_ordered',
+      key: 'quantity_ordered',
+      render: (text, record, index) => (
+        <Input
+          type="number"
+          value={text}
+          onChange={(e) => updateItem(index, 'quantity_ordered', parseInt(e.target.value) || 0)}
+          placeholder="0"
+        />
+      ),
+    },
+    {
+      title: 'Qty Delivered',
+      dataIndex: 'quantity_delivered',
+      key: 'quantity_delivered',
+      render: (text, record, index) => (
+        <Input
+          type="number"
+          value={text}
+          onChange={(e) => updateItem(index, 'quantity_delivered', parseInt(e.target.value) || 0)}
+          placeholder="0"
+        />
+      ),
+    },
+    {
+      title: 'Qty Accepted',
+      dataIndex: 'quantity_accepted',
+      key: 'quantity_accepted',
+      render: (text, record, index) => (
+        <Input
+          type="number"
+          value={text}
+          onChange={(e) => updateItem(index, 'quantity_accepted', parseInt(e.target.value) || 0)}
+          placeholder="0"
+        />
+      ),
+    },
+    {
+      title: 'Unit Price',
+      dataIndex: 'unit_price',
+      key: 'unit_price',
+      render: (text, record, index) => (
+        <Input
+          type="number"
+          step="0.01"
+          value={text}
+          onChange={(e) => updateItem(index, 'unit_price', parseFloat(e.target.value) || 0)}
+          placeholder="0.00"
+        />
+      ),
+    },
+    {
+      title: 'Total Value',
+      dataIndex: 'total_value',
+      key: 'total_value',
+      render: (text) => text ? `$${text.toFixed(2)}` : '$0.00',
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_, record, index) => (
+        <Button
+          type="link"
+          danger
+          icon={<DeleteOutlined />}
+          onClick={() => removeItem(index)}
+        >
+          Remove
+        </Button>
+      ),
+    },
   ];
 
   return (
-    <div className="grn">
+    <div>
       <Card>
-        <div className="page-header">
-          <div>
-            <Title level={2}>Goods Received Notes (GRN)</Title>
-            <Text type="secondary">Manage incoming stock receipts</Text>
-          </div>
-          <Space>
-            <Button 
-              type="primary" 
-              icon={<PlusOutlined />}
-              onClick={handleCreate}
-            >
-              New GRN
-            </Button>
-          </Space>
+        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Title level={3}>Goods Received Notes (GRN)</Title>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => {
+              setEditingGRN(null);
+              setItems([]);
+              setAttachments([]);
+              form.resetFields();
+              setModalVisible(true);
+            }}
+          >
+            Create GRN
+          </Button>
         </div>
 
-        <Alert
-          message="GRN Workflow"
-          description="Create GRN → Review → Approve/Reject → Stock Updated"
-          type="info"
-          showIcon
-          style={{ marginBottom: 24 }}
-        />
-
-        {/* Filters */}
-        <div className="filters-section">
-          <Row gutter={16} style={{ marginBottom: 16 }}>
-            <Col span={8}>
-              <Input
-                placeholder="Search GRNs..."
-                allowClear
-                onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                style={{ width: '100%' }}
-              />
-            </Col>
-            <Col span={6}>
-              <Select
-                placeholder="Filter by status"
-                allowClear
-                style={{ width: '100%' }}
-                onChange={(value) => setFilters(prev => ({ ...prev, status: value }))}
-              >
-                {Object.entries(statusConfig).map(([key, config]) => (
-                  <Option key={key} value={key}>{config.label}</Option>
-                ))}
-              </Select>
-            </Col>
-          </Row>
-        </div>
-
-        {/* GRNs Table */}
         <Table
           columns={columns}
           dataSource={grns}
-          rowKey="grn_id"
           loading={loading}
+          rowKey="grn_id"
           pagination={{
             ...pagination,
+            onChange: loadGRNs,
             showSizeChanger: true,
             showQuickJumper: true,
-            showTotal: (total, range) => 
-              `${range[0]}-${range[1]} of ${total} GRNs`
+            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
           }}
-          onChange={setPagination}
-          scroll={{ x: 1000 }}
-          size="middle"
         />
       </Card>
 
-      {/* Create/Edit Modal */}
       <Modal
-        title="New GRN"
+        title={editingGRN ? 'Edit GRN' : 'Create GRN'}
         open={modalVisible}
         onCancel={() => setModalVisible(false)}
         width={1200}
         footer={null}
-        destroyOnClose
       >
         <Form
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
+          initialValues={{
+            date_received: dayjs(),
+          }}
         >
+          <Title level={4}>GRN Details</Title>
           <Row gutter={16}>
             <Col span={8}>
               <Form.Item
-                name="grn_number"
-                label="GRN Number"
-                rules={[{ required: true, message: 'Please enter GRN number' }]}
-              >
-                <Input placeholder="Auto-generated" />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                name="received_date"
-                label="Received Date"
-                rules={[{ required: true, message: 'Please select received date' }]}
+                name="date_received"
+                label="Date Received"
+                rules={[{ required: true, message: 'Please select date received' }]}
               >
                 <DatePicker style={{ width: '100%' }} />
               </Form.Item>
             </Col>
             <Col span={8}>
               <Form.Item
-                name="received_by"
-                label="Received By"
-                rules={[{ required: true, message: 'Please enter receiver name' }]}
+                name="delivery_note_no"
+                label="Delivery Note No."
               >
-                <Input placeholder="Enter receiver name" />
+                <Input placeholder="Delivery note number" />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="tax_invoice_no"
+                label="Tax Invoice No."
+              >
+                <Input placeholder="Tax invoice number" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item
+                name="lpo_no"
+                label="LPO No."
+              >
+                <Input placeholder="Local Purchase Order number" />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="contract_no"
+                label="Contract No."
+              >
+                <Input placeholder="Procurement reference number" />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="supplier_name"
+                label="Supplier Name"
+                rules={[{ required: true, message: 'Please enter supplier name' }]}
+              >
+                <Input placeholder="Supplier name" />
               </Form.Item>
             </Col>
           </Row>
@@ -521,32 +509,19 @@ const GRN = () => {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                name="supplier_id"
-                label="Supplier"
-                rules={[{ required: true, message: 'Please select supplier' }]}
+                name="supplier_contact"
+                label="Supplier Contact"
               >
-                <Select placeholder="Select supplier">
-                  {suppliers.map(supplier => (
-                    <Option key={supplier.supplier_id} value={supplier.supplier_id}>
-                      {supplier.supplier_name}
-                    </Option>
-                  ))}
-                </Select>
+                <Input placeholder="Supplier contact information" />
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item
-                name="location_id"
-                label="Location"
-                rules={[{ required: true, message: 'Please select location' }]}
+                name="delivery_location"
+                label="Delivery Location"
+                rules={[{ required: true, message: 'Please enter delivery location' }]}
               >
-                <Select placeholder="Select location">
-                  {locations.map(location => (
-                    <Option key={location.location_id} value={location.location_id}>
-                      {location.location_name}
-                    </Option>
-                  ))}
-                </Select>
+                <Input placeholder="Store section / delivery location" />
               </Form.Item>
             </Col>
           </Row>
@@ -555,17 +530,18 @@ const GRN = () => {
             name="remarks"
             label="Remarks"
           >
-            <TextArea rows={3} placeholder="Enter any remarks" />
+            <TextArea rows={3} placeholder="Additional remarks" />
           </Form.Item>
 
           <Divider />
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <Title level={4}>Received Items</Title>
-            <Button 
-              type="primary" 
+          <Title level={4}>Items</Title>
+          <div style={{ marginBottom: 16 }}>
+            <Button
+              type="dashed"
               icon={<PlusOutlined />}
               onClick={addItem}
+              style={{ width: '100%' }}
             >
               Add Item
             </Button>
@@ -575,106 +551,35 @@ const GRN = () => {
             columns={itemColumns}
             dataSource={items}
             pagination={false}
-            scroll={{ x: 1000 }}
             size="small"
+            rowKey={(record, index) => index}
           />
+
+          <Divider />
+
+          <Title level={4}>Supporting Documents</Title>
+          <Upload
+            multiple
+            fileList={attachments}
+            onChange={({ fileList }) => setAttachments(fileList)}
+            beforeUpload={() => false}
+            accept=".pdf,.doc,.docx,.xlsx,.xls,.png,.jpg,.jpeg"
+          >
+            <Button icon={<UploadOutlined />}>Upload Documents</Button>
+          </Upload>
 
           <div style={{ marginTop: 24, textAlign: 'right' }}>
             <Space>
-              <Button onClick={() => setModalVisible(false)}>Cancel</Button>
-              <Button 
-                type="primary" 
-                htmlType="submit"
-                disabled={items.length === 0}
-              >
-                Create GRN
+              <Button onClick={() => setModalVisible(false)}>
+                Cancel
+              </Button>
+              <Button type="primary" htmlType="submit" loading={loading}>
+                {editingGRN ? 'Update' : 'Create'} GRN
               </Button>
             </Space>
           </div>
         </Form>
       </Modal>
-
-      {/* View Modal */}
-      <Modal
-        title={`GRN Details - ${selectedGRN?.grn_number}`}
-        open={viewModalVisible}
-        onCancel={() => setViewModalVisible(false)}
-        width={800}
-        footer={null}
-      >
-        {selectedGRN && (
-          <div>
-            <Row gutter={16} style={{ marginBottom: 16 }}>
-              <Col span={12}>
-                <Text strong>GRN Number:</Text> {selectedGRN.grn_number}
-              </Col>
-              <Col span={12}>
-                <Text strong>Received Date:</Text> {dayjs(selectedGRN.received_date).format('DD/MM/YYYY')}
-              </Col>
-            </Row>
-
-            <Row gutter={16} style={{ marginBottom: 16 }}>
-              <Col span={12}>
-                <Text strong>Supplier:</Text> {selectedGRN.supplier?.supplier_name}
-              </Col>
-              <Col span={12}>
-                <Text strong>Location:</Text> {selectedGRN.location?.location_name}
-              </Col>
-            </Row>
-
-            <Row gutter={16} style={{ marginBottom: 16 }}>
-              <Col span={12}>
-                <Text strong>Received By:</Text> {selectedGRN.received_by}
-              </Col>
-              <Col span={12}>
-                <Text strong>Total Amount:</Text> UGX {selectedGRN.total_amount?.toLocaleString()}
-              </Col>
-            </Row>
-
-            <div style={{ marginBottom: 16 }}>
-              <Text strong>Remarks:</Text>
-              <p>{selectedGRN.remarks || 'No remarks'}</p>
-            </div>
-
-            <Divider />
-
-            <Title level={5}>Received Items</Title>
-            <Table
-              dataSource={selectedGRN.items}
-              pagination={false}
-              size="small"
-              columns={[
-                { title: 'Item Name', dataIndex: 'item_name', key: 'item_name' },
-                { title: 'Quantity', dataIndex: 'quantity_received', key: 'quantity_received', align: 'right' },
-                { title: 'Unit Cost', dataIndex: 'unit_cost', key: 'unit_cost', align: 'right' },
-                { title: 'Total Cost', dataIndex: 'total_cost', key: 'total_cost', align: 'right' },
-                { title: 'Batch', dataIndex: 'batch_number', key: 'batch_number' },
-                { title: 'Condition', dataIndex: 'condition', key: 'condition' }
-              ]}
-            />
-          </div>
-        )}
-      </Modal>
-
-      <style jsx>{`
-        .grn {
-          padding: 24px;
-        }
-        
-        .page-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          margin-bottom: 24px;
-        }
-        
-        .filters-section {
-          background: #fafafa;
-          padding: 16px;
-          border-radius: 8px;
-          margin-bottom: 16px;
-        }
-      `}</style>
     </div>
   );
 };

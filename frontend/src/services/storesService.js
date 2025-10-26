@@ -95,6 +95,9 @@ export const storesService = {
   getStockBalances: (params) => api.get('/stores/ledger/balance', { params }),
   getLowStockItems: (params) => api.get('/stores/ledger/low-stock', { params }),
   getMovementSummary: (params) => api.get('/stores/ledger/movement/summary', { params }),
+  createManualLedgerEntry: (data) => api.post('/stores/ledger', data),
+  exportLedgerPDF: (params) => api.get('/stores/ledger/export/pdf', { params, responseType: 'blob' }),
+  exportLedgerExcel: (params) => api.get('/stores/ledger/export/excel', { params, responseType: 'blob' }),
 
   // Stock Issuance
   createIssuance: (data) => api.post('/stores/issuance', data),

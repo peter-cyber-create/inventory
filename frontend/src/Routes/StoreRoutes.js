@@ -2,23 +2,23 @@ import React from 'react';
 import { Route } from 'react-router-dom';
 
 // Import the 5 main stores modules
-import GRN from './GRN';
-import Ledger from './Ledger';
-import Issuance from './Issuance';
-import Requisition from './Requisition';
-import Reports from './Reports';
+import GRN from '../pages/Stores/GRN';
+import Ledger from '../pages/Stores/Ledger';
+import Issuance from '../pages/Stores/Issuance';
+import Requisition from '../pages/Stores/Requisition';
+import Reports from '../pages/Stores/Reports';
 
 // Legacy components for backward compatibility
-import StoresDashboard from './StoresDashboard';
-import ItemsManagement from './ItemsManagement';
-import SuppliersManagement from './SuppliersManagement';
-import LocationsManagement from './LocationsManagement';
-import ReceivingGoods from './ReceivingGoods';
-import StockLedger from './StockLedger';
-import StockBalance from './StockBalance';
-import Returns from './Returns';
-import Adjustments from './Adjustments';
-import StoresReports from './StoresReports';
+import StoresDashboard from '../pages/Stores/StoresDashboard';
+import ItemsManagement from '../pages/Stores/ItemsManagement';
+import SuppliersManagement from '../pages/Stores/SuppliersManagement';
+import LocationsManagement from '../pages/Stores/LocationsManagement';
+import ReceivingGoods from '../pages/Stores/ReceivingGoods';
+import StockLedger from '../pages/Stores/StockLedger';
+import StockBalance from '../pages/Stores/StockBalance';
+import Returns from '../pages/Stores/Returns';
+import Adjustments from '../pages/Stores/Adjustments';
+import StoresReports from '../pages/Stores/StoresReports';
 
 const StoreRoutes = () => {
   return (

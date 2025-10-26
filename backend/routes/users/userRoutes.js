@@ -163,15 +163,18 @@ router.get("/agents", async (req, res) => {
 });
 
 router.patch("/:id", async (req, res) => {
-    const { password, ...fields } = req.body;
+    const password = req.body.password;
+    const fields = Object.assign({}, req.body);
+    delete fields.password;
 
     try {
         if (password) {
             fields.password = await bcrypt.hash(password, 10);
         }
 
+        const updateData = Object.assign({}, fields, { updatedAt: Date.now() });
         const result = await UserModel.update(
-            { ...fields, updatedAt: Date.now() },
+            updateData,
             {
                 where: {
                     id: req.params.id,

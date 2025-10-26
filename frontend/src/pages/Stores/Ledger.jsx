@@ -4,515 +4,592 @@ import {
   Table,
   Button,
   Space,
-  message,
-  Row,
-  Col,
+  Form,
+  Input,
   Select,
   DatePicker,
-  Input,
-  Tag,
+  Row,
+  Col,
   Typography,
+  Tag,
+  Modal,
+  message,
   Statistic,
-  Alert,
-  Tabs
+  Divider
 } from 'antd';
 import {
   SearchOutlined,
   DownloadOutlined,
-  ReloadOutlined
+  PlusOutlined,
+  FileTextOutlined,
+  FileExcelOutlined,
+  EyeOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { storesService } from '../../services/storesService';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 const { Option } = Select;
 const { RangePicker } = DatePicker;
-const { TabPane } = Tabs;
 
 const Ledger = () => {
+  const [form] = Form.useForm();
   const [ledgerEntries, setLedgerEntries] = useState([]);
   const [stockBalances, setStockBalances] = useState([]);
   const [lowStockItems, setLowStockItems] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [items, setItems] = useState([]);
-  const [locations, setLocations] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 50,
     total: 0
   });
-  const [filters, setFilters] = useState({
-    item_id: '',
-    location_id: '',
-    transaction_type: '',
-    dateRange: null
-  });
+  const [filters, setFilters] = useState({});
 
-  const transactionTypes = [
-    { value: 'receipt', label: 'Receipt', color: 'green' },
-    { value: 'issue', label: 'Issue', color: 'red' },
-    { value: 'adjustment', label: 'Adjustment', color: 'blue' },
-    { value: 'transfer', label: 'Transfer', color: 'orange' }
-  ];
-
-  useEffect(() => {
-    fetchInitialData();
-    fetchLedgerEntries();
-    fetchStockBalances();
-    fetchLowStockItems();
-  }, [pagination.current, pagination.pageSize, filters]);
-
-  const fetchInitialData = async () => {
+  // Load ledger entries
+  const loadLedgerEntries = async (page = 1, searchFilters = {}) => {
+    setLoading(true);
     try {
-      const [itemsRes, locationsRes] = await Promise.all([
-        storesService.getItems({ status: 'active' }),
-        storesService.getActiveLocations()
-      ]);
-
-      if (itemsRes.data.success) setItems(itemsRes.data.data.items);
-      if (locationsRes.data.success) setLocations(locationsRes.data.data);
-    } catch (error) {
-      message.error('Failed to load initial data');
-    }
-  };
-
-  const fetchLedgerEntries = async () => {
-    try {
-      setLoading(true);
       const params = {
-        page: pagination.current,
+        page,
         limit: pagination.pageSize,
-        ...filters
+        ...searchFilters
       };
 
-      if (filters.dateRange && filters.dateRange.length === 2) {
-        params.start_date = filters.dateRange[0].format('YYYY-MM-DD');
-        params.end_date = filters.dateRange[1].format('YYYY-MM-DD');
-      }
-
       const response = await storesService.getStockLedger(params);
-
-      if (response.data.success) {
-        setLedgerEntries(response.data.data.ledgerEntries);
-        setPagination(prev => ({
-          ...prev,
-          total: response.data.data.pagination.total
-        }));
-      }
+      setLedgerEntries(response.data.data);
+      setPagination(prev => ({
+        ...prev,
+        current: page,
+        total: response.data.pagination.total
+      }));
     } catch (error) {
-      message.error('Failed to fetch ledger entries');
+      message.error('Failed to load ledger entries');
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchStockBalances = async () => {
+  // Load stock balances
+  const loadStockBalances = async () => {
     try {
-      const response = await storesService.getStockBalances({
-        item_id: filters.item_id,
-        location_id: filters.location_id
-      });
-
-      if (response.data.success) {
-        setStockBalances(response.data.data);
-      }
+      const response = await storesService.getStockBalances();
+      setStockBalances(response.data.data);
     } catch (error) {
-      message.error('Failed to fetch stock balances');
+      message.error('Failed to load stock balances');
     }
   };
 
-  const fetchLowStockItems = async () => {
+  // Load low stock items
+  const loadLowStockItems = async () => {
     try {
-      const response = await storesService.getLowStockItems();
-
-      if (response.data.success) {
-        setLowStockItems(response.data.data);
-      }
+      const response = await storesService.getLowStockItems({ threshold: 10 });
+      setLowStockItems(response.data.data);
     } catch (error) {
-      message.error('Failed to fetch low stock items');
+      message.error('Failed to load low stock items');
     }
   };
 
-  const handleExport = () => {
-    message.info('Export functionality will be implemented');
+  useEffect(() => {
+    loadLedgerEntries();
+    loadStockBalances();
+    loadLowStockItems();
+  }, []);
+
+  // Handle search
+  const handleSearch = (values) => {
+    const searchFilters = {};
+    if (values.item_code) searchFilters.item_code = values.item_code;
+    if (values.department) searchFilters.department = values.department;
+    if (values.reference_type) searchFilters.reference_type = values.reference_type;
+    if (values.date_range) {
+      searchFilters.date_from = values.date_range[0].format('YYYY-MM-DD');
+      searchFilters.date_to = values.date_range[1].format('YYYY-MM-DD');
+    }
+    
+    setFilters(searchFilters);
+    loadLedgerEntries(1, searchFilters);
   };
 
-  const ledgerColumns = [
+  // Reset search
+  const handleReset = () => {
+    form.resetFields();
+    setFilters({});
+    loadLedgerEntries();
+  };
+
+  // Create manual entry
+  const handleManualEntry = async (values) => {
+    setLoading(true);
+    try {
+      await storesService.createManualLedgerEntry(values);
+      message.success('Manual entry created successfully');
+      setModalVisible(false);
+      form.resetFields();
+      loadLedgerEntries();
+      loadStockBalances();
+    } catch (error) {
+      message.error('Failed to create manual entry');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Export to PDF
+  const exportToPDF = async () => {
+    try {
+      const response = await storesService.exportLedgerPDF(filters);
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'stores-ledger.pdf';
+      link.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      message.error('Failed to export PDF');
+    }
+  };
+
+  // Export to Excel
+  const exportToExcel = async () => {
+    try {
+      const response = await storesService.exportLedgerExcel(filters);
+      const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'stores-ledger.xlsx';
+      link.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      message.error('Failed to export Excel');
+    }
+  };
+
+  // Table columns
+  const columns = [
     {
       title: 'Date',
       dataIndex: 'transaction_date',
       key: 'transaction_date',
-      width: 120,
-      render: (date) => dayjs(date).format('DD/MM/YYYY')
+      render: (date) => dayjs(date).format('DD/MM/YYYY'),
+      sorter: (a, b) => dayjs(a.transaction_date).unix() - dayjs(b.transaction_date).unix(),
     },
     {
-      title: 'Item',
-      dataIndex: ['item', 'item_name'],
-      key: 'item_name',
-      width: 200,
-      ellipsis: true
-    },
-    {
-      title: 'Location',
-      dataIndex: ['location', 'location_name'],
-      key: 'location_name',
-      width: 150,
-      ellipsis: true
-    },
-    {
-      title: 'Type',
-      dataIndex: 'transaction_type',
-      key: 'transaction_type',
-      width: 120,
-      render: (type) => {
-        const config = transactionTypes.find(t => t.value === type);
-        return <Tag color={config?.color}>{config?.label || type}</Tag>;
-      }
-    },
-    {
-      title: 'Reference',
+      title: 'Ref Type',
       dataIndex: 'reference_type',
       key: 'reference_type',
-      width: 120,
-      render: (ref) => <Tag>{ref}</Tag>
+      render: (type) => {
+        const colors = {
+          grn: 'green',
+          requisition: 'blue',
+          return: 'orange',
+          adjustment: 'purple',
+          transfer: 'cyan',
+          disposal: 'red'
+        };
+        return <Tag color={colors[type]}>{type.toUpperCase()}</Tag>;
+      },
     },
     {
-      title: 'Quantity',
-      dataIndex: 'quantity',
-      key: 'quantity',
-      width: 100,
-      align: 'right',
-      render: (quantity) => (
-        <Text style={{ color: quantity > 0 ? '#52c41a' : '#ff4d4f' }}>
-          {quantity > 0 ? '+' : ''}{quantity}
-        </Text>
-      )
+      title: 'Ref Number',
+      dataIndex: 'reference_number',
+      key: 'reference_number',
+    },
+    {
+      title: 'Item Description',
+      dataIndex: 'item_description',
+      key: 'item_description',
+    },
+    {
+      title: 'Item Code',
+      dataIndex: 'item_code',
+      key: 'item_code',
+    },
+    {
+      title: 'Unit',
+      dataIndex: 'unit_of_issue',
+      key: 'unit_of_issue',
+    },
+    {
+      title: 'Qty Received',
+      dataIndex: 'quantity_received',
+      key: 'quantity_received',
+      render: (qty) => qty > 0 ? qty : '-',
+    },
+    {
+      title: 'Qty Issued',
+      dataIndex: 'quantity_issued',
+      key: 'quantity_issued',
+      render: (qty) => qty > 0 ? qty : '-',
+    },
+    {
+      title: 'Balance',
+      dataIndex: 'balance_on_hand',
+      key: 'balance_on_hand',
+      render: (balance) => (
+        <Tag color={balance <= 10 ? 'red' : balance <= 50 ? 'orange' : 'green'}>
+          {balance}
+        </Tag>
+      ),
     },
     {
       title: 'Unit Cost',
       dataIndex: 'unit_cost',
       key: 'unit_cost',
-      width: 100,
-      align: 'right',
-      render: (cost) => `UGX ${cost?.toLocaleString() || 0}`
+      render: (cost) => cost ? `$${cost.toFixed(2)}` : '-',
     },
     {
-      title: 'Total Cost',
-      dataIndex: 'total_cost',
-      key: 'total_cost',
-      width: 120,
-      align: 'right',
-      render: (cost) => `UGX ${cost?.toLocaleString() || 0}`
+      title: 'Total Value',
+      dataIndex: 'total_value',
+      key: 'total_value',
+      render: (value) => value ? `$${value.toFixed(2)}` : '-',
     },
     {
-      title: 'Balance',
-      dataIndex: 'balance_after',
-      key: 'balance_after',
-      width: 100,
-      align: 'right',
-      render: (balance) => <Text strong>{balance}</Text>
+      title: 'Department',
+      dataIndex: 'department',
+      key: 'department',
     },
-    {
-      title: 'Remarks',
-      dataIndex: 'remarks',
-      key: 'remarks',
-      width: 200,
-      ellipsis: true
-    }
   ];
 
+  // Stock balances columns
   const balanceColumns = [
     {
-      title: 'Item',
-      dataIndex: ['item', 'item_name'],
-      key: 'item_name',
-      width: 200,
-      ellipsis: true
+      title: 'Item Code',
+      dataIndex: 'item_code',
+      key: 'item_code',
     },
     {
-      title: 'Location',
-      dataIndex: ['location', 'location_name'],
-      key: 'location_name',
-      width: 150,
-      ellipsis: true
-    },
-    {
-      title: 'On Hand',
-      dataIndex: 'quantity_on_hand',
-      key: 'quantity_on_hand',
-      width: 100,
-      align: 'right',
-      render: (qty) => <Text strong>{qty}</Text>
-    },
-    {
-      title: 'Reserved',
-      dataIndex: 'quantity_reserved',
-      key: 'quantity_reserved',
-      width: 100,
-      align: 'right',
-      render: (qty) => <Text type="warning">{qty}</Text>
-    },
-    {
-      title: 'Available',
-      dataIndex: 'quantity_available',
-      key: 'quantity_available',
-      width: 100,
-      align: 'right',
-      render: (qty) => (
-        <Text style={{ color: qty > 10 ? '#52c41a' : qty > 0 ? '#fa8c16' : '#ff4d4f' }}>
-          {qty}
-        </Text>
-      )
+      title: 'Description',
+      dataIndex: 'item_description',
+      key: 'item_description',
     },
     {
       title: 'Unit',
-      dataIndex: ['item', 'unit_of_measure'],
-      key: 'unit_of_measure',
-      width: 80
-    }
-  ];
-
-  const lowStockColumns = [
-    {
-      title: 'Item',
-      dataIndex: ['item', 'item_name'],
-      key: 'item_name',
-      width: 200,
-      ellipsis: true
+      dataIndex: 'unit_of_issue',
+      key: 'unit_of_issue',
     },
     {
-      title: 'Location',
-      dataIndex: ['location', 'location_name'],
-      key: 'location_name',
-      width: 150,
-      ellipsis: true
+      title: 'Balance',
+      dataIndex: 'balance_on_hand',
+      key: 'balance_on_hand',
+      render: (balance) => (
+        <Tag color={balance <= 10 ? 'red' : balance <= 50 ? 'orange' : 'green'}>
+          {balance}
+        </Tag>
+      ),
     },
     {
-      title: 'Available',
-      dataIndex: 'quantity_available',
-      key: 'quantity_available',
-      width: 100,
-      align: 'right',
-      render: (qty) => <Text type="danger">{qty}</Text>
+      title: 'Unit Cost',
+      dataIndex: 'unit_cost',
+      key: 'unit_cost',
+      render: (cost) => cost ? `$${cost.toFixed(2)}` : '-',
     },
     {
-      title: 'Minimum Level',
-      dataIndex: ['item', 'minimum_stock_level'],
-      key: 'minimum_stock_level',
-      width: 120,
-      align: 'right',
-      render: (level) => <Text>{level || 'Not set'}</Text>
+      title: 'Total Value',
+      dataIndex: 'total_value',
+      key: 'total_value',
+      render: (value) => value ? `$${value.toFixed(2)}` : '-',
     },
     {
-      title: 'Status',
-      key: 'status',
-      width: 100,
-      render: (_, record) => {
-        const available = record.quantity_available;
-        const minimum = record.item?.minimum_stock_level || 0;
-        
-        if (available <= 0) return <Tag color="red">Out of Stock</Tag>;
-        if (available <= minimum) return <Tag color="orange">Low Stock</Tag>;
-        return <Tag color="green">Adequate</Tag>;
-      }
-    }
+      title: 'Department',
+      dataIndex: 'department',
+      key: 'department',
+    },
   ];
 
   return (
-    <div className="ledger">
+    <div>
       <Card>
-        <div className="page-header">
-          <div>
-            <Title level={2}>Stock Ledger</Title>
-            <Text type="secondary">Track all stock movements and balances</Text>
-          </div>
+        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Title level={3}>Stores Ledger</Title>
           <Space>
-            <Button 
-              icon={<ReloadOutlined />}
-              onClick={() => {
-                fetchLedgerEntries();
-                fetchStockBalances();
-                fetchLowStockItems();
-              }}
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setModalVisible(true)}
             >
-              Refresh
+              Manual Entry
             </Button>
-            <Button 
-              icon={<DownloadOutlined />}
-              onClick={handleExport}
+            <Button
+              icon={<FileTextOutlined />}
+              onClick={exportToPDF}
             >
-              Export
+              Export PDF
+            </Button>
+            <Button
+              icon={<FileExcelOutlined />}
+              onClick={exportToExcel}
+            >
+              Export Excel
             </Button>
           </Space>
         </div>
 
-        {/* Summary Statistics */}
-        <Row gutter={16} style={{ marginBottom: 24 }}>
+        {/* Search Form */}
+        <Card size="small" style={{ marginBottom: 16 }}>
+          <Form
+            form={form}
+            layout="inline"
+            onFinish={handleSearch}
+            style={{ marginBottom: 16 }}
+          >
+            <Form.Item name="item_code">
+              <Input placeholder="Item Code" />
+            </Form.Item>
+            <Form.Item name="department">
+              <Input placeholder="Department" />
+            </Form.Item>
+            <Form.Item name="reference_type">
+              <Select placeholder="Reference Type" style={{ width: 150 }}>
+                <Option value="grn">GRN</Option>
+                <Option value="requisition">Requisition</Option>
+                <Option value="return">Return</Option>
+                <Option value="adjustment">Adjustment</Option>
+                <Option value="transfer">Transfer</Option>
+                <Option value="disposal">Disposal</Option>
+              </Select>
+            </Form.Item>
+            <Form.Item name="date_range">
+              <RangePicker />
+            </Form.Item>
+            <Form.Item>
+              <Space>
+                <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
+                  Search
+                </Button>
+                <Button onClick={handleReset}>
+                  Reset
+                </Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        </Card>
+
+        {/* Statistics */}
+        <Row gutter={16} style={{ marginBottom: 16 }}>
           <Col span={6}>
-            <Statistic 
-              title="Total Items" 
-              value={stockBalances.length}
-              prefix={<SearchOutlined />}
-            />
+            <Card>
+              <Statistic
+                title="Total Items"
+                value={stockBalances.length}
+                prefix={<FileTextOutlined />}
+              />
+            </Card>
           </Col>
           <Col span={6}>
-            <Statistic 
-              title="Low Stock Items" 
-              value={lowStockItems.length}
-              valueStyle={{ color: '#fa8c16' }}
-            />
+            <Card>
+              <Statistic
+                title="Low Stock Items"
+                value={lowStockItems.length}
+                prefix={<EyeOutlined />}
+                valueStyle={{ color: '#cf1322' }}
+              />
+            </Card>
           </Col>
           <Col span={6}>
-            <Statistic 
-              title="Out of Stock" 
-              value={lowStockItems.filter(item => item.quantity_available <= 0).length}
-              valueStyle={{ color: '#ff4d4f' }}
-            />
+            <Card>
+              <Statistic
+                title="Total Transactions"
+                value={pagination.total}
+                prefix={<FileTextOutlined />}
+              />
+            </Card>
           </Col>
           <Col span={6}>
-            <Statistic 
-              title="Total Value" 
-              value={stockBalances.reduce((sum, item) => sum + (item.quantity_on_hand * (item.average_cost || 0)), 0)}
-              prefix="UGX"
-              precision={0}
-            />
+            <Card>
+              <Statistic
+                title="Total Value"
+                value={stockBalances.reduce((sum, item) => sum + (item.total_value || 0), 0)}
+                prefix="$"
+                precision={2}
+              />
+            </Card>
           </Col>
         </Row>
 
-        <Tabs defaultActiveKey="ledger">
-          <TabPane tab="Stock Ledger" key="ledger">
-            {/* Filters */}
-            <div className="filters-section">
-              <Row gutter={16} style={{ marginBottom: 16 }}>
-                <Col span={6}>
-                  <Select
-                    placeholder="Filter by item"
-                    allowClear
-                    style={{ width: '100%' }}
-                    onChange={(value) => setFilters(prev => ({ ...prev, item_id: value }))}
-                  >
-                    {items.map(item => (
-                      <Option key={item.item_id} value={item.item_id}>
-                        {item.item_name}
-                      </Option>
-                    ))}
-                  </Select>
-                </Col>
-                <Col span={6}>
-                  <Select
-                    placeholder="Filter by location"
-                    allowClear
-                    style={{ width: '100%' }}
-                    onChange={(value) => setFilters(prev => ({ ...prev, location_id: value }))}
-                  >
-                    {locations.map(location => (
-                      <Option key={location.location_id} value={location.location_id}>
-                        {location.location_name}
-                      </Option>
-                    ))}
-                  </Select>
-                </Col>
-                <Col span={6}>
-                  <Select
-                    placeholder="Filter by type"
-                    allowClear
-                    style={{ width: '100%' }}
-                    onChange={(value) => setFilters(prev => ({ ...prev, transaction_type: value }))}
-                  >
-                    {transactionTypes.map(type => (
-                      <Option key={type.value} value={type.value}>
-                        {type.label}
-                      </Option>
-                    ))}
-                  </Select>
-                </Col>
-                <Col span={6}>
-                  <RangePicker
-                    style={{ width: '100%' }}
-                    onChange={(dates) => setFilters(prev => ({ ...prev, dateRange: dates }))}
-                  />
-                </Col>
-              </Row>
-            </div>
-
-            {/* Ledger Table */}
-            <Table
-              columns={ledgerColumns}
-              dataSource={ledgerEntries}
-              rowKey="ledger_id"
-              loading={loading}
-              pagination={{
-                ...pagination,
-                showSizeChanger: true,
-                showQuickJumper: true,
-                showTotal: (total, range) => 
-                  `${range[0]}-${range[1]} of ${total} entries`
-              }}
-              onChange={setPagination}
-              scroll={{ x: 1200 }}
-              size="middle"
-            />
-          </TabPane>
-
-          <TabPane tab="Stock Balance" key="balance">
-            <Alert
-              message="Current Stock Balances"
-              description="Real-time stock levels across all locations"
-              type="info"
-              showIcon
-              style={{ marginBottom: 16 }}
-            />
-
-            <Table
-              columns={balanceColumns}
-              dataSource={stockBalances}
-              rowKey={(record) => `${record.item_id}-${record.location_id}`}
-              pagination={{ pageSize: 20 }}
-              scroll={{ x: 800 }}
-              size="middle"
-            />
-          </TabPane>
-
-          <TabPane tab="Low Stock Alert" key="lowstock">
-            <Alert
-              message="Low Stock Items"
-              description="Items that need restocking or are out of stock"
-              type="warning"
-              showIcon
-              style={{ marginBottom: 16 }}
-            />
-
-            <Table
-              columns={lowStockColumns}
-              dataSource={lowStockItems}
-              rowKey={(record) => `${record.item_id}-${record.location_id}`}
-              pagination={{ pageSize: 20 }}
-              scroll={{ x: 800 }}
-              size="middle"
-            />
-          </TabPane>
-        </Tabs>
+        {/* Ledger Table */}
+        <Table
+          columns={columns}
+          dataSource={ledgerEntries}
+          loading={loading}
+          rowKey="ledger_id"
+          pagination={{
+            ...pagination,
+            onChange: loadLedgerEntries,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
+          }}
+          scroll={{ x: 1200 }}
+        />
       </Card>
 
-      <style jsx>{`
-        .ledger {
-          padding: 24px;
-        }
-        
-        .page-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          margin-bottom: 24px;
-        }
-        
-        .filters-section {
-          background: #fafafa;
-          padding: 16px;
-          border-radius: 8px;
-          margin-bottom: 16px;
-        }
-      `}</style>
+      {/* Stock Balances */}
+      <Card title="Current Stock Balances" style={{ marginTop: 16 }}>
+        <Table
+          columns={balanceColumns}
+          dataSource={stockBalances}
+          rowKey="item_code"
+          pagination={{ pageSize: 10 }}
+          scroll={{ x: 800 }}
+        />
+      </Card>
+
+      {/* Low Stock Items */}
+      {lowStockItems.length > 0 && (
+        <Card title="Low Stock Items" style={{ marginTop: 16 }}>
+          <Table
+            columns={balanceColumns}
+            dataSource={lowStockItems}
+            rowKey="item_code"
+            pagination={{ pageSize: 10 }}
+            scroll={{ x: 800 }}
+          />
+        </Card>
+      )}
+
+      {/* Manual Entry Modal */}
+      <Modal
+        title="Create Manual Ledger Entry"
+        open={modalVisible}
+        onCancel={() => setModalVisible(false)}
+        footer={null}
+        width={800}
+      >
+        <Form
+          layout="vertical"
+          onFinish={handleManualEntry}
+          initialValues={{
+            transaction_date: dayjs(),
+            reference_type: 'adjustment',
+            quantity_received: 0,
+            quantity_issued: 0
+          }}
+        >
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="transaction_date"
+                label="Transaction Date"
+                rules={[{ required: true, message: 'Please select transaction date' }]}
+              >
+                <DatePicker style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="reference_type"
+                label="Reference Type"
+                rules={[{ required: true, message: 'Please select reference type' }]}
+              >
+                <Select>
+                  <Option value="adjustment">Adjustment</Option>
+                  <Option value="transfer">Transfer</Option>
+                  <Option value="disposal">Disposal</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="reference_number"
+                label="Reference Number"
+                rules={[{ required: true, message: 'Please enter reference number' }]}
+              >
+                <Input placeholder="Reference number" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="item_code"
+                label="Item Code"
+                rules={[{ required: true, message: 'Please enter item code' }]}
+              >
+                <Input placeholder="Item code" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item
+            name="item_description"
+            label="Item Description"
+            rules={[{ required: true, message: 'Please enter item description' }]}
+          >
+            <Input placeholder="Item description" />
+          </Form.Item>
+
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item
+                name="unit_of_issue"
+                label="Unit of Issue"
+                rules={[{ required: true, message: 'Please enter unit of issue' }]}
+              >
+                <Input placeholder="Unit" />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="quantity_received"
+                label="Quantity Received"
+                rules={[{ required: true, message: 'Please enter quantity received' }]}
+              >
+                <Input type="number" placeholder="0" />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="quantity_issued"
+                label="Quantity Issued"
+                rules={[{ required: true, message: 'Please enter quantity issued' }]}
+              >
+                <Input type="number" placeholder="0" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="unit_cost"
+                label="Unit Cost"
+              >
+                <Input type="number" step="0.01" placeholder="0.00" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="department"
+                label="Department"
+              >
+                <Input placeholder="Department" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item
+            name="remarks"
+            label="Remarks"
+          >
+            <Input.TextArea rows={3} placeholder="Additional remarks" />
+          </Form.Item>
+
+          <div style={{ textAlign: 'right' }}>
+            <Space>
+              <Button onClick={() => setModalVisible(false)}>
+                Cancel
+              </Button>
+              <Button type="primary" htmlType="submit" loading={loading}>
+                Create Entry
+              </Button>
+            </Space>
+          </div>
+        </Form>
+      </Modal>
     </div>
   );
 };
