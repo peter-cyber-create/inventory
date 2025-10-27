@@ -1,365 +1,253 @@
-import React, { useState } from 'react';
-import { Card, Row, Col, Statistic, Button, Space, Typography, Modal, Form, Input, Select, DatePicker, message } from 'antd';
-import { 
-    CarOutlined, 
-    ToolOutlined, 
-    UserOutlined, 
-    PlusOutlined
+import React, { useState, useEffect } from 'react';
+import { Card, Row, Col, Statistic, Space, Typography, Alert, Spin } from 'antd';
+import {
+  CarOutlined,
+  ToolOutlined,
+  UserOutlined,
+  ExclamationCircleOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  DollarCircleOutlined
 } from '@ant-design/icons';
+import { useHistory } from 'react-router-dom';
 
 const { Title, Text } = Typography;
-const { Option } = Select;
 
 const FleetDashboard = () => {
+  const history = useHistory();
+  const [loading, setLoading] = useState(false);
+  const [dashboardData, setDashboardData] = useState({
+    totalVehicles: 89,
+    activeVehicles: 75,
+    maintenanceDue: 15,
+    totalDrivers: 45,
+    pendingRequisitions: 8,
+    totalSpareParts: 234,
+    totalValue: 125000000
+  });
 
-    const [vehicles, setVehicles] = useState([
-        { id: 1, plate: 'UG 1234A', model: 'Toyota Hilux', status: 'Active', driver: 'John Doe', lastMaintenance: '2024-01-01' },
-        { id: 2, plate: 'UG 5678B', model: 'Nissan Patrol', status: 'Active', driver: 'Jane Smith', lastMaintenance: '2024-01-05' },
-        { id: 3, plate: 'UG 9012C', model: 'Land Rover', status: 'Maintenance', driver: 'Mike Johnson', lastMaintenance: '2024-01-10' }
-    ]);
-    const [drivers, setDrivers] = useState([
-        { id: 1, name: 'John Doe', license: 'DL001', phone: '+256 701 234 567', status: 'Active' },
-        { id: 2, name: 'Jane Smith', license: 'DL002', phone: '+256 702 345 678', status: 'Active' },
-        { id: 3, name: 'Mike Johnson', license: 'DL003', phone: '+256 703 456 789', status: 'Active' }
-    ]);
-    const [maintenanceRecords, setMaintenanceRecords] = useState([
-        { id: 1, vehicle: 'UG 9012C', type: 'Oil Change', date: '2024-01-15', cost: 150000, status: 'Scheduled' }
-    ]);
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
-    // Modal states
-    const [addVehicleModal, setAddVehicleModal] = useState(false);
-    const [addDriverModal, setAddDriverModal] = useState(false);
-    const [maintenanceModal, setMaintenanceModal] = useState(false);
-    const [viewFleetModal, setViewFleetModal] = useState(false);
-    const [viewDriversModal, setViewDriversModal] = useState(false);
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      // Mock data - replace with actual API call
+      setDashboardData({
+        totalVehicles: 89,
+        activeVehicles: 75,
+        maintenanceDue: 15,
+        totalDrivers: 45,
+        pendingRequisitions: 8,
+        totalSpareParts: 234,
+        totalValue: 125000000
+      });
+    } catch (error) {
+      console.error('Dashboard fetch error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    // Form instances
-    const [vehicleForm] = Form.useForm();
-    const [driverForm] = Form.useForm();
-    const [maintenanceForm] = Form.useForm();
+  const StatCard = ({ icon, title, value, color, suffix, onClick }) => (
+    <Card 
+      hoverable={onClick}
+      onClick={onClick}
+      style={{ 
+        borderRadius: '12px',
+        border: `2px solid ${color}20`,
+        transition: 'all 0.3s',
+        cursor: onClick ? 'pointer' : 'default'
+      }}
+      bodyStyle={{ padding: '20px' }}
+    >
+      <Space direction="vertical" size="small" style={{ width: '100%' }}>
+        <div style={{ fontSize: '28px', color }}>{icon}</div>
+        <Statistic
+          title={<Text type="secondary" style={{ fontSize: '12px' }}>{title}</Text>}
+          value={value}
+          suffix={suffix}
+          valueStyle={{ color: '#1f2937', fontSize: '24px', fontWeight: 600 }}
+        />
+      </Space>
+    </Card>
+  );
 
-    const handleAddVehicle = () => {
-        setAddVehicleModal(true);
-    };
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-UG', {
+      style: 'currency',
+      currency: 'UGX',
+      minimumFractionDigits: 0
+    }).format(amount);
+  };
 
-    const handleAddVehicleSubmit = (values) => {
-        const newVehicle = {
-            id: vehicles.length + 1,
-            plate: values.plate,
-            model: values.model,
-            status: 'Active',
-            driver: values.driver || 'Unassigned',
-            lastMaintenance: 'Never'
-        };
-        setVehicles([...vehicles, newVehicle]);
-        message.success('Vehicle added successfully!');
-        setAddVehicleModal(false);
-        vehicleForm.resetFields();
-    };
+  return (
+    <div style={{ padding: '24px', background: '#f9fafb', minHeight: '100vh' }}>
+      <Title level={3} style={{ marginBottom: '24px', color: '#1f2937' }}>Fleet Management Dashboard</Title>
 
-    const handleAddDriver = () => {
-        setAddDriverModal(true);
-    };
+      <Spin spinning={loading}>
+        <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+          <Col xs={24} sm={12} lg={6}>
+            <StatCard
+              icon={<CarOutlined />}
+              title="Total Vehicles"
+              value={dashboardData.totalVehicles}
+              color="#10b981"
+              onClick={() => history.push('/fleet/vehicles')}
+            />
+          </Col>
+          
+          <Col xs={24} sm={12} lg={6}>
+            <StatCard
+              icon={<CheckCircleOutlined />}
+              title="Active Vehicles"
+              value={dashboardData.activeVehicles}
+              color="#3b82f6"
+            />
+          </Col>
+          
+          <Col xs={24} sm={12} lg={6}>
+            <StatCard
+              icon={<ToolOutlined />}
+              title="Maintenance Due"
+              value={dashboardData.maintenanceDue}
+              color="#f59e0b"
+              onClick={() => history.push('/fleet/jobcards')}
+            />
+          </Col>
+          
+          <Col xs={24} sm={12} lg={6}>
+            <StatCard
+              icon={<UserOutlined />}
+              title="Total Drivers"
+              value={dashboardData.totalDrivers}
+              color="#8b5cf6"
+              onClick={() => history.push('/fleet/masters/drivers')}
+            />
+          </Col>
+        </Row>
 
-    const handleAddDriverSubmit = (values) => {
-        const newDriver = {
-            id: drivers.length + 1,
-            name: values.name,
-            license: values.license,
-            phone: values.phone,
-            status: 'Active'
-        };
-        setDrivers([...drivers, newDriver]);
-        message.success('Driver added successfully!');
-        setAddDriverModal(false);
-        driverForm.resetFields();
-    };
+        <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+          <Col xs={24} sm={12} lg={6}>
+            <StatCard
+              icon={<ExclamationCircleOutlined />}
+              title="Pending Requisitions"
+              value={dashboardData.pendingRequisitions}
+              color="#ef4444"
+              onClick={() => history.push('/fleet/requistion')}
+            />
+          </Col>
+          
+          <Col xs={24} sm={12} lg={6}>
+            <StatCard
+              icon={<ToolOutlined />}
+              title="Spare Parts"
+              value={dashboardData.totalSpareParts}
+              color="#06b6d4"
+              onClick={() => history.push('/fleet/spareparts')}
+            />
+          </Col>
+          
+          <Col xs={24} sm={12} lg={6}>
+            <StatCard
+              icon={<DollarCircleOutlined />}
+              title="Fleet Value"
+              value={`UGX ${(dashboardData.totalValue / 1000000).toFixed(1)}M`}
+              color="#84cc16"
+            />
+          </Col>
+          
+          <Col xs={24} sm={12} lg={6}>
+            <StatCard
+              icon={<ClockCircleOutlined />}
+              title="Service History"
+              value="12"
+              color="#f97316"
+              onClick={() => history.push('/fleet/reports/servicehistory')}
+            />
+          </Col>
+        </Row>
 
-    const handleScheduleMaintenance = () => {
-        setMaintenanceModal(true);
-    };
+        {(dashboardData.maintenanceDue > 0 || dashboardData.pendingRequisitions > 0) && (
+          <Alert
+            message="Attention Required"
+            description={
+              <Space direction="vertical" size="small">
+                {dashboardData.maintenanceDue > 0 && (
+                  <Text>• {dashboardData.maintenanceDue} vehicles due for maintenance</Text>
+                )}
+                {dashboardData.pendingRequisitions > 0 && (
+                  <Text>• {dashboardData.pendingRequisitions} requisitions pending approval</Text>
+                )}
+              </Space>
+            }
+            type="warning"
+            showIcon
+            style={{ marginBottom: '24px', borderRadius: '12px' }}
+            action={
+              <Text 
+                type="secondary" 
+                style={{ cursor: 'pointer' }}
+                onClick={() => history.push('/fleet/reports/servicehistory')}
+              >
+                View Details
+              </Text>
+            }
+          />
+        )}
 
-    const handleMaintenanceSubmit = (values) => {
-        const newMaintenance = {
-            id: maintenanceRecords.length + 1,
-            vehicle: values.vehicle,
-            type: values.type,
-            date: values.date.format('YYYY-MM-DD'),
-            cost: values.cost,
-            status: 'Scheduled'
-        };
-        setMaintenanceRecords([...maintenanceRecords, newMaintenance]);
-        message.success('Maintenance scheduled successfully!');
-        setMaintenanceModal(false);
-        maintenanceForm.resetFields();
-    };
-
-    const handleViewFleet = () => {
-        setViewFleetModal(true);
-    };
-
-    const handleViewDrivers = () => {
-        setViewDriversModal(true);
-    };
-
-    return (
-        <div style={{ padding: '20px' }}>
-            <Title level={2} style={{ margin: '0 0 20px 0', color: '#0f172a' }}>
-                Fleet Management
-            </Title>
-
-            {/* Simple Stats */}
-            <Row gutter={[16, 16]} style={{ marginBottom: '20px' }}>
-                <Col xs={12} sm={6}>
-                    <Card style={{ textAlign: 'center', borderRadius: '8px' }}>
-                        <Statistic
-                            title="Total Vehicles"
-                            value={vehicles.length}
-                            prefix={<CarOutlined style={{ color: '#0f172a' }} />}
-                            valueStyle={{ color: '#0f172a', fontSize: '20px' }}
-                        />
-                    </Card>
-                </Col>
-                <Col xs={12} sm={6}>
-                    <Card style={{ textAlign: 'center', borderRadius: '8px' }}>
-                        <Statistic
-                            title="Active Vehicles"
-                            value={vehicles.filter(v => v.status === 'Active').length}
-                            prefix={<CarOutlined style={{ color: '#0f172a' }} />}
-                            valueStyle={{ color: '#0f172a', fontSize: '20px' }}
-                        />
-                    </Card>
-                </Col>
-                <Col xs={12} sm={6}>
-                    <Card style={{ textAlign: 'center', borderRadius: '8px' }}>
-                        <Statistic
-                            title="Maintenance Due"
-                            value={maintenanceRecords.filter(m => m.status === 'Scheduled').length}
-                            prefix={<ToolOutlined style={{ color: '#0f172a' }} />}
-                            valueStyle={{ color: '#0f172a', fontSize: '20px' }}
-                        />
-                    </Card>
-                </Col>
-                <Col xs={12} sm={6}>
-                    <Card style={{ textAlign: 'center', borderRadius: '8px' }}>
-                        <Statistic
-                            title="Total Drivers"
-                            value={drivers.length}
-                            prefix={<UserOutlined style={{ color: '#0f172a' }} />}
-                            valueStyle={{ color: '#0f172a', fontSize: '20px' }}
-                        />
-                    </Card>
-                </Col>
-            </Row>
-
-            {/* Simple Actions */}
-            <Row gutter={[16, 16]} style={{ marginBottom: '20px' }}>
-                <Col xs={24} sm={12}>
-                    <Card title="Quick Actions" style={{ borderRadius: '8px' }}>
-                        <Space direction="vertical" style={{ width: '100%' }}>
-                            <Button 
-                                type="primary" 
-                                icon={<PlusOutlined />} 
-                                block
-                                onClick={handleAddVehicle}
-                            >
-                                Add New Vehicle
-                            </Button>
-                            <Button 
-                                icon={<ToolOutlined />} 
-                                block
-                                onClick={handleScheduleMaintenance}
-                            >
-                                Schedule Maintenance
-                            </Button>
-                            <Button 
-                                icon={<UserOutlined />} 
-                                block
-                                onClick={handleAddDriver}
-                            >
-                                Add New Driver
-                            </Button>
-                        </Space>
-                    </Card>
-                </Col>
-                <Col xs={24} sm={12}>
-                    <Card title="View Data" style={{ borderRadius: '8px' }}>
-                        <Space direction="vertical" style={{ width: '100%' }}>
-                            <Button 
-                                icon={<CarOutlined />} 
-                                block
-                                onClick={handleViewFleet}
-                            >
-                                View All Vehicles ({vehicles.length})
-                            </Button>
-                            <Button 
-                                icon={<UserOutlined />} 
-                                block
-                                onClick={handleViewDrivers}
-                            >
-                                View All Drivers ({drivers.length})
-                            </Button>
-                        </Space>
-                    </Card>
-                </Col>
-            </Row>
-
-            {/* Add Vehicle Modal */}
-            <Modal
-                title="Add New Vehicle"
-                open={addVehicleModal}
-                onCancel={() => setAddVehicleModal(false)}
-                footer={null}
-                width={500}
-            >
-                <Form form={vehicleForm} onFinish={handleAddVehicleSubmit} layout="vertical">
-                    <Form.Item name="plate" label="License Plate" rules={[{ required: true, message: 'Please enter license plate!' }]}>
-                        <Input placeholder="e.g., UG 1234A" />
-                    </Form.Item>
-                    <Form.Item name="model" label="Vehicle Model" rules={[{ required: true, message: 'Please enter vehicle model!' }]}>
-                        <Input placeholder="e.g., Toyota Hilux" />
-                    </Form.Item>
-                    <Form.Item name="driver" label="Assigned Driver">
-                        <Select placeholder="Select driver" allowClear>
-                            {drivers.map(driver => (
-                                <Option key={driver.id} value={driver.name}>{driver.name}</Option>
-                            ))}
-                        </Select>
-                    </Form.Item>
-                    <Form.Item>
-                        <Button type="primary" htmlType="submit" block>
-                            Add Vehicle
-                        </Button>
-                    </Form.Item>
-                </Form>
-            </Modal>
-
-            {/* Add Driver Modal */}
-            <Modal
-                title="Add New Driver"
-                open={addDriverModal}
-                onCancel={() => setAddDriverModal(false)}
-                footer={null}
-                width={500}
-            >
-                <Form form={driverForm} onFinish={handleAddDriverSubmit} layout="vertical">
-                    <Form.Item name="name" label="Driver Name" rules={[{ required: true, message: 'Please enter driver name!' }]}>
-                        <Input placeholder="e.g., John Doe" />
-                    </Form.Item>
-                    <Form.Item name="license" label="Driver License" rules={[{ required: true, message: 'Please enter driver license!' }]}>
-                        <Input placeholder="e.g., DL001" />
-                    </Form.Item>
-                    <Form.Item name="phone" label="Phone Number" rules={[{ required: true, message: 'Please enter phone number!' }]}>
-                        <Input placeholder="e.g., +256 701 234 567" />
-                    </Form.Item>
-                    <Form.Item>
-                        <Button type="primary" htmlType="submit" block>
-                            Add Driver
-                        </Button>
-                    </Form.Item>
-                </Form>
-            </Modal>
-
-            {/* Schedule Maintenance Modal */}
-            <Modal
-                title="Schedule Maintenance"
-                open={maintenanceModal}
-                onCancel={() => setMaintenanceModal(false)}
-                footer={null}
-                width={500}
-            >
-                <Form form={maintenanceForm} onFinish={handleMaintenanceSubmit} layout="vertical">
-                    <Form.Item name="vehicle" label="Vehicle" rules={[{ required: true, message: 'Please select vehicle!' }]}>
-                        <Select placeholder="Select vehicle">
-                            {vehicles.map(vehicle => (
-                                <Option key={vehicle.id} value={vehicle.plate}>{vehicle.plate} - {vehicle.model}</Option>
-                            ))}
-                        </Select>
-                    </Form.Item>
-                    <Form.Item name="type" label="Maintenance Type" rules={[{ required: true, message: 'Please select maintenance type!' }]}>
-                        <Select placeholder="Select maintenance type">
-                            <Option value="Oil Change">Oil Change</Option>
-                            <Option value="Brake Service">Brake Service</Option>
-                            <Option value="Tire Rotation">Tire Rotation</Option>
-                            <Option value="Engine Tune-up">Engine Tune-up</Option>
-                            <Option value="Other">Other</Option>
-                        </Select>
-                    </Form.Item>
-                    <Form.Item name="date" label="Scheduled Date" rules={[{ required: true, message: 'Please select date!' }]}>
-                        <DatePicker style={{ width: '100%' }} />
-                    </Form.Item>
-                    <Form.Item name="cost" label="Estimated Cost (UGX)" rules={[{ required: true, message: 'Please enter estimated cost!' }]}>
-                        <Input type="number" placeholder="e.g., 150000" />
-                    </Form.Item>
-                    <Form.Item>
-                        <Button type="primary" htmlType="submit" block>
-                            Schedule Maintenance
-                        </Button>
-                    </Form.Item>
-                </Form>
-            </Modal>
-
-            {/* View Fleet Modal */}
-            <Modal
-                title="Fleet Overview"
-                open={viewFleetModal}
-                onCancel={() => setViewFleetModal(false)}
-                footer={null}
-                width={800}
-            >
-                <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                    {vehicles.map(vehicle => (
-                        <Card key={vehicle.id} style={{ marginBottom: '10px' }}>
-                            <Row gutter={16}>
-                                <Col span={8}>
-                                    <Text strong>{vehicle.plate}</Text>
-                                </Col>
-                                <Col span={8}>
-                                    <Text>{vehicle.model}</Text>
-                                </Col>
-                                <Col span={4}>
-                                    <Text type={vehicle.status === 'Active' ? 'success' : 'warning'}>{vehicle.status}</Text>
-                                </Col>
-                                <Col span={4}>
-                                    <Text>{vehicle.driver}</Text>
-                                </Col>
-                            </Row>
-                        </Card>
-                    ))}
-                </div>
-            </Modal>
-
-            {/* View Drivers Modal */}
-            <Modal
-                title="Drivers Overview"
-                open={viewDriversModal}
-                onCancel={() => setViewDriversModal(false)}
-                footer={null}
-                width={800}
-            >
-                <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                    {drivers.map(driver => (
-                        <Card key={driver.id} style={{ marginBottom: '10px' }}>
-                            <Row gutter={16}>
-                                <Col span={6}>
-                                    <Text strong>{driver.name}</Text>
-                                </Col>
-                                <Col span={6}>
-                                    <Text>{driver.license}</Text>
-                                </Col>
-                                <Col span={8}>
-                                    <Text>{driver.phone}</Text>
-                                </Col>
-                                <Col span={4}>
-                                    <Text type="success">{driver.status}</Text>
-                                </Col>
-                            </Row>
-                        </Card>
-                    ))}
-                </div>
-            </Modal>
-        </div>
-    );
+        <Card title={<Text strong style={{ fontSize: '16px' }}>Quick Actions</Text>} style={{ borderRadius: '12px' }}>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12} lg={6}>
+              <Card 
+                size="small" 
+                hoverable
+                onClick={() => history.push('/fleet/vehicles')}
+                style={{ borderRadius: '8px', border: '1px solid #e5e7eb', textAlign: 'center' }}
+              >
+                <CarOutlined style={{ fontSize: '24px', color: '#10b981', marginBottom: '8px' }} />
+                <div><Text strong>Manage Vehicles</Text></div>
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} lg={6}>
+              <Card 
+                size="small" 
+                hoverable
+                onClick={() => history.push('/fleet/jobcard')}
+                style={{ borderRadius: '8px', border: '1px solid #e5e7eb', textAlign: 'center' }}
+              >
+                <ToolOutlined style={{ fontSize: '24px', color: '#3b82f6', marginBottom: '8px' }} />
+                <div><Text strong>New Job Card</Text></div>
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} lg={6}>
+              <Card 
+                size="small" 
+                hoverable
+                onClick={() => history.push('/fleet/requistion/add')}
+                style={{ borderRadius: '8px', border: '1px solid #e5e7eb', textAlign: 'center' }}
+              >
+                <ExclamationCircleOutlined style={{ fontSize: '24px', color: '#8b5cf6', marginBottom: '8px' }} />
+                <div><Text strong>New Requisition</Text></div>
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} lg={6}>
+              <Card 
+                size="small" 
+                hoverable
+                onClick={() => history.push('/fleet/receiving/create')}
+                style={{ borderRadius: '8px', border: '1px solid #e5e7eb', textAlign: 'center' }}
+              >
+                <CheckCircleOutlined style={{ fontSize: '24px', color: '#f59e0b', marginBottom: '8px' }} />
+                <div><Text strong>Receive Items</Text></div>
+              </Card>
+            </Col>
+          </Row>
+        </Card>
+      </Spin>
+    </div>
+  );
 };
 
 export default FleetDashboard;
