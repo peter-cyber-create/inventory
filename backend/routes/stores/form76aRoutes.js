@@ -1,154 +1,189 @@
 const express = require('express');
-const PDFDocument = require('pdfkit');
+const router = express.Router();
 const { Op } = require('sequelize');
+const PDFDocument = require('pdfkit');
+const moment = require('moment');
 
 const Requisition = require('../../models/stores/requisitionModel');
 const RequisitionItem = require('../../models/stores/requisitionItemModel');
 const RequisitionSignature = require('../../models/stores/requisitionSignatureModel');
+const User = require('../../models/users/userModel');
+const emailService = require('../../services/emailService');
 
-const router = express.Router();
-
-// Generate unique requisition serial number
-const generateSerialNumber = async () => {
-  const count = await Requisition.count();
-  const paddedCount = String(count + 1).padStart(5, '0');
-  return `REQ-${paddedCount}`;
-};
-
-// GET /api/requisitions - List all requisitions
+// GET /api/stores/form76a - List all requisitions with pagination and filtering
 router.get('/', async (req, res) => {
   try {
-    const { page = 1, limit = 10, status, department, date_from, date_to } = req.query;
+    const { 
+      page = 1, 
+      limit = 20, 
+      status, 
+      department_id,
+      created_by,
+      search 
+    } = req.query;
+
     const offset = (page - 1) * limit;
 
-    const whereClause = {};
-    if (status) whereClause.status = status;
-    if (department) whereClause.department = { [Op.iLike]: `%${department}%` };
-    if (date_from || date_to) {
-      whereClause.requisition_date = {};
-      if (date_from) whereClause.requisition_date[Op.gte] = new Date(date_from);
-      if (date_to) whereClause.requisition_date[Op.lte] = new Date(date_to);
+    const where = {};
+    if (status) where.status = status;
+    if (department_id) where.department_id = department_id;
+    if (created_by) where.created_by = created_by;
+    if (search) {
+      where[Op.or] = [
+        { requisition_number: { [Op.like]: `%${search}%` } },
+        { from_department: { [Op.like]: `%${search}%` } },
+        { purpose_remarks: { [Op.like]: `%${search}%` } }
+      ];
     }
 
     const { count, rows } = await Requisition.findAndCountAll({
-      where: whereClause,
+      where,
       include: [
         {
-          model: RequisitionItem,
-          as: 'items'
+          model: User,
+          as: 'creator',
+          attributes: ['id', 'firstname', 'lastname', 'health_email', 'designation']
         }
       ],
-      order: [['created_at', 'DESC']],
       limit: parseInt(limit),
-      offset: parseInt(offset)
+      offset: parseInt(offset),
+      order: [['created_at', 'DESC']]
     });
 
     res.json({
       success: true,
-      data: rows,
-      pagination: {
-        total: count,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        pages: Math.ceil(count / limit)
+      data: {
+        requisitions: rows,
+        pagination: {
+          total: count,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(count / limit)
+        }
       }
     });
-
   } catch (error) {
     console.error('Error fetching requisitions:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching requisitions',
-      error: error.message
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
-// GET /api/requisitions/:id - Get single requisition with items
+// GET /api/stores/form76a/:id - Get single requisition with items and signatures
 router.get('/:id', async (req, res) => {
   try {
     const requisition = await Requisition.findByPk(req.params.id, {
       include: [
         {
           model: RequisitionItem,
-          as: 'items',
-          order: [['serial_no', 'ASC']]
+          as: 'items'
         },
         {
           model: RequisitionSignature,
           as: 'signatures'
+        },
+        {
+          model: User,
+          as: 'creator',
+          attributes: ['id', 'firstname', 'lastname', 'health_email', 'designation']
         }
       ]
     });
 
     if (!requisition) {
-      return res.status(404).json({
-        success: false,
-        message: 'Requisition not found'
-      });
+      return res.status(404).json({ success: false, message: 'Requisition not found' });
     }
 
-    res.json({
-      success: true,
-      data: requisition
-    });
-
+    res.json({ success: true, data: requisition });
   } catch (error) {
     console.error('Error fetching requisition:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching requisition',
-      error: error.message
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
-// POST /api/requisitions - Create new requisition with items
+// POST /api/stores/form76a - Create new requisition
 router.post('/', async (req, res) => {
   const transaction = await Requisition.sequelize.transaction();
   
   try {
-    const serialNo = await generateSerialNumber();
-    
-    const requisitionData = {
-      serial_no: serialNo,
-      requisition_date: req.body.requisition_date || new Date(),
-      department: req.body.department,
-      destination: req.body.destination,
-      purpose: req.body.purpose,
-      status: req.body.status || 'Draft',
-      created_by: (req.user && req.user.id) || 1
-    };
+    const {
+      department,
+      destination,
+      purpose,
+      items,
+      approving_officer_id,
+      issuing_officer_id,
+      head_of_department_id
+    } = req.body;
 
-    const requisition = await Requisition.create(requisitionData, { transaction });
+    // Generate unique requisition number
+    const count = await Requisition.count();
+    const serialNo = String(count + 1).padStart(6, '0');
+    const requisitionNumber = `MOH-REQ-${serialNo}`;
+
+    const requisition = await Requisition.create({
+      serial_no: serialNo,
+      requisition_number: requisitionNumber,
+      form_date: new Date(),
+      from_department: department,
+      to_store: destination,
+      purpose_remarks: purpose,
+      department_id: req.body.department_id || null,
+      created_by: req.user?.id || 1,
+      approving_officer_id,
+      issuing_officer_id,
+      head_of_department_id,
+      status: 'pending'
+    }, { transaction });
 
     // Create requisition items
-    if (req.body.items && Array.isArray(req.body.items)) {
-      for (let i = 0; i < req.body.items.length; i++) {
-        const item = req.body.items[i];
+    if (items && Array.isArray(items)) {
+      for (let i = 0; i < items.length; i++) {
         await RequisitionItem.create({
-          requisition_id: requisition.id,
+          requisition_id: requisition.requisition_id,
           serial_no: i + 1,
-          description: item.description,
-          unit: item.unit,
-          qty_ordered: item.qty_ordered,
-          qty_approved: item.qty_approved || 0,
-          qty_issued: item.qty_issued || 0,
-          qty_received: item.qty_received || 0
+          description: items[i].description,
+          unit_of_issue: items[i].unit_of_issue,
+          quantity_ordered: items[i].quantity_ordered,
+          quantity_approved: items[i].quantity_approved || 0,
+          quantity_issued: items[i].quantity_issued || 0,
+          quantity_received: items[i].quantity_received || 0
         }, { transaction });
       }
     }
 
     // Create signature placeholders
-    const signatureRoles = ['requisition_officer', 'approving_officer', 'issuing_officer', 'receiving_officer', 'head_of_department'];
-    for (const role of signatureRoles) {
+    const signatures = [
+      { role: 'requisition_officer', name: null, signature: null, signed_at: null },
+      { role: 'approving_officer', name: null, signature: null, signed_at: null },
+      { role: 'issuing_officer', name: null, signature: null, signed_at: null },
+      { role: 'receiving_officer', name: null, signature: null, signed_at: null },
+      { role: 'head_of_department', name: null, signature: null, signed_at: null }
+    ];
+
+    for (const sig of signatures) {
       await RequisitionSignature.create({
-        requisition_id: requisition.id,
-        role: role
+        requisition_id: requisition.requisition_id,
+        ...sig
       }, { transaction });
     }
 
     await transaction.commit();
+
+    // Send notification emails (async)
+    try {
+      const signatories = await User.findAll({
+        where: {
+          id: [approving_officer_id, issuing_officer_id, head_of_department_id].filter(Boolean)
+        },
+        attributes: ['id', 'firstname', 'lastname', 'health_email']
+      });
+
+      const user = await User.findByPk(req.user?.id || 1);
+      
+      emailService.sendRequisitionSubmitted(requisition, user, signatories);
+    } catch (emailError) {
+      console.error('Email notification failed:', emailError);
+    }
 
     res.status(201).json({
       success: true,
@@ -159,295 +194,190 @@ router.post('/', async (req, res) => {
   } catch (error) {
     await transaction.rollback();
     console.error('Error creating requisition:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error creating requisition',
-      error: error.message
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
-// PUT /api/requisitions/:id - Update requisition details
-router.put('/:id', async (req, res) => {
+// PATCH /api/stores/form76a/:id/status - Update requisition status (Approval, Issuance, Closure)
+router.patch('/:id/status', async (req, res) => {
   const transaction = await Requisition.sequelize.transaction();
   
   try {
+    const { status, remarks } = req.body;
     const requisition = await Requisition.findByPk(req.params.id);
+
     if (!requisition) {
-      await transaction.rollback();
-      return res.status(404).json({
+      return res.status(404).json({ success: false, message: 'Requisition not found' });
+    }
+
+    // Validate status transition
+    const validTransitions = {
+      'pending': ['approved', 'rejected'],
+      'approved': ['issued', 'partially_issued'],
+      'issued': ['closed'],
+      'partially_issued': ['closed']
+    };
+
+    if (!validTransitions[requisition.status]?.includes(status)) {
+      return res.status(400).json({
         success: false,
-        message: 'Requisition not found'
+        message: `Invalid status transition from ${requisition.status} to ${status}`
       });
     }
 
-    const updateData = {
-      requisition_date: req.body.requisition_date,
-      department: req.body.department,
-      destination: req.body.destination,
-      purpose: req.body.purpose,
-      status: req.body.status
-    };
+    // Update status and timestamp
+    const updateData = { status };
+    
+    if (status === 'approved') {
+      updateData.approved_at = new Date();
+      updateData.approving_officer_id = req.user?.id;
+    } else if (status === 'issued' || status === 'partially_issued') {
+      updateData.issued_at = new Date();
+      updateData.issuing_officer_id = req.user?.id;
+    } else if (status === 'closed') {
+      updateData.closed_at = new Date();
+      updateData.head_of_department_id = req.user?.id;
+    }
 
-    await requisition.update(updateData, { transaction });
-
-    // Update items if provided
-    if (req.body.items) {
-      // Delete existing items
-      await RequisitionItem.destroy({ where: { requisition_id: requisition.id }, transaction });
-      
-      // Create new items
-      for (let i = 0; i < req.body.items.length; i++) {
-        const item = req.body.items[i];
-        await RequisitionItem.create({
-          requisition_id: requisition.id,
-          serial_no: i + 1,
-          description: item.description,
-          unit: item.unit,
-          qty_ordered: item.qty_ordered,
-          qty_approved: item.qty_approved || 0,
-          qty_issued: item.qty_issued || 0,
-          qty_received: item.qty_received || 0
-        }, { transaction });
+    if (remarks) {
+      if (status === 'rejected') {
+        updateData.rejection_reason = remarks;
       }
     }
 
+    await requisition.update(updateData, { transaction });
     await transaction.commit();
+
+    // Send status change notifications
+    const user = await User.findByPk(req.user?.id);
+    
+    if (status === 'approved') {
+      emailService.sendRequisitionApproved(requisition, user);
+    } else if (status === 'issued') {
+      emailService.sendRequisitionIssued(requisition, user);
+    } else if (status === 'closed') {
+      emailService.sendRequisitionClosed(requisition, user);
+    }
 
     res.json({
       success: true,
-      message: 'Requisition updated successfully',
+      message: `Requisition ${status} successfully`,
       data: requisition
     });
 
   } catch (error) {
     await transaction.rollback();
-    console.error('Error updating requisition:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error updating requisition',
-      error: error.message
-    });
+    console.error('Error updating requisition status:', error);
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
-// DELETE /api/requisitions/:id - Delete a requisition
-router.delete('/:id', async (req, res) => {
-  const transaction = await Requisition.sequelize.transaction();
-  
-  try {
-    const requisition = await Requisition.findByPk(req.params.id);
-    if (!requisition) {
-      await transaction.rollback();
-      return res.status(404).json({
-        success: false,
-        message: 'Requisition not found'
-      });
-    }
-
-    // Delete related records
-    await RequisitionItem.destroy({ where: { requisition_id: requisition.id }, transaction });
-    await RequisitionSignature.destroy({ where: { requisition_id: requisition.id }, transaction });
-    
-    // Delete requisition
-    await requisition.destroy({ transaction });
-
-    await transaction.commit();
-
-    res.json({
-      success: true,
-      message: 'Requisition deleted successfully'
-    });
-
-  } catch (error) {
-    await transaction.rollback();
-    console.error('Error deleting requisition:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error deleting requisition',
-      error: error.message
-    });
-  }
-});
-
-// POST /api/requisitions/:id/items - Add item(s) to requisition
-router.post('/:id/items', async (req, res) => {
-  try {
-    const requisition = await Requisition.findByPk(req.params.id);
-    if (!requisition) {
-      return res.status(404).json({
-        success: false,
-        message: 'Requisition not found'
-      });
-    }
-
-    const items = Array.isArray(req.body) ? req.body : [req.body];
-    const createdItems = [];
-
-    for (const item of items) {
-      const createdItem = await RequisitionItem.create({
-        requisition_id: requisition.id,
-        serial_no: item.serial_no,
-        description: item.description,
-        unit: item.unit,
-        qty_ordered: item.qty_ordered,
-        qty_approved: item.qty_approved || 0,
-        qty_issued: item.qty_issued || 0,
-        qty_received: item.qty_received || 0
-      });
-      createdItems.push(createdItem);
-    }
-
-    res.status(201).json({
-      success: true,
-      message: 'Items added successfully',
-      data: createdItems
-    });
-
-  } catch (error) {
-    console.error('Error adding items:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error adding items',
-      error: error.message
-    });
-  }
-});
-
-// DELETE /api/requisitions/items/:item_id - Remove a specific item
-router.delete('/items/:item_id', async (req, res) => {
-  try {
-    const item = await RequisitionItem.findByPk(req.params.item_id);
-    if (!item) {
-      return res.status(404).json({
-        success: false,
-        message: 'Item not found'
-      });
-    }
-
-    await item.destroy();
-
-    res.json({
-      success: true,
-      message: 'Item removed successfully'
-    });
-
-  } catch (error) {
-    console.error('Error removing item:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error removing item',
-      error: error.message
-    });
-  }
-});
-
-// GET /api/requisitions/print/:id - Generate printable PDF layout
-router.get('/print/:id', async (req, res) => {
+// GET /api/stores/form76a/:id/pdf - Generate MOH Form 76A PDF
+router.get('/:id/pdf', async (req, res) => {
   try {
     const requisition = await Requisition.findByPk(req.params.id, {
       include: [
-        {
-          model: RequisitionItem,
-          as: 'items',
-          order: [['serial_no', 'ASC']]
-        },
-        {
-          model: RequisitionSignature,
-          as: 'signatures'
-        }
+        { model: RequisitionItem, as: 'items' },
+        { model: RequisitionSignature, as: 'signatures' }
       ]
     });
 
     if (!requisition) {
-      return res.status(404).json({
-        success: false,
-        message: 'Requisition not found'
-      });
+      return res.status(404).json({ success: false, message: 'Requisition not found' });
     }
 
     // Create PDF
-    const doc = new PDFDocument({ margin: 50 });
-    
+    const doc = new PDFDocument({ 
+      size: 'A4',
+      margin: 50
+    });
+
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="Form76A-${requisition.serial_no}.pdf"`);
-    
+    res.setHeader('Content-Disposition', `attachment; filename="Form76A-${requisition.requisition_number}.pdf"`);
+
     doc.pipe(res);
 
-    // Header
-    doc.fontSize(16).font('Helvetica-Bold').text('MINISTRY OF HEALTH', 50, 50, { align: 'center' });
-    doc.fontSize(14).text('STORES REQUISITION / ISSUE VOUCHER (Form 76A)', 50, 70, { align: 'center' });
+    // Ministry Header
+    doc.fontSize(16).font('Helvetica-Bold').text('MINISTRY OF HEALTH', { align: 'center' });
+    doc.fontSize(14).font('Helvetica-Bold').text('STORES REQUISITION / ISSUE VOUCHER', { align: 'center' });
+    doc.fontSize(12).font('Helvetica-Bold').text('(Form 76A)', { align: 'center' });
     
+    doc.moveDown();
+
     // Form Details
-    doc.fontSize(10).font('Helvetica');
-    let yPosition = 120;
+    doc.fontSize(10).font('Helvetica').text(`Serial No.: ${requisition.serial_no}`);
+    doc.text(`Requisition Number: ${requisition.requisition_number}`);
+    doc.text(`Date: ${moment(requisition.form_date).format('DD/MM/YYYY')}`);
     
-    doc.text(`Serial No.: ${requisition.serial_no}`, 50, yPosition);
-    doc.text(`Date: ${new Date(requisition.requisition_date).toLocaleDateString()}`, 300, yPosition);
-    yPosition += 20;
+    doc.moveDown();
     
-    doc.text(`From Department/Unit: ${requisition.department}`, 50, yPosition);
-    doc.text(`To (Store/Receiving Section): ${requisition.destination || 'N/A'}`, 300, yPosition);
-    yPosition += 20;
+    doc.text(`From Department/Unit: ${requisition.from_department}`);
+    doc.text(`To (Store/Receiving Section): ${requisition.to_store}`);
+    doc.text(`Purpose / Remarks: ${requisition.purpose_remarks}`);
     
-    doc.text(`Purpose / Remarks: ${requisition.purpose || 'N/A'}`, 50, yPosition);
-    yPosition += 30;
+    doc.moveDown();
 
-    // Items Table Header
-    doc.font('Helvetica-Bold');
-    doc.text('Serial No.', 50, yPosition);
-    doc.text('Description', 100, yPosition);
-    doc.text('Unit of Issue', 300, yPosition);
-    doc.text('Qty Ordered', 380, yPosition);
-    doc.text('Qty Approved', 460, yPosition);
-    doc.text('Qty Issued', 540, yPosition);
-    doc.text('Qty Received', 620, yPosition);
-    yPosition += 20;
+    // Items Table
+    const tableTop = doc.y;
+    const tableWidth = 500;
+    const colWidth = 100;
+    
+    // Table Header
+    doc.font('Helvetica-Bold').fontSize(8);
+    doc.text('S/N', 50, tableTop);
+    doc.text('Description', 90, tableTop);
+    doc.text('Unit', 200, tableTop);
+    doc.text('Qty Ordered', 240, tableTop);
+    doc.text('Qty Approved', 300, tableTop);
+    doc.text('Qty Issued', 370, tableTop);
+    doc.text('Qty Received', 430, tableTop);
 
-    // Items Table Content
-    doc.font('Helvetica');
-    requisition.items.forEach(item => {
-      doc.text(item.serial_no.toString(), 50, yPosition);
-      doc.text(item.description, 100, yPosition, { width: 190 });
-      doc.text(item.unit || 'N/A', 300, yPosition);
-      doc.text(item.qty_ordered.toString(), 380, yPosition);
-      doc.text(item.qty_approved.toString(), 460, yPosition);
-      doc.text(item.qty_issued.toString(), 540, yPosition);
-      doc.text(item.qty_received.toString(), 620, yPosition);
-      yPosition += 20;
+    // Table rows
+    doc.font('Helvetica').fontSize(8);
+    requisition.items.forEach((item, index) => {
+      const yPos = tableTop + 20 + (index * 30);
+      doc.text(item.serial_no || index + 1, 50, yPos);
+      doc.text(item.description, 90, yPos);
+      doc.text(item.unit_of_issue, 200, yPos);
+      doc.text(item.quantity_ordered?.toString() || '0', 240, yPos);
+      doc.text(item.quantity_approved?.toString() || '0', 300, yPos);
+      doc.text(item.quantity_issued?.toString() || '0', 370, yPos);
+      doc.text(item.quantity_received?.toString() || '0', 430, yPos);
     });
 
-    yPosition += 30;
+    doc.moveDown(3);
 
-    // Signatures Section
-    doc.font('Helvetica-Bold').text('SIGNATURES', 50, yPosition);
-    yPosition += 30;
+    // Signature Placeholders
+    doc.fontSize(10).font('Helvetica-Bold').text('SIGNATURES (To be filled physically after printing)', { align: 'left' });
+    
+    doc.moveDown();
 
-    const signatureRoles = [
-      'Requisition Officer',
-      'Approving Officer',
-      'Issuing Officer',
-      'Receiving Officer',
-      'Head of Department/Unit'
+    const signatures = [
+      { role: 'Requisition Officer', position: 1 },
+      { role: 'Approving Officer', position: 2 },
+      { role: 'Issuing Officer', position: 3 },
+      { role: 'Receiving Officer', position: 4 },
+      { role: 'Head of Department/Unit', position: 5 }
     ];
 
-    signatureRoles.forEach((role, index) => {
-      doc.font('Helvetica').text(`${role}:`, 50, yPosition);
-      doc.text('Name: ___________________________', 200, yPosition);
-      doc.text('Signature: _____________________', 400, yPosition);
-      doc.text('Date: ___________', 550, yPosition);
-      yPosition += 30;
+    signatures.forEach((sig, index) => {
+      doc.font('Helvetica').fontSize(9);
+      doc.text(`${sig.role}:`, 50, doc.y);
+      doc.text(`Name: ___________________________`);
+      doc.text(`Signature: _____________________`);
+      doc.text(`Date: ___________`);
+      doc.moveDown(0.5);
     });
 
+    // Footer
+    doc.fontSize(8).font('Helvetica');
+    doc.text('This form must be completed and signed before items are issued from the stores.', 50, doc.y);
+    
     doc.end();
 
   } catch (error) {
     console.error('Error generating PDF:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error generating PDF',
-      error: error.message
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
