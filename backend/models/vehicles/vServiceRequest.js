@@ -1,7 +1,7 @@
 import { sequelize, DataTypes } from "../../config/db.js";
 const Vehicle = require("./vehicleModel.js");
 const Driver = require("./vDrivers.js");
-const Department = require("./departments.js");
+const Department = require("../categories/departmentModel.js");
 
 const VServiceRequest = sequelize.define(
   "vservicerequest",

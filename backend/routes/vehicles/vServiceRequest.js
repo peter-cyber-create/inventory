@@ -3,7 +3,7 @@ const Driver = require("../../models/vehicles/vDrivers.js");
 const Vehicle = require("../../models/vehicles/vehicleModel.js");
 const Audit = require("../../models/Logs/auditModel.js");
 const Service = require("../../models/vehicles/vServiceRequest.js");
-const Department = require("../../models/vehicles/departments.js");
+const Department = require("../../models/categories/departmentModel.js");
 const VehicleModel = require("../../models/vehicles/vehicleModel.js");
 
 const router = express.Router();
