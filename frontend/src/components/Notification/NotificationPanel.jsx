@@ -208,7 +208,7 @@ const NotificationPanel = ({
                                     <List.Item.Meta
                                         avatar={<Avatar icon={getIcon(notification.type)} shape="circle" />}
                                         title={
-                                            <Space>
+                                            <Space wrap>
                                                 <Text strong>{notification.title}</Text>
                                                 <Tag color={getModuleColor(notification.module)} size="small">
                                                     {notification.module}
@@ -222,8 +222,10 @@ const NotificationPanel = ({
                                             </Space>
                                         }
                                         description={
-                                            <div>
-                                                <div style={{ marginBottom: 4 }}>{notification.message}</div>
+                                            <div style={{ wordWrap: 'break-word', wordBreak: 'break-word' }}>
+                                                <div style={{ marginBottom: 4, whiteSpace: 'normal', lineHeight: '1.5' }}>
+                                                    {notification.message}
+                                                </div>
                                                 <Text type="secondary" style={{ fontSize: '12px' }}>
                                                     {moment(notification.timestamp).fromNow()}
                                                 </Text>
