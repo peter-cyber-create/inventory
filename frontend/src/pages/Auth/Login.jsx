@@ -128,10 +128,11 @@ const Login = () => {
                                     <h1 style={{
                                         margin: 0, 
                                         fontSize: '1.8rem',
-                                        fontWeight: 600,
-                                        color: '#0f172a',
+                                        fontWeight: 700,
+                                        color: '#000000',
                                         lineHeight: 1.1,
-                                        letterSpacing: '0.02em'
+                                        letterSpacing: '0.02em',
+                                        textShadow: '0 1px 3px rgba(0,0,0,0.1)'
                                     }}>
                                         Ministry of Health Uganda
                                     </h1>

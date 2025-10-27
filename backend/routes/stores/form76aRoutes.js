@@ -42,7 +42,7 @@ router.get('/', async (req, res) => {
         {
           model: User,
           as: 'creator',
-          attributes: ['id', 'firstname', 'lastname', 'health_email', 'designation']
+          attributes: ['id', 'firstname', 'lastname', 'email', 'designation']
         }
       ],
       limit: parseInt(limit),
@@ -84,7 +84,7 @@ router.get('/:id', async (req, res) => {
         {
           model: User,
           as: 'creator',
-          attributes: ['id', 'firstname', 'lastname', 'health_email', 'designation']
+          attributes: ['id', 'firstname', 'lastname', 'email', 'designation']
         }
       ]
     });
@@ -175,7 +175,7 @@ router.post('/', async (req, res) => {
         where: {
           id: [approving_officer_id, issuing_officer_id, head_of_department_id].filter(Boolean)
         },
-        attributes: ['id', 'firstname', 'lastname', 'health_email']
+        attributes: ['id', 'firstname', 'lastname', 'email']
       });
 
       const user = await User.findByPk((req.user && req.user.id) || 1);
