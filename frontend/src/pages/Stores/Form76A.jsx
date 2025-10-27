@@ -148,17 +148,18 @@ const Form76A = () => {
       }
 
       const formData = {
-        formDate: values.formDate.format('YYYY-MM-DD'),
-        fromDepartment: values.fromDepartment,
-        toStore: values.toStore,
-        purposeRemarks: values.purposeRemarks,
+        requisition_date: values.formDate.format('YYYY-MM-DD'),
+        department: values.fromDepartment,
+        destination: values.toStore,
+        purpose: values.purposeRemarks,
+        status: 'draft',
         items: items.map(item => ({
           description: item.description,
-          unitOfIssue: item.unitOfIssue,
-          quantityOrdered: item.quantityOrdered,
-          quantityApproved: item.quantityApproved || 0,
-          quantityIssued: item.quantityIssued || 0,
-          quantityReceived: item.quantityReceived || 0
+          unit: item.unitOfIssue,
+          qty_ordered: item.quantityOrdered,
+          qty_approved: item.quantityApproved || 0,
+          qty_issued: item.quantityIssued || 0,
+          qty_received: item.quantityReceived || 0
         }))
       };
 
