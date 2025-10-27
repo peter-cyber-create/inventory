@@ -24,6 +24,7 @@ const StoreRoutes = () => {
     <>
       {/* Main 5 Stores Modules */}
       <Route exact path="/stores" component={StoresDashboard} />
+      <Route exact path="/stores/dashboard" component={StoresDashboard} />
       <Route exact path="/stores/grn" component={GRN} />
       <Route exact path="/stores/ledger" component={Ledger} />
       <Route exact path="/stores/requisitions-issuance" component={Form76A} />
