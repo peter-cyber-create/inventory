@@ -13,11 +13,9 @@ import ItemsManagement from '../pages/Stores/ItemsManagement';
 import SuppliersManagement from '../pages/Stores/SuppliersManagement';
 import LocationsManagement from '../pages/Stores/LocationsManagement';
 import ReceivingGoods from '../pages/Stores/ReceivingGoods';
-import StockLedger from '../pages/Stores/StockLedger';
 import StockBalance from '../pages/Stores/StockBalance';
 import Returns from '../pages/Stores/Returns';
 import Adjustments from '../pages/Stores/Adjustments';
-import StoresReports from '../pages/Stores/StoresReports';
 
 const StoreRoutes = () => {
   return (

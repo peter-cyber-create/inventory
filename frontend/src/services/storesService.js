@@ -42,35 +42,6 @@ export const storesService = {
   createConsignment: (data) => api.post('/stores/consignments', data),
   updateConsignment: (id, data) => api.put(`/stores/consignments/${id}`, data),
 
-  // GRN (Goods Received Notes)
-  getGRNs: (params) => api.get('/stores/grn', { params }),
-  getGRN: (id) => api.get(`/stores/grn/${id}`),
-  createGRN: (data) => api.post('/stores/grn', data),
-  updateGRN: (id, data) => api.put(`/stores/grn/${id}`, data),
-  approveGRN: (id, data) => api.patch(`/stores/grn/${id}/approve`, data),
-  rejectGRN: (id, data) => api.patch(`/stores/grn/${id}/reject`, data),
-
-  // Stock Ledger
-  getStockLedger: (params) => api.get('/stores/ledger', { params }),
-  getItemLedger: (itemId, params) => api.get(`/stores/ledger/item/${itemId}`, { params }),
-
-  // Stock Balance
-  getStockBalances: (params) => api.get('/stores/stock-balance', { params }),
-  getItemStockBalance: (itemId) => api.get(`/stores/stock-balance/item/${itemId}`),
-
-  // Requisitions
-  getRequisitions: (params) => api.get('/stores/requisitions', { params }),
-  getRequisition: (id) => api.get(`/stores/requisitions/${id}`),
-  createRequisition: (data) => api.post('/stores/requisitions', data),
-  updateRequisition: (id, data) => api.put(`/stores/requisitions/${id}`, data),
-  approveRequisition: (id, data) => api.patch(`/stores/requisitions/${id}/approve`, data),
-  rejectRequisition: (id, data) => api.patch(`/stores/requisitions/${id}/reject`, data),
-  
-  // Official Requisition Form
-  createRequisitionForm: (data) => api.post('/stores/requisition-form', data),
-  getRequisitionForm: (id) => api.get(`/stores/requisition-form/${id}`),
-  getRequisitionForms: (params) => api.get('/stores/requisition-form', { params }),
-
   // Form 76A (Stores Requisition/Issue Voucher)
   createForm76A: (data) => api.post('/stores/form76a', data),
   getForm76A: (id) => api.get(`/stores/form76a/${id}`),
