@@ -51,7 +51,50 @@ const Requisition = sequelize.define('requisitions', {
     type: DataTypes.TEXT,
     allowNull: false
   },
-  // Legacy fields for backward compatibility
+  // Department and user relationships
+  department_id: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: 'departments',
+      key: 'id'
+    },
+    index: true // For scalability
+  },
+  created_by: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: 'users',
+      key: 'id'
+    },
+    allowNull: false,
+    comment: 'Requisition Officer'
+  },
+  // Dynamic signatory roles (assignable per requisition)
+  approving_officer_id: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: 'users',
+      key: 'id'
+    },
+    comment: 'Approving Officer'
+  },
+  issuing_officer_id: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: 'users',
+      key: 'id'
+    },
+    comment: 'Issuing Officer (Stores Manager)'
+  },
+  head_of_department_id: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: 'users',
+      key: 'id'
+    },
+    comment: 'Head of Department'
+  },
+  // Legac: Backward compatibility
   department: {
     type: DataTypes.STRING,
     allowNull: true,
@@ -95,11 +138,12 @@ const Requisition = sequelize.define('requisitions', {
       key: 'id'
     }
   },
-  // Form 76A workflow states: Draft → Submitted → Printed
+  // Workflow status: Pending → Approved → Issued → Closed
   status: {
     type: DataTypes.ENUM,
-    values: ['draft', 'submitted', 'printed', 'pending', 'supervisor_approved', 'finance_approved', 'auditor_approved', 'approved', 'rejected', 'partially_issued', 'completed'],
-    defaultValue: 'draft'
+    values: ['draft', 'pending', 'submitted', 'approved', 'issued', 'partially_issued', 'closed', 'rejected', 'printed'],
+    defaultValue: 'draft',
+    index: true // For scalability
   },
   rejection_reason: {
     type: DataTypes.TEXT
@@ -111,7 +155,17 @@ const Requisition = sequelize.define('requisitions', {
       min: 0
     }
   },
+  // Timestamps for workflow tracking
+  submitted_at: {
+    type: DataTypes.DATE
+  },
   approved_at: {
+    type: DataTypes.DATE
+  },
+  issued_at: {
+    type: DataTypes.DATE
+  },
+  closed_at: {
     type: DataTypes.DATE
   },
   required_date: {
@@ -119,12 +173,27 @@ const Requisition = sequelize.define('requisitions', {
   },
   printed_at: {
     type: DataTypes.DATE
+  },
+  // Audit fields
+  created_at: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
+  },
+  updated_at: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
   }
 }, {
   tableName: 'requisitions',
   timestamps: true,
   createdAt: 'created_at',
-  updatedAt: 'updated_at'
+  updatedAt: 'updated_at',
+  indexes: [
+    { fields: ['department_id'] },
+    { fields: ['status'] },
+    { fields: ['created_at'] },
+    { fields: ['created_by'] }
+  ]
 });
 
 module.exports = Requisition;
