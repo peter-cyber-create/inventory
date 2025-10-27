@@ -178,7 +178,7 @@ router.post('/', async (req, res) => {
         attributes: ['id', 'firstname', 'lastname', 'health_email']
       });
 
-      const user = await User.findByPk(req.user?.id || 1);
+      const user = await User.findByPk((req.user && req.user.id) || 1);
       
       emailService.sendRequisitionSubmitted(requisition, user, signatories);
     } catch (emailError) {
@@ -218,7 +218,7 @@ router.patch('/:id/status', async (req, res) => {
       'partially_issued': ['closed']
     };
 
-    if (!validTransitions[requisition.status]?.includes(status)) {
+    if (!(validTransitions[requisition.status] && validTransitions[requisition.status].includes(status))) {
       return res.status(400).json({
         success: false,
         message: `Invalid status transition from ${requisition.status} to ${status}`
@@ -230,13 +230,13 @@ router.patch('/:id/status', async (req, res) => {
     
     if (status === 'approved') {
       updateData.approved_at = new Date();
-      updateData.approving_officer_id = req.user?.id;
+      updateData.approving_officer_id = (req.user && req.user.id);
     } else if (status === 'issued' || status === 'partially_issued') {
       updateData.issued_at = new Date();
-      updateData.issuing_officer_id = req.user?.id;
+      updateData.issuing_officer_id = (req.user && req.user.id);
     } else if (status === 'closed') {
       updateData.closed_at = new Date();
-      updateData.head_of_department_id = req.user?.id;
+      updateData.head_of_department_id = (req.user && req.user.id);
     }
 
     if (remarks) {
@@ -249,7 +249,7 @@ router.patch('/:id/status', async (req, res) => {
     await transaction.commit();
 
     // Send status change notifications
-    const user = await User.findByPk(req.user?.id);
+    const user = await User.findByPk((req.user && req.user.id));
     
     if (status === 'approved') {
       emailService.sendRequisitionApproved(requisition, user);
@@ -339,10 +339,10 @@ router.get('/:id/pdf', async (req, res) => {
       doc.text(item.serial_no || index + 1, 50, yPos);
       doc.text(item.description, 90, yPos);
       doc.text(item.unit_of_issue, 200, yPos);
-      doc.text(item.quantity_ordered?.toString() || '0', 240, yPos);
-      doc.text(item.quantity_approved?.toString() || '0', 300, yPos);
-      doc.text(item.quantity_issued?.toString() || '0', 370, yPos);
-      doc.text(item.quantity_received?.toString() || '0', 430, yPos);
+      doc.text((item.quantity_ordered && item.quantity_ordered.toString()) || '0', 240, yPos);
+      doc.text((item.quantity_approved && item.quantity_approved.toString()) || '0', 300, yPos);
+      doc.text((item.quantity_issued && item.quantity_issued.toString()) || '0', 370, yPos);
+      doc.text((item.quantity_received && item.quantity_received.toString()) || '0', 430, yPos);
     });
 
     doc.moveDown(3);
