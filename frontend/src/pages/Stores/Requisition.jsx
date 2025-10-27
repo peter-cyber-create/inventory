@@ -1,13 +1,13 @@
 import React from 'react';
 import { Card, Typography, Row, Col, Button, Space, Alert } from 'antd';
 import { FileTextOutlined, PlusOutlined, EyeOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import Form76A from './Form76A';
 
 const { Title, Text } = Typography;
 
 const Requisition = () => {
-  const navigate = useNavigate();
+  const history = useHistory();
 
   const requisitionTypes = [
     {
@@ -37,7 +37,7 @@ const Requisition = () => {
   ];
 
   const handleNavigate = (path) => {
-    navigate(path);
+    history.push(path);
   };
 
   return (

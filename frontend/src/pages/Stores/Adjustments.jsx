@@ -30,7 +30,7 @@ import {
   DeleteOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
-  AdjustmentOutlined,
+  ReloadOutlined,
   UploadOutlined,
   FileImageOutlined
 } from '@ant-design/icons';
@@ -494,7 +494,7 @@ const Adjustments = () => {
             <Statistic 
               title="Total Adjustments" 
               value={pagination.total} 
-              prefix={<AdjustmentOutlined />}
+              prefix={<ReloadOutlined />}
             />
           </Col>
           <Col span={6}>

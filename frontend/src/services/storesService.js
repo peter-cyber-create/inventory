@@ -1,4 +1,4 @@
-import api from './api';
+import api from '../helpers/api';
 
 export const storesService = {
   // Dashboard
