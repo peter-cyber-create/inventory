@@ -23,6 +23,14 @@ const UserModel = sequelize.define(
       isEmail: true,
       allowNull: false,
     },
+    health_email: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      validate: {
+        isEmail: true
+      },
+      comment: 'Official health mail (e.g., user@health.go.ug)'
+    },
     password: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -35,10 +43,16 @@ const UserModel = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    // phoneNo: {
-    //   type: DataTypes.STRING,
-    //   allowNull: true,
-    // },
+    phone: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Contact phone number'
+    },
+    designation: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Job title/designation (e.g., Senior Officer, Manager)'
+    },
     module: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -54,6 +68,20 @@ const UserModel = sequelize.define(
         model: Facility,
         key: "id",
       },
+    },
+    department_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'departments',
+        key: 'id'
+      },
+      comment: 'Reference to departments table'
+    },
+    is_active: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+      comment: 'Whether the user account is active'
     },
   },
   { 
