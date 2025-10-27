@@ -364,24 +364,9 @@ const AppSidebar = ({ collapsed, user }) => {
             label: 'Dashboard'
           },
           {
-            key: '/stores/items',
-            icon: <DatabaseOutlined />,
-            label: 'Items Management'
-          },
-          {
-            key: '/stores/suppliers',
-            icon: <TeamOutlined />,
-            label: 'Suppliers'
-          },
-          {
-            key: '/stores/locations',
-            icon: <BankOutlined />,
-            label: 'Locations'
-          },
-          {
-            key: '/stores/receiving',
-            icon: <ContainerOutlined />,
-            label: 'Receiving Goods'
+            key: '/stores/grn',
+            icon: <FileTextOutlined />,
+            label: 'GRN (Goods Received Notes)'
           },
           {
             key: '/stores/ledger',
@@ -389,29 +374,9 @@ const AppSidebar = ({ collapsed, user }) => {
             label: 'Stock Ledger'
           },
           {
-            key: '/stores/requisitions',
+            key: '/stores/form76a',
             icon: <FileSearchOutlined />,
-            label: 'Requisitions'
-          },
-          {
-            key: '/stores/issuances',
-            icon: <ContainerOutlined />,
-            label: 'Issuances'
-          },
-          {
-            key: '/stores/stock-balance',
-            icon: <BarChartOutlined />,
-            label: 'Stock Balance'
-          },
-          {
-            key: '/stores/returns',
-            icon: <InboxOutlined />,
-            label: 'Returns'
-          },
-          {
-            key: '/stores/adjustments',
-            icon: <ToolOutlined />,
-            label: 'Adjustments'
+            label: 'Requisitions/Issuance (Form 76A)'
           },
           {
             key: '/stores/reports',
