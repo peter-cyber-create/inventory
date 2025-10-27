@@ -18,6 +18,6 @@ const VMake = sequelize.define(
   }
 );
 
-VMake.sync({ alter: true });
+// VMake.sync({ alter: true });
 
 module.exports = VMake;

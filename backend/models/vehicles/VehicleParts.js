@@ -32,5 +32,5 @@ const VehicleParts = sequelize.define("vehicleparts", {
 
 }, { timestamps: true });
 
-VehicleParts.sync({ alter: true });
+// VehicleParts.sync({ alter: true });
 module.exports = VehicleParts;

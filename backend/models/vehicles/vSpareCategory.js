@@ -14,6 +14,6 @@ const VSpareCategory = sequelize.define("vsparecategory", {
     timestamps: true
 });
 
-VSpareCategory.sync({ alter: true });
+// VSpareCategory.sync({ alter: true });
 
 module.exports = VSpareCategory;

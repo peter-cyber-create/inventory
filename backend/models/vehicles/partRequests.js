@@ -48,7 +48,7 @@ const PartRequests = sequelize.define("partrequests", {
 
 }, { timestamps: true });
 
-PartRequests.sync({ alter: true });
+// PartRequests.sync({ alter: true });
 PartRequests.belongsTo(VehicleParts, { foreignKey: 'partId' });
 
 module.exports = PartRequests;

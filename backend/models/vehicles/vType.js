@@ -12,6 +12,6 @@ const VType = sequelize.define("vtype", {
     },
 }, { timestamps: true});
 
-VType.sync({ alter: true });
+// VType.sync({ alter: true });
 
 module.exports = VType;

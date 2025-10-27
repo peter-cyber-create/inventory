@@ -25,5 +25,5 @@ const VDrivers = sequelize.define(
     timestamps: true,
   }
 );
-VDrivers.sync({ alter: false });
+// VDrivers.sync({ alter: false });
 module.exports = VDrivers;

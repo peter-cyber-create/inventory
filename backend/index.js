@@ -127,10 +127,11 @@ app.listen(PORT, async () => {
   
   try {
     await connectDB();
-    await sequelize.sync({ force: false });
-    console.log("✅ Database synced successfully");
+    // Temporarily disable auto-sync to allow server to start
+    // Run migrations manually instead: npm run migrate
+    console.log("✅ Server running - database sync disabled");
   } catch (error) {
     console.log("⚠️ Database connection warning:", error.message);
-    console.log("✅ Server is running - database will sync when PostgreSQL is available");
+    console.log("✅ Server is running - configure PostgreSQL database");
   }
 });

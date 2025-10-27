@@ -69,7 +69,7 @@ const Activity = sequelize.define("activity", {
     },
 }, { timestamps: true });
 
-Activity.sync({ alter: true });
+// Activity.sync({ alter: true });
 Activity.belongsTo(User, { foreignKey: 'created_by' });
 
 module.exports = Activity;

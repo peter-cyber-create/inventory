@@ -42,6 +42,6 @@ const VSparePartsQty = sequelize.define(
 
 VSparePartsQty.belongsTo(VSpareParts, { foreignKey: "spareId" });
 
-VSparePartsQty.sync({ alter: true });
+// VSparePartsQty.sync({ alter: true });
 
 module.exports = VSparePartsQty;

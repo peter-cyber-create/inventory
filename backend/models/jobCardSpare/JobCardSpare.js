@@ -56,6 +56,6 @@ const JobCardSpare = sequelize.define(
 
 JobCardSpare.belongsTo(VSpareParts, { foreignKey: "spareId" });
 
-JobCardSpare.sync({ alter: false });
+// JobCardSpare.sync({ alter: false });
 
 module.exports = JobCardSpare;

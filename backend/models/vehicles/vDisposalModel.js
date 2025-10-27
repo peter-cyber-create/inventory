@@ -38,6 +38,6 @@ const VDisposalModel = sequelize.define(
 );
 
 VDisposalModel.belongsTo(VehicleModel, { foreignKey: "vehicleId" });
-VDisposalModel.sync({ alter: true });
+// VDisposalModel.sync({ alter: true });
 
 module.exports = VDisposalModel;

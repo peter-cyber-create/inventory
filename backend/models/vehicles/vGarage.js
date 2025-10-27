@@ -14,6 +14,6 @@ const VGarage = sequelize.define("vgarage", {
     timestamps: true,
 });
 
-VGarage.sync({ alter: true });
+// VGarage.sync({ alter: true });
 
 module.exports = VGarage;
