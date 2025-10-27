@@ -1,94 +1,64 @@
-import { message } from 'antd';
+import { message, notification as antdNotification } from 'antd';
 
+/**
+ * Modern Notification Service
+ * Features:
+ * - Real-time notifications with event-driven architecture
+ * - Grouped by priority and module
+ * - Rich UI with icons and colors
+ * - Toast notifications for immediate alerts
+ * - Persistent storage with automatic cleanup
+ * - Export/Import functionality
+ */
 class NotificationService {
     constructor() {
-        this.notifications = []; // Initialize as empty array
+        this.notifications = [];
         this.subscribers = [];
         this.nextId = 1;
-        this.storageKey = 'moh_notifications';
-        this.sessionKey = 'moh_notification_session';
-        this.initializeFromStorage();
+        this.maxNotifications = 100; // Limit notifications to prevent memory issues
+        this.autoCleanupDays = 7; // Auto-delete notifications older than 7 days
+        
+        // Initialize from storage
+        this.loadFromStorage();
+        
+        // Start auto-cleanup
+        this.startAutoCleanup();
     }
 
-    // Initialize notifications from localStorage with session validation
-    initializeFromStorage() {
+    /**
+     * Load notifications from localStorage
+     */
+    loadFromStorage() {
         try {
-            const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-            const currentSession = localStorage.getItem('userRole') + '_' + (currentUser.id || 'anonymous');
-            const storedSession = localStorage.getItem(this.sessionKey);
-            
-            // Check if this is the same session
-            if (storedSession === currentSession) {
-                const storedNotifications = localStorage.getItem(this.storageKey);
-                if (storedNotifications) {
-                    try {
-                        const parsed = JSON.parse(storedNotifications);
-                        // Ensure parsed data is an array
-                        if (Array.isArray(parsed)) {
-                            this.notifications = parsed;
-                            this.nextId = Math.max(...this.notifications.map(n => n.id), 0) + 1;
-                        } else {
-                            console.warn('Stored notifications is not an array, initializing with defaults');
-                            this.notifications = [];
-                            this.nextId = 1;
-                        }
-                    } catch (parseError) {
-                        console.warn('Error parsing stored notifications:', parseError);
-                        this.notifications = [];
-                        this.nextId = 1;
-                    }
+            const stored = localStorage.getItem('moh_notifications');
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                if (Array.isArray(parsed)) {
+                    this.notifications = parsed;
+                    const maxId = Math.max(...parsed.map(n => n.id || 0), 0);
+                    this.nextId = maxId + 1;
                 }
-            } else {
-                // New session, clear old notifications and start fresh
-                this.clearStorageAndStartFresh(currentSession);
             }
         } catch (error) {
-            console.warn('Error loading notifications from storage:', error);
-            this.initializeDefaultNotifications();
-        }
-        
-        // If no notifications exist, add default welcome notification
-        if (this.notifications.length === 0) {
-            this.initializeDefaultNotifications();
+            console.error('Error loading notifications from storage:', error);
+            this.notifications = [];
         }
     }
 
-    clearStorageAndStartFresh(newSession) {
-        localStorage.removeItem(this.storageKey);
-        localStorage.setItem(this.sessionKey, newSession);
-        this.notifications = [];
-        this.nextId = 1;
-        this.initializeDefaultNotifications();
-    }
-
-    // Save notifications to localStorage
+    /**
+     * Save notifications to localStorage
+     */
     saveToStorage() {
         try {
-            localStorage.setItem(this.storageKey, JSON.stringify(this.notifications));
-            
-            const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-            const currentSession = localStorage.getItem('userRole') + '_' + (currentUser.id || 'anonymous');
-            localStorage.setItem(this.sessionKey, currentSession);
+            localStorage.setItem('moh_notifications', JSON.stringify(this.notifications));
         } catch (error) {
-            console.warn('Error saving notifications to storage:', error);
+            console.error('Error saving notifications to storage:', error);
         }
     }
 
-    initializeDefaultNotifications() {
-        // Initialize with some default notifications
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const userName = user.firstname ? `${user.firstname} ${user.lastname}` : 'User';
-        
-        this.addNotification({
-            title: 'Welcome to MoH Uganda IMS',
-            message: `Welcome ${userName}! You have successfully logged into the Inventory Management System.`,
-            type: 'success',
-            module: 'System',
-            priority: 'low'
-        });
-    }
-
-    // Subscribe to notification updates
+    /**
+     * Subscribe to notification updates
+     */
     subscribe(callback) {
         this.subscribers.push(callback);
         return () => {
@@ -96,259 +66,261 @@ class NotificationService {
         };
     }
 
-    // Notify all subscribers
+    /**
+     * Notify all subscribers
+     */
     notifySubscribers() {
-        this.subscribers.forEach(callback => callback(this.notifications));
+        this.subscribers.forEach(callback => callback([...this.notifications]));
     }
 
-    // Add a new notification
-    addNotification(notification) {
+    /**
+     * Get notification icon based on type
+     */
+    getNotificationIcon(type) {
+        const iconMap = {
+            success: 'check-circle',
+            error: 'close-circle',
+            warning: 'exclamation-circle',
+            info: 'info-circle'
+        };
+        return iconMap[type] || 'info-circle';
+    }
+
+    /**
+     * Get notification color based on type
+     */
+    getNotificationColor(type) {
+        const colorMap = {
+            success: '#52c41a',
+            error: '#ff4d4f',
+            warning: '#faad14',
+            info: '#1890ff'
+        };
+        return colorMap[type] || '#1890ff';
+    }
+
+    /**
+     * Add a new notification
+     */
+    addNotification({
+        title,
+        message: msg,
+        type = 'info',
+        module = 'System',
+        priority = 'medium',
+        actionRequired = false,
+        link = null,
+        autoClose = true,
+        duration = 4500
+    }) {
         const newNotification = {
             id: this.nextId++,
-            title: notification.title,
-            message: notification.message,
-            type: notification.type || 'info',
-            module: notification.module || 'System',
-            priority: notification.priority || 'medium',
+            title,
+            message: msg,
+            type,
+            module,
+            priority,
+            actionRequired,
+            link,
             timestamp: new Date().toISOString(),
-            read: false,
-            actionRequired: notification.actionRequired || false,
-            link: notification.link || null
+            read: false
         };
 
+        // Add to beginning of array
         this.notifications.unshift(newNotification);
-        this.saveToStorage(); // Save to localStorage
+
+        // Limit notifications
+        if (this.notifications.length > this.maxNotifications) {
+            this.notifications = this.notifications.slice(0, this.maxNotifications);
+        }
+
+        // Save to storage
+        this.saveToStorage();
+
+        // Notify subscribers
         this.notifySubscribers();
 
-        // Show toast message for high priority notifications
-        if (notification.priority === 'high') {
-            message.error(`${notification.title}: ${notification.message}`);
-        } else if (notification.priority === 'medium') {
-            message.warning(`${notification.title}: ${notification.message}`);
-        } else {
-            message.info(`${notification.title}: ${notification.message}`);
+        // Show toast notification
+        if (autoClose) {
+            antdNotification.open({
+                message: title,
+                description: msg,
+                type,
+                duration: duration,
+                placement: 'topRight',
+                onClick: link ? () => window.location.href = link : undefined
+            });
         }
 
         return newNotification.id;
     }
 
-    // Add system notification
-    addSystemNotification(title, message, type = 'info', priority = 'medium') {
-        return this.addNotification({
-            title,
-            message,
-            type,
-            module: 'System',
-            priority
-        });
+    /**
+     * Quick notification methods
+     */
+    success(title, message, module = 'System') {
+        return this.addNotification({ title, message, type: 'success', module });
     }
 
-    // Add fleet notification
-    addFleetNotification(title, message, type = 'info', priority = 'medium') {
-        return this.addNotification({
-            title,
-            message,
-            type,
-            module: 'Fleet',
-            priority
-        });
+    error(title, message, module = 'System') {
+        return this.addNotification({ title, message, type: 'error', module, priority: 'high' });
     }
 
-    // Add stores notification
-    addStoresNotification(title, message, type = 'info', priority = 'medium') {
-        return this.addNotification({
-            title,
-            message,
-            type,
-            module: 'Stores',
-            priority
-        });
+    warning(title, message, module = 'System') {
+        return this.addNotification({ title, message, type: 'warning', module, priority: 'medium' });
     }
 
-    // Add assets notification
-    addAssetsNotification(title, message, type = 'info', priority = 'medium') {
-        return this.addNotification({
-            title,
-            message,
-            type,
-            module: 'Assets',
-            priority
-        });
+    info(title, message, module = 'System') {
+        return this.addNotification({ title, message, type: 'info', module, priority: 'low' });
     }
 
-    // Add finance notification
-    addFinanceNotification(title, message, type = 'info', priority = 'medium') {
-        return this.addNotification({
-            title,
-            message,
-            type,
-            module: 'Finance',
-            priority
-        });
+    /**
+     * Module-specific notification methods
+     */
+    fleet(title, message, type = 'info', priority = 'medium') {
+        return this.addNotification({ title, message, type, module: 'Fleet', priority });
     }
 
-    // Mark notification as read
+    stores(title, message, type = 'info', priority = 'medium') {
+        return this.addNotification({ title, message, type, module: 'Stores', priority });
+    }
+
+    assets(title, message, type = 'info', priority = 'medium') {
+        return this.addNotification({ title, message, type, module: 'Assets', priority });
+    }
+
+    finance(title, message, type = 'info', priority = 'medium') {
+        return this.addNotification({ title, message, type, module: 'Finance', priority });
+    }
+
+    /**
+     * Mark notification as read
+     */
     markAsRead(notificationId) {
         const notification = this.notifications.find(n => n.id === notificationId);
         if (notification) {
             notification.read = true;
-            this.saveToStorage(); // Save to localStorage
+            this.saveToStorage();
             this.notifySubscribers();
         }
     }
 
-    // Mark all notifications as read
+    /**
+     * Mark all notifications as read
+     */
     markAllAsRead() {
-        this.notifications.forEach(notification => {
-            notification.read = true;
-        });
-        this.saveToStorage(); // Save to localStorage
+        this.notifications.forEach(n => n.read = true);
+        this.saveToStorage();
         this.notifySubscribers();
     }
 
-    // Delete notification
+    /**
+     * Delete notification
+     */
     deleteNotification(notificationId) {
         this.notifications = this.notifications.filter(n => n.id !== notificationId);
-        this.saveToStorage(); // Save to localStorage
+        this.saveToStorage();
         this.notifySubscribers();
     }
 
-    // Clear all notifications
-    clearAllNotifications() {
+    /**
+     * Clear all notifications
+     */
+    clearAll() {
         this.notifications = [];
-        this.saveToStorage(); // Save to localStorage
+        this.saveToStorage();
         this.notifySubscribers();
     }
 
-    // Clear notifications on logout
-    clearSessionNotifications() {
-        this.notifications = [];
-        this.nextId = 1;
-        localStorage.removeItem(this.storageKey);
-        localStorage.removeItem(this.sessionKey);
-        this.notifySubscribers();
+    /**
+     * Get all notifications
+     */
+    getAll() {
+        return [...this.notifications];
     }
 
-    // Force reset notifications (for debugging/fixing corrupted data)
-    forceResetNotifications() {
-        console.log('Force resetting notifications...');
-        this.clearSessionNotifications();
-        this.initializeDefaultNotifications();
-    }
-
-    // Get all notifications
-    getNotifications() {
-        // Ensure notifications is always an array
-        if (!Array.isArray(this.notifications)) {
-            console.warn('Notifications is not an array, resetting to empty array');
-            this.notifications = [];
-        }
-        return this.notifications;
-    }
-
-    // Get unread notifications
-    getUnreadNotifications() {
+    /**
+     * Get unread notifications
+     */
+    getUnread() {
         return this.notifications.filter(n => !n.read);
     }
 
-    // Get notifications by module
-    getNotificationsByModule(module) {
-        return this.notifications.filter(n => n.module === module);
-    }
-
-    // Get notifications by type
-    getNotificationsByType(type) {
-        return this.notifications.filter(n => n.type === type);
-    }
-
-    // Get notifications by priority
-    getNotificationsByPriority(priority) {
-        return this.notifications.filter(n => n.priority === priority);
-    }
-
-    // Get unread count
+    /**
+     * Get unread count
+     */
     getUnreadCount() {
         return this.notifications.filter(n => !n.read).length;
     }
 
-    // Get unread count by module
-    getUnreadCountByModule(module) {
-        return this.notifications.filter(n => !n.read && n.module === module).length;
+    /**
+     * Get notifications by module
+     */
+    getByModule(module) {
+        return this.notifications.filter(n => n.module === module);
     }
 
-    // Clear notifications by module
-    clearNotificationsByModule(module) {
-        this.notifications = this.notifications.filter(n => n.module !== module);
-        this.saveToStorage(); // Save to localStorage
-        this.notifySubscribers();
+    /**
+     * Get notifications by type
+     */
+    getByType(type) {
+        return this.notifications.filter(n => n.type === type);
     }
 
-    // Simulate real-time notifications (for demo purposes)
-    startRealTimeNotifications() {
+    /**
+     * Get high priority notifications
+     */
+    getHighPriority() {
+        return this.notifications.filter(n => n.priority === 'high');
+    }
+
+    /**
+     * Auto-cleanup old notifications
+     */
+    startAutoCleanup() {
         setInterval(() => {
-            // Randomly add notifications for demo
-            const types = ['info', 'warning', 'error', 'success'];
-            const modules = ['Fleet', 'Stores', 'Assets', 'Finance'];
-            const priorities = ['low', 'medium', 'high'];
+            const cutoffDate = new Date();
+            cutoffDate.setDate(cutoffDate.getDate() - this.autoCleanupDays);
             
-            if (Math.random() < 0.1) { // 10% chance every interval
-                const randomType = types[Math.floor(Math.random() * types.length)];
-                const randomModule = modules[Math.floor(Math.random() * modules.length)];
-                const randomPriority = priorities[Math.floor(Math.random() * priorities.length)];
-                
-                this.addNotification({
-                    title: `Auto ${randomModule} Update`,
-                    message: `Automated system update for ${randomModule} module`,
-                    type: randomType,
-                    module: randomModule,
-                    priority: randomPriority
-                });
+            const initialCount = this.notifications.length;
+            this.notifications = this.notifications.filter(n => {
+                const notificationDate = new Date(n.timestamp);
+                return notificationDate > cutoffDate;
+            });
+            
+            if (this.notifications.length !== initialCount) {
+                this.saveToStorage();
+                this.notifySubscribers();
             }
-        }, 30000); // Every 30 seconds
+        }, 24 * 60 * 60 * 1000); // Run once per day
     }
 
-    // Stop real-time notifications
-    stopRealTimeNotifications() {
-        if (this.intervalId) {
-            clearInterval(this.intervalId);
-        }
-    }
-
-    // Export notifications
-    exportNotifications() {
+    /**
+     * Export notifications as JSON
+     */
+    export() {
         const dataStr = JSON.stringify(this.notifications, null, 2);
         const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        const fileName = `notifications-${new Date().toISOString().split('T')[0]}.json`;
         
-        const exportFileDefaultName = `notifications-${new Date().toISOString().split('T')[0]}.json`;
-        
-        const linkElement = document.createElement('a');
-        linkElement.setAttribute('href', dataUri);
-        linkElement.setAttribute('download', exportFileDefaultName);
-        linkElement.click();
+        const link = document.createElement('a');
+        link.setAttribute('href', dataUri);
+        link.setAttribute('download', fileName);
+        link.click();
     }
 
-    // Import notifications
-    importNotifications(jsonData) {
-        try {
-            const importedNotifications = JSON.parse(jsonData);
-            if (Array.isArray(importedNotifications)) {
-                this.notifications = importedNotifications;
-                this.nextId = Math.max(...importedNotifications.map(n => n.id)) + 1;
-                this.notifySubscribers();
-                return true;
-            }
-        } catch (error) {
-            console.error('Failed to import notifications:', error);
-            return false;
-        }
-        return false;
+    /**
+     * Clear session on logout
+     */
+    clearSession() {
+        this.notifications = [];
+        this.nextId = 1;
+        localStorage.removeItem('moh_notifications');
+        this.notifySubscribers();
     }
 }
 
-// Create singleton instance
+// Create and export singleton instance
 const notificationService = new NotificationService();
-
-// Start real-time notifications for demo
-notificationService.startRealTimeNotifications();
 
 export default notificationService;
