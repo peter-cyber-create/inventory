@@ -114,3 +114,4 @@ const Ledger = sequelize.define('ledger', {
 });
 
 module.exports = Ledger;
+

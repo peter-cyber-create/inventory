@@ -143,3 +143,4 @@ module.exports = {
     await queryInterface.dropTable('requisitions');
   }
 };
+

@@ -16,8 +16,8 @@ const logTransaction = async (ledgerId, operationType, userId, details = null, r
       operation_type: operationType,
       user_id: userId,
       operation_details: details ? JSON.stringify(details) : null,
-      ip_address: req?.ip || req?.connection?.remoteAddress,
-      user_agent: req?.get('User-Agent')
+      ip_address: (req && req.ip) || (req && req.connection && req.connection.remoteAddress),
+      user_agent: (req && req.get) ? req.get('User-Agent') : null
     });
   } catch (error) {
     console.error('Error logging transaction:', error);
@@ -241,12 +241,12 @@ router.post('/', async (req, res) => {
       total_value: totalValue,
       department,
       remarks,
-      created_by: req.user?.id || 1,
+      created_by: (req.user && req.user.id) || 1,
       is_manual_entry: true
     });
 
     // Log the transaction
-    await logTransaction(ledgerEntry.ledger_id, 'create', req.user?.id || 1, req.body, req);
+    await logTransaction(ledgerEntry.ledger_id, 'create', (req.user && req.user.id) || 1, req.body, req);
 
     res.status(201).json({
       success: true,

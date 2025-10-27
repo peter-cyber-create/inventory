@@ -70,7 +70,7 @@ router.post('/', upload.array('attachments', 10), async (req, res) => {
       supplier_contact: req.body.supplier_contact,
       delivery_location: req.body.delivery_location,
       remarks: req.body.remarks,
-      created_by: req.user?.id || 1
+      created_by: (req.user && req.user.id) || 1
     };
 
     const grn = await GRN.create(grnData, { transaction });
@@ -109,7 +109,7 @@ router.post('/', upload.array('attachments', 10), async (req, res) => {
           file_path: file.path,
           file_size: file.size,
           mime_type: file.mimetype,
-          uploaded_by: req.user?.id || 1
+          uploaded_by: (req.user && req.user.id) || 1
         }, { transaction });
       }
     }
@@ -304,7 +304,7 @@ router.put('/:id', upload.array('attachments', 10), async (req, res) => {
           file_path: file.path,
           file_size: file.size,
           mime_type: file.mimetype,
-          uploaded_by: req.user?.id || 1
+          uploaded_by: (req.user && req.user.id) || 1
         }, { transaction });
       }
     }
@@ -344,7 +344,7 @@ router.patch('/:id/status', async (req, res) => {
     };
 
     if (req.body.status === 'approved') {
-      updateData.approved_by = req.user?.id || 1;
+      updateData.approved_by = (req.user && req.user.id) || 1;
       updateData.approved_at = new Date();
     }
 
@@ -511,7 +511,7 @@ router.post('/:id/attachments', upload.array('attachments', 10), async (req, res
         file_path: file.path,
         file_size: file.size,
         mime_type: file.mimetype,
-        uploaded_by: req.user?.id || 1
+        uploaded_by: (req.user && req.user.id) || 1
       });
       uploadedFiles.push(attachment);
     }

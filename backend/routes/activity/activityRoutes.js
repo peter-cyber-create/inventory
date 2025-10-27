@@ -1,9 +1,9 @@
 const express = require("express");
-import { Sequelize } from 'sequelize';
+const { Sequelize } = require('sequelize');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-import { sequelize } from '../../config/db.js';
+const { sequelize } = require('../../config/db.js');
 const Activity = require("../../models/activity/activityModel.js");
 const Participant = require("../../models/activity/participantModel.js");
 const authenticate = require("../../middleware/auth.js");
@@ -374,8 +374,7 @@ router.post('/:id/participants', async (req, res) => {
         });
 
         // Then create new participants
-        const newParticipants = participants.map(p => ({
-            ...p,
+        const newParticipants = participants.map(p => Object.assign({}, p, {
             activityId: id
         }));
 

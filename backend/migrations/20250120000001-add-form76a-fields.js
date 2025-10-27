@@ -128,3 +128,4 @@ module.exports = {
     await queryInterface.removeColumn('requisition_signatures', 'signature');
   }
 };
+

@@ -64,3 +64,4 @@ const GRNAttachment = sequelize.define('grn_attachments', {
 });
 
 module.exports = GRNAttachment;
+

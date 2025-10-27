@@ -47,3 +47,4 @@ const LedgerTransaction = sequelize.define('ledger_transactions', {
 });
 
 module.exports = LedgerTransaction;
+

@@ -117,7 +117,7 @@ router.post('/', async (req, res) => {
       destination: req.body.destination,
       purpose: req.body.purpose,
       status: req.body.status || 'Draft',
-      created_by: req.user?.id || 1
+      created_by: (req.user && req.user.id) || 1
     };
 
     const requisition = await Requisition.create(requisitionData, { transaction });

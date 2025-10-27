@@ -82,3 +82,4 @@ const GRNItem = sequelize.define('grn_items', {
 });
 
 module.exports = GRNItem;
+

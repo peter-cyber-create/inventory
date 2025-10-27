@@ -37,3 +37,4 @@ const GRNSignature = sequelize.define('grn_signatures', {
 });
 
 module.exports = GRNSignature;
+

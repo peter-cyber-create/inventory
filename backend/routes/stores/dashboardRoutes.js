@@ -190,10 +190,10 @@ router.get('/dashboard', auth, async (req, res) => {
       success: true,
       data: {
         totalItems,
-        lowStockItems: lowStockItems[0]?.count || 0,
+        lowStockItems: (lowStockItems && lowStockItems[0] && lowStockItems[0].count) || 0,
         pendingGRNs,
         pendingRequisitions,
-        totalValue: totalValue[0]?.total_value || 0,
+        totalValue: (totalValue && totalValue[0] && totalValue[0].total_value) || 0,
         expiringItems
       }
     });
