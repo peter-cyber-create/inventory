@@ -113,7 +113,8 @@ app.use("/api/v/service", VehicleserviceRequests);
 app.use("/api/v/receive", GarageReceive);
 app.use("/api/v/jobcard", Jobcard);
 app.use("/api/v/parts", PartsUsed);
-app.use("/api/v/disposal", VdisporsalRoutes);
+// Temporarily disable problematic vehicle routes until database is properly set up
+// app.use("/api/v/disposal", VdisporsalRoutes);
 
 /**************** job card Routes ********************/
 app.use("/api/jobcards", joCardRoutes);
