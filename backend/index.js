@@ -9,6 +9,9 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const { connectDB, sequelize } = require("./config/db.js");
 
+// Load environment variables
+dotenv.config({ path: '../config/environments/backend.env' });
+
 const uploadRoutes = require("./routes/uploads/index.js");
 const userRoutes = require("./routes/users/userRoutes.js");
 const staffRoutes = require("./routes/users/staffRoutes.js");

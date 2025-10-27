@@ -35,10 +35,10 @@ const UserModel = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    phoneNo: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
+    // phoneNo: {
+    //   type: DataTypes.STRING,
+    //   allowNull: true,
+    // },
     module: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -47,19 +47,23 @@ const UserModel = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    facilityId: {
+    facilityid: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: Facility,
         key: "id",
       },
     },
   },
-  { timestamps: true }
+  { 
+    timestamps: true,
+    createdAt: 'createdat',
+    updatedAt: 'updatedat'
+  }
 );
 
 //UserModel.sync({ alter: true });
-UserModel.belongsTo(Facility, { foreignKey: "facilityId" });
+UserModel.belongsTo(Facility, { foreignKey: "facilityid" });
 
 module.exports = UserModel;

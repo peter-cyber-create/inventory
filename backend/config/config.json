@@ -1,38 +1,26 @@
 {
   "development": {
-    "username": "root",
-    "password": "",
+    "username": "inventory_user",
+    "password": "toor",
     "database": "inventory_db",
-    "host": "127.0.0.1",
-    "port": 3306,
-    "dialect": "mysql",
-    "dialectOptions": {
-      "charset": "utf8mb4",
-      "collate": "utf8mb4_unicode_ci"
-    }
+    "host": "localhost",
+    "port": 5432,
+    "dialect": "postgres"
   },
   "test": {
-    "username": "root",
-    "password": "",
+    "username": "inventory_user",
+    "password": "toor",
     "database": "inventory_db_test",
-    "host": "127.0.0.1",
-    "port": 3306,
-    "dialect": "mysql",
-    "dialectOptions": {
-      "charset": "utf8mb4",
-      "collate": "utf8mb4_unicode_ci"
-    }
+    "host": "localhost",
+    "port": 5432,
+    "dialect": "postgres"
   },
   "production": {
-    "username": "root",
-    "password": "",
+    "username": "inventory_user",
+    "password": "toor",
     "database": "inventory_db",
-    "host": "127.0.0.1",
-    "port": 3306,
-    "dialect": "mysql",
-    "dialectOptions": {
-      "charset": "utf8mb4",
-      "collate": "utf8mb4_unicode_ci"
-    }
+    "host": "localhost",
+    "port": 5432,
+    "dialect": "postgres"
   }
 }
