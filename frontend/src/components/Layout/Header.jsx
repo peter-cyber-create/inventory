@@ -107,8 +107,8 @@ const AppHeader = () => {
                         alt="MoH Uganda" 
                         style={{ height: '40px', marginRight: '16px' }}
                     />
-                    <span style={{ color: '#ffffff', fontSize: '18px', fontWeight: 'bold' }}>
-                        Ministry of Health Uganda
+                    <span style={{ color: '#ffffff', fontSize: '16px', fontWeight: '600', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        MoH Uganda IMS v2.0.0
                     </span>
                 </div>
 

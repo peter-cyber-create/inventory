@@ -128,7 +128,7 @@ router.post('/', async (req, res) => {
       to_store: destination,
       purpose_remarks: purpose,
       department_id: req.body.department_id || null,
-      created_by: req.user?.id || 1,
+      created_by: (req.user && req.user.id) || 1,
       approving_officer_id,
       issuing_officer_id,
       head_of_department_id,
