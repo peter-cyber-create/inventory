@@ -4,8 +4,7 @@ import { Route } from 'react-router-dom';
 // Import the 5 main stores modules
 import GRN from '../pages/Stores/GRN';
 import Ledger from '../pages/Stores/Ledger';
-import Issuance from '../pages/Stores/Issuance';
-import Requisition from '../pages/Stores/Requisition';
+import Form76A from '../pages/Stores/Form76A';  // Requisitions/Issuance (Form 76A)
 import Reports from '../pages/Stores/Reports';
 
 // Legacy components for backward compatibility
@@ -27,8 +26,8 @@ const StoreRoutes = () => {
       <Route exact path="/stores" component={StoresDashboard} />
       <Route exact path="/stores/grn" component={GRN} />
       <Route exact path="/stores/ledger" component={Ledger} />
-      <Route exact path="/stores/issuance" component={Issuance} />
-      <Route exact path="/stores/requisition" component={Requisition} />
+      <Route exact path="/stores/requisitions-issuance" component={Form76A} />
+      <Route exact path="/stores/form76a" component={Form76A} />
       <Route exact path="/stores/reports" component={Reports} />
       
       {/* Legacy routes for backward compatibility */}

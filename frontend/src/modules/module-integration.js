@@ -27,8 +27,8 @@ export const MODULE_ROUTES = {
     STORES: {
         grn: '/stores/grn',
         ledger: '/stores/ledger',
-        issuance: '/stores/issuance',
-        requisition: '/stores/requisition',
+        requisitionsIssuance: '/stores/requisitions-issuance',
+        form76a: '/stores/form76a',
         reports: '/stores/reports'
     },
     
@@ -75,8 +75,7 @@ export const MODULE_NAVIGATION = {
             children: [
                 { key: 'stores-grn', label: 'GRN', path: MODULE_ROUTES.STORES.grn },
                 { key: 'stores-ledger', label: 'Ledger', path: MODULE_ROUTES.STORES.ledger },
-                { key: 'stores-issuance', label: 'Issuance', path: MODULE_ROUTES.STORES.issuance },
-                { key: 'stores-requisition', label: 'Requisition', path: MODULE_ROUTES.STORES.requisition },
+                { key: 'stores-requisitions-issuance', label: 'Requisitions/Issuance (Form 76A)', path: MODULE_ROUTES.STORES.requisitionsIssuance },
                 { key: 'stores-reports', label: 'Reports', path: MODULE_ROUTES.STORES.reports }
             ]
         },
