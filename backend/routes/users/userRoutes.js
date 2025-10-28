@@ -6,6 +6,58 @@ const UserModel = require("../../models/users/userModel.js");
 
 const router = express.Router();
 
+// Create new user (admin endpoint)
+router.post("/", async (req, res) => {
+    try {
+        const { username, email, role, password, firstname, lastname, phone, designation, module, depart, health_email, department_id, is_active } = req.body;
+
+        const data = {
+            username,
+            email,
+            role,
+            firstname,
+            lastname,
+            phone,
+            designation,
+            module,
+            depart,
+            health_email,
+            department_id,
+            is_active: is_active !== undefined ? is_active : true,
+            password: await bcrypt.hash(password, 10),
+        };
+
+        const user = await UserModel.create(data);
+
+        res.status(201).json({ 
+            status: 'success', 
+            user: {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                firstname: user.firstname,
+                lastname: user.lastname,
+                phone: user.phone,
+                designation: user.designation,
+                module: user.module,
+                depart: user.depart,
+                health_email: user.health_email,
+                department_id: user.department_id,
+                is_active: user.is_active,
+                createdat: user.createdat,
+                updatedat: user.updatedat
+            }
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            status: "error",
+            message: error.message,
+        });
+    }
+});
+
 router.post("/register", async (req, res) => {
 
     try {
@@ -189,13 +241,11 @@ router.patch("/:id", async (req, res) => {
             });
         }
 
-        const note = await UserModel.findByPk(req.params.noteId);
+        const user = await UserModel.findByPk(req.params.id);
 
         res.status(200).json({
             status: "success",
-            data: {
-                note,
-            },
+            user,
         });
     } catch (error) {
         res.status(500).json({

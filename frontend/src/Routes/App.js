@@ -13,6 +13,7 @@ import ITRoutes from './ITRoutes';
 import FleetRoutes from './FleetRoutes';
 import StoreRoutes from './StoreRoutes';
 import ACtivityRoutes from './ActivityRoutes';
+import AdminRoutes from './AdminRoutes';
 
 const App = () => {
   return (
@@ -28,6 +29,7 @@ const App = () => {
           <FleetRoutes />
           <StoreRoutes />
           <ACtivityRoutes />
+          <AdminRoutes />
         </Layout>
       </Switch>
     </Fragment>
