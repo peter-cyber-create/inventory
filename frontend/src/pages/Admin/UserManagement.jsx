@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { 
-    Card, 
     Table, 
     Button, 
     Space, 
     Tag, 
-    Typography, 
     Modal, 
     Form, 
     Input, 
@@ -13,9 +11,7 @@ import {
     Switch,
     message,
     Popconfirm,
-    Tooltip,
-    Row,
-    Col
+    Tooltip
 } from 'antd';
 import { 
     PlusOutlined, 
@@ -23,22 +19,63 @@ import {
     DeleteOutlined, 
     UserOutlined,
     MailOutlined,
-    TeamOutlined
+    TeamOutlined,
+    KeyOutlined
 } from '@ant-design/icons';
+import PageLayout from '../../components/Layout/PageLayout';
+import SearchFilters from '../../components/Common/SearchFilters';
+import PasswordChangeModal from '../../components/Common/PasswordChangeModal';
 
-const { Title, Text } = Typography;
 const { Option } = Select;
 
 const UserManagement = () => {
     const [users, setUsers] = useState([]);
+    const [filteredUsers, setFilteredUsers] = useState([]);
     const [loading, setLoading] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
+    const [passwordModalVisible, setPasswordModalVisible] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
+    const [selectedUserId, setSelectedUserId] = useState(null);
     const [form] = Form.useForm();
+    
+    // Search and filter states
+    const [searchText, setSearchText] = useState('');
+    const [roleFilter, setRoleFilter] = useState('');
+    const [statusFilter, setStatusFilter] = useState('');
 
     useEffect(() => {
         fetchUsers();
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    useEffect(() => {
+        applyFilters();
+    }, [users, searchText, roleFilter, statusFilter]);
+
+    const applyFilters = () => {
+        let filtered = [...users];
+
+        // Search filter
+        if (searchText) {
+            filtered = filtered.filter(user => 
+                user.username.toLowerCase().includes(searchText.toLowerCase()) ||
+                user.email.toLowerCase().includes(searchText.toLowerCase()) ||
+                user.firstname.toLowerCase().includes(searchText.toLowerCase()) ||
+                user.lastname.toLowerCase().includes(searchText.toLowerCase())
+            );
+        }
+
+        // Role filter
+        if (roleFilter) {
+            filtered = filtered.filter(user => user.role === roleFilter);
+        }
+
+        // Status filter
+        if (statusFilter !== '') {
+            filtered = filtered.filter(user => user.is_active === (statusFilter === 'active'));
+        }
+
+        setFilteredUsers(filtered);
+    };
 
     const fetchUsers = async () => {
         setLoading(true);
@@ -62,6 +99,32 @@ const UserManagement = () => {
         setEditingUser(null);
         form.resetFields();
         setModalVisible(true);
+    };
+
+    const handleChangePassword = (userId) => {
+        setSelectedUserId(userId);
+        setPasswordModalVisible(true);
+    };
+
+    const handlePasswordChangeSuccess = () => {
+        setPasswordModalVisible(false);
+        setSelectedUserId(null);
+        fetchUsers();
+    };
+
+    const handleSearch = (value) => {
+        setSearchText(value);
+    };
+
+    const handleFilterChange = (key, value) => {
+        if (key === 'role') setRoleFilter(value);
+        if (key === 'status') setStatusFilter(value);
+    };
+
+    const handleResetFilters = () => {
+        setSearchText('');
+        setRoleFilter('');
+        setStatusFilter('');
     };
 
     const handleEditUser = (user) => {
@@ -246,6 +309,14 @@ const UserManagement = () => {
                             onClick={() => handleEditUser(record)}
                         />
                     </Tooltip>
+                    <Tooltip title="Change Password">
+                        <Button 
+                            type="default" 
+                            icon={<KeyOutlined />} 
+                            size="small"
+                            onClick={() => handleChangePassword(record.id)}
+                        />
+                    </Tooltip>
                     <Popconfirm
                         title="Are you sure you want to delete this user?"
                         onConfirm={() => handleDeleteUser(record.id)}
@@ -266,14 +337,36 @@ const UserManagement = () => {
         },
     ];
 
+    const searchFilters = [
+        {
+            key: 'role',
+            placeholder: 'Filter by Role',
+            value: roleFilter,
+            options: [
+                { value: 'admin', label: 'Admin' },
+                { value: 'it', label: 'IT Manager' },
+                { value: 'store', label: 'Store Manager' },
+                { value: 'garage', label: 'Fleet Manager' },
+                { value: 'finance', label: 'Finance Manager' },
+                { value: 'user', label: 'User' }
+            ]
+        },
+        {
+            key: 'status',
+            placeholder: 'Filter by Status',
+            value: statusFilter,
+            options: [
+                { value: 'active', label: 'Active' },
+                { value: 'inactive', label: 'Inactive' }
+            ]
+        }
+    ];
+
     return (
-        <div style={{ padding: '24px' }}>
-            {/* Header */}
-            <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                    <Title level={2}>User Management</Title>
-                    <Text type="secondary">Manage system users and their permissions</Text>
-                </div>
+        <PageLayout
+            title="User Management"
+            subtitle="Manage system users and their permissions"
+            extra={
                 <Button 
                     type="primary" 
                     icon={<PlusOutlined />}
@@ -281,23 +374,32 @@ const UserManagement = () => {
                 >
                     Add User
                 </Button>
-            </div>
+            }
+            loading={loading}
+        >
+            <SearchFilters
+                searchPlaceholder="Search users by name, email, or username..."
+                searchValue={searchText}
+                onSearchChange={setSearchText}
+                onSearch={handleSearch}
+                filters={searchFilters}
+                onFilterChange={handleFilterChange}
+                onReset={handleResetFilters}
+                loading={loading}
+            />
 
-            {/* Users Table */}
-            <Card>
-                <Table
-                    columns={columns}
-                    dataSource={users}
-                    loading={loading}
-                    rowKey="id"
-                    pagination={{
-                        pageSize: 10,
-                        showSizeChanger: true,
-                        showQuickJumper: true,
-                        showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} users`
-                    }}
-                />
-            </Card>
+            <Table
+                columns={columns}
+                dataSource={filteredUsers}
+                rowKey="id"
+                loading={loading}
+                pagination={{
+                    pageSize: 10,
+                    showSizeChanger: true,
+                    showQuickJumper: true,
+                    showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} users`,
+                }}
+            />
 
             {/* Add/Edit User Modal */}
             <Modal
@@ -449,7 +551,15 @@ const UserManagement = () => {
                     </Form.Item>
                 </Form>
             </Modal>
-        </div>
+
+            {/* Password Change Modal */}
+            <PasswordChangeModal
+                visible={passwordModalVisible}
+                onCancel={() => setPasswordModalVisible(false)}
+                userId={selectedUserId}
+                onSuccess={handlePasswordChangeSuccess}
+            />
+        </PageLayout>
     );
 };
 

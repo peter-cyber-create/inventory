@@ -290,7 +290,7 @@ router.delete("/:id", async (req, res) => {
         if (result === 0) {
             return res.status(404).json({
                 status: "fail",
-                message: "Note with that ID not found",
+                message: "User with that ID not found",
             });
         }
 
@@ -303,5 +303,49 @@ router.delete("/:id", async (req, res) => {
     }
 });
 
+// Change password endpoint
+router.patch("/:id/password", async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        const userId = req.params.id;
+
+        // Find the user
+        const user = await UserModel.findByPk(userId);
+        if (!user) {
+            return res.status(404).json({
+                status: "fail",
+                message: "User not found",
+            });
+        }
+
+        // Verify current password
+        const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+        if (!isCurrentPasswordValid) {
+            return res.status(400).json({
+                status: "fail",
+                message: "Current password is incorrect",
+            });
+        }
+
+        // Hash new password
+        const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update password
+        await UserModel.update(
+            { password: hashedNewPassword },
+            { where: { id: userId } }
+        );
+
+        res.status(200).json({
+            status: "success",
+            message: "Password changed successfully",
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: "error",
+            message: error.message,
+        });
+    }
+});
 
 module.exports = router;
