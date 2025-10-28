@@ -1,5 +1,5 @@
 import React from 'react';
-import { Input, Select, Button, Space, Row, Col } from 'antd';
+import { Input, Select, Button, Space, Row, Col, Card } from 'antd';
 import { SearchOutlined, ReloadOutlined } from '@ant-design/icons';
 
 const { Search } = Input;

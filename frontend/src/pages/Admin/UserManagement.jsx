@@ -11,7 +11,10 @@ import {
     Switch,
     message,
     Popconfirm,
-    Tooltip
+    Tooltip,
+    Typography,
+    Row,
+    Col
 } from 'antd';
 import { 
     PlusOutlined, 
@@ -27,6 +30,7 @@ import SearchFilters from '../../components/Common/SearchFilters';
 import PasswordChangeModal from '../../components/Common/PasswordChangeModal';
 
 const { Option } = Select;
+const { Text } = Typography;
 
 const UserManagement = () => {
     const [users, setUsers] = useState([]);
