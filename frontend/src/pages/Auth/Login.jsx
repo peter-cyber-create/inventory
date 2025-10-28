@@ -129,20 +129,28 @@ const Login = () => {
                                         margin: 0, 
                                         fontSize: '1.8rem',
                                         fontWeight: 700,
-                                        color: '#000000',
+                                        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #006747 100%)',
+                                        WebkitBackgroundClip: 'text',
+                                        WebkitTextFillColor: 'transparent',
+                                        backgroundClip: 'text',
                                         lineHeight: 1.1,
                                         letterSpacing: '0.02em',
-                                        textShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                        textShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                        filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))'
                                     }}>
                                         Ministry of Health Uganda
                                     </h1>
                                     <div style={{
                                         fontSize: '0.9rem',
-                                        color: '#FFD700',
-                                        fontWeight: 500,
+                                        background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                                        WebkitBackgroundClip: 'text',
+                                        WebkitTextFillColor: 'transparent',
+                                        backgroundClip: 'text',
+                                        fontWeight: 600,
                                         textTransform: 'uppercase',
                                         letterSpacing: '0.1em',
-                                        marginTop: '8px'
+                                        marginTop: '8px',
+                                        filter: 'drop-shadow(0 1px 2px rgba(255,215,0,0.3))'
                                     }}>
                                         Inventory Management System
                                     </div>
