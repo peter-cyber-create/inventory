@@ -28,6 +28,8 @@ import {
 import PageLayout from '../../components/Layout/PageLayout';
 import SearchFilters from '../../components/Common/SearchFilters';
 import PasswordChangeModal from '../../components/Common/PasswordChangeModal';
+import StandardTable from '../../components/Common/StandardTable';
+import StandardForm from '../../components/Common/StandardForm';
 
 const { Option } = Select;
 const { Text } = Typography;
@@ -392,17 +394,16 @@ const UserManagement = () => {
                 loading={loading}
             />
 
-            <Table
-                columns={columns}
+            <StandardTable
+                title="Users"
                 dataSource={filteredUsers}
-                rowKey="id"
+                columns={columns.slice(0, -1)} // Remove actions column as it's handled by StandardTable
                 loading={loading}
-                pagination={{
-                    pageSize: 10,
-                    showSizeChanger: true,
-                    showQuickJumper: true,
-                    showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} users`,
-                }}
+                onCreateClick={handleAddUser}
+                onEditClick={handleEditUser}
+                onDeleteClick={(user) => handleDeleteUser(user.id)}
+                createButtonText="Add User"
+                rowKey="id"
             />
 
             {/* Add/Edit User Modal */}
