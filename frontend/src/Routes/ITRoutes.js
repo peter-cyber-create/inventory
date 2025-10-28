@@ -2,6 +2,7 @@ import React from 'react';
 import { Route } from "react-router-dom";
 import ProtectedRoute from '../components/ProtectedRoute';
 import Dashboard from '../pages/Dashboard'
+import ICTDashboard from '../pages/ICT/Dashboard';
 import AssetsInventoryDashboard from '../pages/AssetsInventory/Dashboard';
 import Maintanance from '../pages/AssetsInventory/Maintanance';
 import DataImport from '../pages/DataImport';
@@ -30,7 +31,7 @@ import AdminUsers from '../pages/AssetsInventory/Admin/Users';
 const ITRoutes = () => {
     return (
         <>
-            <ProtectedRoute exact path="/ict/dashboard" component={Dashboard} allowedRoles={['it', 'admin']} />
+            <ProtectedRoute exact path="/ict/dashboard" component={ICTDashboard} allowedRoles={['it', 'admin']} />
             <ProtectedRoute exact path="/ict/assets/dashboard" component={AssetsInventoryDashboard} allowedRoles={['it', 'admin']} />
             <ProtectedRoute exact path="/ict/assets" component={AssetsInventory} allowedRoles={['it', 'admin']} />
             <ProtectedRoute exact path="/ict/assets/:id" component={AssetDetails} allowedRoles={['it', 'admin']} />

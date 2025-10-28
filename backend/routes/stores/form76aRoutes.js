@@ -1,14 +1,6 @@
 const express = require('express');
+const { sequelize } = require('../../config/db');
 const router = express.Router();
-const { Op } = require('sequelize');
-const PDFDocument = require('pdfkit');
-const moment = require('moment');
-
-const Requisition = require('../../models/stores/requisitionModel');
-const RequisitionItem = require('../../models/stores/requisitionItemModel');
-const RequisitionSignature = require('../../models/stores/requisitionSignatureModel');
-const User = require('../../models/users/userModel');
-const emailService = require('../../services/emailService');
 
 // GET /api/stores/form76a - List all requisitions with pagination and filtering
 router.get('/', async (req, res) => {
@@ -23,361 +15,300 @@ router.get('/', async (req, res) => {
     } = req.query;
 
     const offset = (page - 1) * limit;
+    let whereClause = 'WHERE 1=1';
+    const params = [];
 
-    const where = {};
-    if (status) where.status = status;
-    if (department_id) where.department_id = department_id;
-    if (created_by) where.created_by = created_by;
+    // Apply filters
+    if (status) {
+      whereClause += ' AND status = $' + (params.length + 1);
+      params.push(status);
+    }
+    if (department_id) {
+      whereClause += ' AND department_id = $' + (params.length + 1);
+      params.push(department_id);
+    }
+    if (created_by) {
+      whereClause += ' AND created_by = $' + (params.length + 1);
+      params.push(created_by);
+    }
     if (search) {
-      where[Op.or] = [
-        { requisition_number: { [Op.like]: `%${search}%` } },
-        { from_department: { [Op.like]: `%${search}%` } },
-        { purpose_remarks: { [Op.like]: `%${search}%` } }
-      ];
+      whereClause += ' AND (requisition_number ILIKE $' + (params.length + 1) + 
+                    ' OR from_department ILIKE $' + (params.length + 2) + 
+                    ' OR purpose_remarks ILIKE $' + (params.length + 3) + ')';
+      params.push(`%${search}%`, `%${search}%`, `%${search}%`);
     }
 
-    const { count, rows } = await Requisition.findAndCountAll({
-      where,
-      include: [
-        {
-          model: User,
-          as: 'creator',
-          attributes: ['id', 'firstname', 'lastname', 'email', 'designation']
-        }
-      ],
-      limit: parseInt(limit),
-      offset: parseInt(offset),
-      order: [['created_at', 'DESC']]
+    // Get total count
+    const countQuery = 'SELECT COUNT(*) as total FROM requisitions';
+    const countResult = await sequelize.query(countQuery, {
+      type: sequelize.QueryTypes.SELECT
+    });
+    const total = countResult[0].total;
+
+    // Get requisitions
+    const query = `
+      SELECT * FROM requisitions 
+      ORDER BY created_at DESC
+      LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}
+    `;
+
+    const requisitions = await sequelize.query(query, {
+      type: sequelize.QueryTypes.SELECT
     });
 
-    res.json({
-      success: true,
-      data: {
-        requisitions: rows,
-        pagination: {
-          total: count,
-          page: parseInt(page),
-          limit: parseInt(limit),
-          pages: Math.ceil(count / limit)
-        }
+    res.status(200).json({
+      status: 'success',
+      data: requisitions,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: parseInt(total),
+        pages: Math.ceil(total / limit)
       }
     });
   } catch (error) {
     console.error('Error fetching requisitions:', error);
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({
+      status: 'error',
+      message: 'Error fetching requisitions',
+      error: error.message
+    });
   }
 });
 
-// GET /api/stores/form76a/:id - Get single requisition with items and signatures
+// GET /api/stores/form76a/:id - Get single requisition
 router.get('/:id', async (req, res) => {
   try {
-    const requisition = await Requisition.findByPk(req.params.id, {
-      include: [
-        {
-          model: RequisitionItem,
-          as: 'items'
-        },
-        {
-          model: RequisitionSignature,
-          as: 'signatures'
-        },
-        {
-          model: User,
-          as: 'creator',
-          attributes: ['id', 'firstname', 'lastname', 'email', 'designation']
-        }
-      ]
+    const { id } = req.params;
+
+    const query = 'SELECT * FROM requisitions WHERE id = $1';
+    const result = await sequelize.query(query, {
+      replacements: [id],
+      type: sequelize.QueryTypes.SELECT
     });
 
-    if (!requisition) {
-      return res.status(404).json({ success: false, message: 'Requisition not found' });
+    if (result.length === 0) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Requisition not found'
+      });
     }
 
-    res.json({ success: true, data: requisition });
+    res.status(200).json({
+      status: 'success',
+      data: result[0]
+    });
   } catch (error) {
     console.error('Error fetching requisition:', error);
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({
+      status: 'error',
+      message: 'Error fetching requisition',
+      error: error.message
+    });
   }
 });
 
 // POST /api/stores/form76a - Create new requisition
 router.post('/', async (req, res) => {
-  const transaction = await Requisition.sequelize.transaction();
-  
   try {
     const {
-      department,
-      destination,
-      purpose,
-      items,
-      approving_officer_id,
-      issuing_officer_id,
-      head_of_department_id
+      requisition_number,
+      from_department,
+      to_department,
+      purpose_remarks,
+      requested_by,
+      department_id,
+      status = 'pending',
+      items = []
     } = req.body;
 
-    // Generate unique requisition number
-    const count = await Requisition.count();
-    const serialNo = String(count + 1).padStart(6, '0');
-    const requisitionNumber = `MOH-REQ-${serialNo}`;
-
-    const requisition = await Requisition.create({
-      serial_no: serialNo,
-      requisition_number: requisitionNumber,
-      form_date: new Date(),
-      from_department: department,
-      to_store: destination,
-      purpose_remarks: purpose,
-      department_id: req.body.department_id || null,
-      created_by: (req.user && req.user.id) || 1,
-      approving_officer_id,
-      issuing_officer_id,
-      head_of_department_id,
-      status: 'pending'
-    }, { transaction });
-
-    // Create requisition items
-    if (items && Array.isArray(items)) {
-      for (let i = 0; i < items.length; i++) {
-        await RequisitionItem.create({
-          requisition_id: requisition.requisition_id,
-          serial_no: i + 1,
-          description: items[i].description,
-          unit_of_issue: items[i].unit_of_issue,
-          quantity_ordered: items[i].quantity_ordered,
-          quantity_approved: items[i].quantity_approved || 0,
-          quantity_issued: items[i].quantity_issued || 0,
-          quantity_received: items[i].quantity_received || 0
-        }, { transaction });
-      }
-    }
-
-    // Create signature placeholders
-    const signatures = [
-      { role: 'requisition_officer', name: null, signature: null, signed_at: null },
-      { role: 'approving_officer', name: null, signature: null, signed_at: null },
-      { role: 'issuing_officer', name: null, signature: null, signed_at: null },
-      { role: 'receiving_officer', name: null, signature: null, signed_at: null },
-      { role: 'head_of_department', name: null, signature: null, signed_at: null }
-    ];
-
-    for (const sig of signatures) {
-      await RequisitionSignature.create({
-        requisition_id: requisition.requisition_id,
-        ...sig
-      }, { transaction });
-    }
-
-    await transaction.commit();
-
-    // Send notification emails (async)
-    try {
-      const signatories = await User.findAll({
-        where: {
-          id: [approving_officer_id, issuing_officer_id, head_of_department_id].filter(Boolean)
-        },
-        attributes: ['id', 'firstname', 'lastname', 'email']
+    // Validate required fields
+    if (!from_department || !to_department || !purpose_remarks || !requested_by) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Missing required fields: from_department, to_department, purpose_remarks, requested_by'
       });
-
-      const user = await User.findByPk((req.user && req.user.id) || 1);
-      
-      emailService.sendRequisitionSubmitted(requisition, user, signatories);
-    } catch (emailError) {
-      console.error('Email notification failed:', emailError);
     }
+
+    // Generate requisition number if not provided
+    const reqNumber = requisition_number || `REQ-${Date.now()}`;
+
+    // Use direct string interpolation for simplicity
+    const query = `
+      INSERT INTO requisitions (
+        requisition_number, from_department, to_department, 
+        purpose_remarks, requested_by, department_id, status,
+        created_at, updated_at
+      ) VALUES ('${reqNumber}', '${from_department}', '${to_department}', '${purpose_remarks}', '${requested_by}', ${department_id || 1}, '${status}', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      RETURNING *
+    `;
+
+    const result = await sequelize.query(query, {
+      type: sequelize.QueryTypes.INSERT
+    });
+
+    // TODO: Handle items array - create separate table for requisition items
+    // For now, we'll just store the requisition header
 
     res.status(201).json({
-      success: true,
+      status: 'success',
       message: 'Requisition created successfully',
-      data: requisition
+      data: result[0]
     });
-
   } catch (error) {
-    await transaction.rollback();
     console.error('Error creating requisition:', error);
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({
+      status: 'error',
+      message: 'Error creating requisition',
+      error: error.message
+    });
   }
 });
 
-// PATCH /api/stores/form76a/:id/status - Update requisition status (Approval, Issuance, Closure)
-router.patch('/:id/status', async (req, res) => {
-  const transaction = await Requisition.sequelize.transaction();
-  
+// PUT /api/stores/form76a/:id - Update requisition
+router.put('/:id', async (req, res) => {
   try {
-    const { status, remarks } = req.body;
-    const requisition = await Requisition.findByPk(req.params.id);
+    const { id } = req.params;
+    const updateData = req.body;
 
-    if (!requisition) {
-      return res.status(404).json({ success: false, message: 'Requisition not found' });
-    }
+    const setClause = [];
+    const params = [];
+    let paramIndex = 1;
 
-    // Validate status transition
-    const validTransitions = {
-      'pending': ['approved', 'rejected'],
-      'approved': ['issued', 'partially_issued'],
-      'issued': ['closed'],
-      'partially_issued': ['closed']
-    };
+    Object.keys(updateData).forEach(key => {
+      if (updateData[key] !== undefined && key !== 'id') {
+        setClause.push(`${key} = $${paramIndex}`);
+        params.push(updateData[key]);
+        paramIndex++;
+      }
+    });
 
-    if (!(validTransitions[requisition.status] && validTransitions[requisition.status].includes(status))) {
+    if (setClause.length === 0) {
       return res.status(400).json({
-        success: false,
-        message: `Invalid status transition from ${requisition.status} to ${status}`
+        status: 'error',
+        message: 'No fields to update'
       });
     }
 
-    // Update status and timestamp
-    const updateData = { status };
-    
-    if (status === 'approved') {
-      updateData.approved_at = new Date();
-      updateData.approving_officer_id = (req.user && req.user.id);
-    } else if (status === 'issued' || status === 'partially_issued') {
-      updateData.issued_at = new Date();
-      updateData.issuing_officer_id = (req.user && req.user.id);
-    } else if (status === 'closed') {
-      updateData.closed_at = new Date();
-      updateData.head_of_department_id = (req.user && req.user.id);
-    }
+    setClause.push('updated_at = CURRENT_TIMESTAMP');
+    params.push(id);
 
-    if (remarks) {
-      if (status === 'rejected') {
-        updateData.rejection_reason = remarks;
-      }
-    }
+    const query = `
+      UPDATE requisitions 
+      SET ${setClause.join(', ')}
+      WHERE id = $${paramIndex}
+      RETURNING *
+    `;
 
-    await requisition.update(updateData, { transaction });
-    await transaction.commit();
-
-    // Send status change notifications
-    const user = await User.findByPk((req.user && req.user.id));
-    
-    if (status === 'approved') {
-      emailService.sendRequisitionApproved(requisition, user);
-    } else if (status === 'issued') {
-      emailService.sendRequisitionIssued(requisition, user);
-    } else if (status === 'closed') {
-      emailService.sendRequisitionClosed(requisition, user);
-    }
-
-    res.json({
-      success: true,
-      message: `Requisition ${status} successfully`,
-      data: requisition
+    const result = await sequelize.query(query, {
+      replacements: params,
+      type: sequelize.QueryTypes.UPDATE
     });
 
+    if (result.length === 0) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Requisition not found'
+      });
+    }
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Requisition updated successfully',
+      data: result[0]
+    });
   } catch (error) {
-    await transaction.rollback();
-    console.error('Error updating requisition status:', error);
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Error updating requisition:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Error updating requisition',
+      error: error.message
+    });
   }
 });
 
-// GET /api/stores/form76a/:id/pdf - Generate MOH Form 76A PDF
-router.get('/:id/pdf', async (req, res) => {
+// DELETE /api/stores/form76a/:id - Delete requisition
+router.delete('/:id', async (req, res) => {
   try {
-    const requisition = await Requisition.findByPk(req.params.id, {
-      include: [
-        { model: RequisitionItem, as: 'items' },
-        { model: RequisitionSignature, as: 'signatures' }
-      ]
+    const { id } = req.params;
+
+    const query = `
+      DELETE FROM requisitions 
+      WHERE id = $1
+      RETURNING *
+    `;
+
+    const result = await sequelize.query(query, {
+      replacements: [id],
+      type: sequelize.QueryTypes.DELETE
     });
 
-    if (!requisition) {
-      return res.status(404).json({ success: false, message: 'Requisition not found' });
+    if (result.length === 0) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Requisition not found'
+      });
     }
 
-    // Create PDF
-    const doc = new PDFDocument({ 
-      size: 'A4',
-      margin: 50
+    res.status(200).json({
+      status: 'success',
+      message: 'Requisition deleted successfully',
+      data: result[0]
     });
-
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="Form76A-${requisition.requisition_number}.pdf"`);
-
-    doc.pipe(res);
-
-    // Ministry Header
-    doc.fontSize(16).font('Helvetica-Bold').text('MINISTRY OF HEALTH', { align: 'center' });
-    doc.fontSize(14).font('Helvetica-Bold').text('STORES REQUISITION / ISSUE VOUCHER', { align: 'center' });
-    doc.fontSize(12).font('Helvetica-Bold').text('(Form 76A)', { align: 'center' });
-    
-    doc.moveDown();
-
-    // Form Details
-    doc.fontSize(10).font('Helvetica').text(`Serial No.: ${requisition.serial_no}`);
-    doc.text(`Requisition Number: ${requisition.requisition_number}`);
-    doc.text(`Date: ${moment(requisition.form_date).format('DD/MM/YYYY')}`);
-    
-    doc.moveDown();
-    
-    doc.text(`From Department/Unit: ${requisition.from_department}`);
-    doc.text(`To (Store/Receiving Section): ${requisition.to_store}`);
-    doc.text(`Purpose / Remarks: ${requisition.purpose_remarks}`);
-    
-    doc.moveDown();
-
-    // Items Table
-    const tableTop = doc.y;
-    const tableWidth = 500;
-    const colWidth = 100;
-    
-    // Table Header
-    doc.font('Helvetica-Bold').fontSize(8);
-    doc.text('S/N', 50, tableTop);
-    doc.text('Description', 90, tableTop);
-    doc.text('Unit', 200, tableTop);
-    doc.text('Qty Ordered', 240, tableTop);
-    doc.text('Qty Approved', 300, tableTop);
-    doc.text('Qty Issued', 370, tableTop);
-    doc.text('Qty Received', 430, tableTop);
-
-    // Table rows
-    doc.font('Helvetica').fontSize(8);
-    requisition.items.forEach((item, index) => {
-      const yPos = tableTop + 20 + (index * 30);
-      doc.text(item.serial_no || index + 1, 50, yPos);
-      doc.text(item.description, 90, yPos);
-      doc.text(item.unit_of_issue, 200, yPos);
-      doc.text((item.quantity_ordered && item.quantity_ordered.toString()) || '0', 240, yPos);
-      doc.text((item.quantity_approved && item.quantity_approved.toString()) || '0', 300, yPos);
-      doc.text((item.quantity_issued && item.quantity_issued.toString()) || '0', 370, yPos);
-      doc.text((item.quantity_received && item.quantity_received.toString()) || '0', 430, yPos);
-    });
-
-    doc.moveDown(3);
-
-    // Signature Placeholders
-    doc.fontSize(10).font('Helvetica-Bold').text('SIGNATURES (To be filled physically after printing)', { align: 'left' });
-    
-    doc.moveDown();
-
-    const signatures = [
-      { role: 'Requisition Officer', position: 1 },
-      { role: 'Approving Officer', position: 2 },
-      { role: 'Issuing Officer', position: 3 },
-      { role: 'Receiving Officer', position: 4 },
-      { role: 'Head of Department/Unit', position: 5 }
-    ];
-
-    signatures.forEach((sig, index) => {
-      doc.font('Helvetica').fontSize(9);
-      doc.text(`${sig.role}:`, 50, doc.y);
-      doc.text(`Name: ___________________________`);
-      doc.text(`Signature: _____________________`);
-      doc.text(`Date: ___________`);
-      doc.moveDown(0.5);
-    });
-
-    // Footer
-    doc.fontSize(8).font('Helvetica');
-    doc.text('This form must be completed and signed before items are issued from the stores.', 50, doc.y);
-    
-    doc.end();
-
   } catch (error) {
-    console.error('Error generating PDF:', error);
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Error deleting requisition:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Error deleting requisition',
+      error: error.message
+    });
+  }
+});
+
+// PATCH /api/stores/form76a/:id/status - Update requisition status
+router.patch('/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, remarks } = req.body;
+
+    if (!status) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Status is required'
+      });
+    }
+
+    const query = `
+      UPDATE requisitions 
+      SET status = $1, remarks = $2, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $3
+      RETURNING *
+    `;
+
+    const result = await sequelize.query(query, {
+      replacements: [status, remarks, id],
+      type: sequelize.QueryTypes.UPDATE
+    });
+
+    if (result.length === 0) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Requisition not found'
+      });
+    }
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Requisition status updated successfully',
+      data: result[0]
+    });
+  } catch (error) {
+    console.error('Error updating requisition status:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Error updating requisition status',
+      error: error.message
+    });
   }
 });
 

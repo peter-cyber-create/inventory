@@ -640,8 +640,8 @@ const AppSidebar = ({ collapsed, user }) => {
                 MoH Uganda IMS
             </Text>
             <br />
-            <Text style={{ color: '#cbd5e1', fontSize: '8px', opacity: 0.8 }}>
-                Version 2.0.0
+            <Text style={{ color: '#cbd5e1', fontSize: '8px', opacity: 0.5, position: 'absolute', bottom: '10px', left: '10px' }}>
+                v2.0.0
             </Text>
         </div>
       )}

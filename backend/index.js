@@ -9,6 +9,18 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const { connectDB, sequelize } = require("./config/db.js");
 
+// Security middleware
+const { 
+    generalLimiter, 
+    authLimiter, 
+    uploadLimiter, 
+    securityHeaders, 
+    corsOptions, 
+    validateInput, 
+    requestLogger, 
+    errorHandler 
+} = require("./middleware/security.js");
+
 // Load environment variables
 dotenv.config({ path: '../config/environments/backend.env' });
 
@@ -58,16 +70,18 @@ const joCardSpareRoutes = require("./routes/JobCardSpare/JobCardSpare.js");
 // Stores Routes
 const storesRoutes = require("./routes/stores/index.js");
 
+// System Routes
+const systemRoutes = require("./routes/system/systemRoutes.js");
+
 const app = express();
 dotenv.config();
 
 // Configure CORS to allow network access
-app.use(cors({
-  origin: true, // Allow all origins for development
-  credentials: true,
-  optionsSuccessStatus: 200
-}));
-app.use(helmet());
+app.use(cors(corsOptions));
+app.use(securityHeaders);
+app.use(requestLogger);
+app.use(validateInput);
+app.use(generalLimiter);
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.json({ limit: "10kb" }));
@@ -78,7 +92,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
 
 /**************** ICT Routes ********************/
-app.use("/api/users", userRoutes);
+app.use("/api/users", authLimiter, userRoutes);
 app.use("/api/staff", staffRoutes);
 app.use("/api/brand", brandRoutes);
 app.use("/api/model", modelRoutes);
@@ -87,7 +101,7 @@ app.use("/api/issue", ictIssue);
 app.use("/api/assets", assetRoutes);
 app.use("/api/department", deptRoutes);
 app.use("/api/division", divisionRoutes);
-app.use("/api/uploads", uploadRoutes);
+app.use("/api/uploads", uploadLimiter, uploadRoutes);
 app.use("/api/downloads", downloadRoutes);
 app.use("/api/activity", activityRoutes);
 app.use("/api/category", categoryRoutes);
@@ -122,6 +136,20 @@ app.use("/api/jobcard/spare", joCardSpareRoutes);
 
 /**************** Stores Routes ********************/
 app.use("/api/stores", storesRoutes);
+
+/**************** System Routes ********************/
+app.use("/api/system", systemRoutes);
+
+// Error handling middleware (must be last)
+app.use(errorHandler);
+
+// 404 handler
+app.use('*', (req, res) => {
+    res.status(404).json({
+        status: 'error',
+        message: 'Route not found'
+    });
+});
 
 // Start server
 const PORT = process.env.PORT || 5000;

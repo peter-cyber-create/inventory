@@ -147,16 +147,24 @@ const Form76A = () => {
         return;
       }
 
+      // Validate required fields
+      if (!values.fromDepartment || !values.toStore || !values.purposeRemarks) {
+        message.error('Please fill in all required fields');
+        return;
+      }
+
       const formData = {
-        requisition_date: values.formDate.format('YYYY-MM-DD'),
-        department: values.fromDepartment,
-        destination: values.toStore,
-        purpose: values.purposeRemarks,
-        status: 'draft',
+        requisition_number: `REQ-${Date.now()}`,
+        from_department: values.fromDepartment || '',
+        to_department: values.toStore || '',
+        purpose_remarks: values.purposeRemarks || '',
+        requested_by: 'admin', // TODO: Get from user context
+        department_id: 1, // TODO: Get from user context
+        status: values.status || 'draft',
         items: items.map(item => ({
-          description: item.description,
-          unit: item.unitOfIssue,
-          qty_ordered: item.quantityOrdered,
+          description: item.description || '',
+          unit: item.unitOfIssue || '',
+          qty_ordered: item.quantityOrdered || 0,
           qty_approved: item.quantityApproved || 0,
           qty_issued: item.quantityIssued || 0,
           qty_received: item.quantityReceived || 0
@@ -176,7 +184,8 @@ const Form76A = () => {
         fetchForm76AList();
       }
     } catch (error) {
-      message.error(`Failed to ${selectedForm ? 'update' : 'create'} Form 76A`);
+      console.error('Form submission error:', error);
+      message.error(`Failed to ${selectedForm ? 'update' : 'create'} Form 76A: ${error.response?.data?.message || error.message}`);
     }
   };
 
