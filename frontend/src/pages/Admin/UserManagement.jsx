@@ -36,85 +36,6 @@ const UserManagement = () => {
     const [editingUser, setEditingUser] = useState(null);
     const [form] = Form.useForm();
 
-    // Sample data - replace with API call
-    const [usersData] = useState([
-        {
-            id: 1,
-            username: 'admin',
-            email: 'admin@moh.go.ug',
-            health_email: 'admin@health.go.ug',
-            firstname: 'Admin',
-            lastname: 'User',
-            role: 'admin',
-            phone: '+256 701 234 567',
-            designation: 'System Administrator',
-            module: 'All',
-            depart: 'IT Department',
-            is_active: true,
-            createdat: '2025-10-27T04:12:20.764Z'
-        },
-        {
-            id: 2,
-            username: 'store_manager',
-            email: 'store@moh.go.ug',
-            health_email: 'store@health.go.ug',
-            firstname: 'Store',
-            lastname: 'Manager',
-            role: 'store',
-            phone: '+256 701 234 568',
-            designation: 'Store Manager',
-            module: 'Stores',
-            depart: 'Stores Department',
-            is_active: true,
-            createdat: '2025-10-27T04:12:20.768Z'
-        },
-        {
-            id: 3,
-            username: 'it_manager',
-            email: 'it@moh.go.ug',
-            health_email: 'it@health.go.ug',
-            firstname: 'IT',
-            lastname: 'Manager',
-            role: 'it',
-            phone: '+256 701 234 569',
-            designation: 'IT Manager',
-            module: 'IT',
-            depart: 'IT Department',
-            is_active: true,
-            createdat: '2025-10-27T04:12:20.770Z'
-        },
-        {
-            id: 4,
-            username: 'fleet_manager',
-            email: 'fleet@moh.go.ug',
-            health_email: 'fleet@health.go.ug',
-            firstname: 'Fleet',
-            lastname: 'Manager',
-            role: 'garage',
-            phone: '+256 701 234 570',
-            designation: 'Fleet Manager',
-            module: 'Fleet',
-            depart: 'Fleet Department',
-            is_active: true,
-            createdat: '2025-10-27T04:12:20.771Z'
-        },
-        {
-            id: 5,
-            username: 'finance_manager',
-            email: 'finance@moh.go.ug',
-            health_email: 'finance@health.go.ug',
-            firstname: 'Finance',
-            lastname: 'Manager',
-            role: 'finance',
-            phone: '+256 701 234 571',
-            designation: 'Finance Manager',
-            module: 'Finance',
-            depart: 'Finance Department',
-            is_active: true,
-            createdat: '2025-10-27T04:12:20.773Z'
-        }
-    ]);
-
     useEffect(() => {
         fetchUsers();
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -127,13 +48,12 @@ const UserManagement = () => {
             if (data.status === 'success') {
                 setUsers(data.users);
             } else {
-                // Fallback to sample data
-                setUsers(usersData);
+                console.error('Failed to fetch users:', data.message);
+                setUsers([]);
             }
         } catch (error) {
             console.error('Error fetching users:', error);
-            // Fallback to sample data
-            setUsers(usersData);
+            setUsers([]);
         }
         setLoading(false);
     };
@@ -187,7 +107,7 @@ const UserManagement = () => {
                 ? `http://localhost:5000/api/users/${editingUser.id}`
                 : 'http://localhost:5000/api/users';
             
-            const method = editingUser ? 'PUT' : 'POST';
+            const method = editingUser ? 'PATCH' : 'POST';
             
             const response = await fetch(url, {
                 method,
