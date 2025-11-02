@@ -9,13 +9,20 @@ const Type = require("../../models/categories/typeModel.js");
 const router = express.Router();
 
 router.post("/", async (req, res) => {
-
     try {
+        // Basic input validation
+        if (!req.body || Object.keys(req.body).length === 0) {
+            return res.status(400).json({
+                status: "error",
+                message: "Request body is required",
+            });
+        }
+
         const asset = await Asset.create(req.body);
 
         const audit = await Audit.create({
             action: "Asset Creation",
-            actionedBy: req.body.requestedBy,
+            actionedBy: req.body.requestedBy || null,
             description: "Asset Created In Asset Register",
             assetId: asset.id
         })
@@ -26,6 +33,15 @@ router.post("/", async (req, res) => {
             audit
         });
     } catch (error) {
+        // Handle validation errors
+        if (error.name === 'SequelizeValidationError') {
+            return res.status(400).json({
+                status: "error",
+                message: "Validation error",
+                errors: error.errors.map(err => err.message)
+            });
+        }
+        
         res.status(500).json({
             status: "error",
             message: error.message,
@@ -60,11 +76,24 @@ router.get("/", async (req, res) => {
 
 router.patch("/:id", async (req, res) => {
     try {
+        // Validate ID parameter
+        const id = parseInt(req.params.id);
+        if (!id || isNaN(id)) {
+            return res.status(400).json({
+                status: "error",
+                message: "Invalid asset ID",
+            });
+        }
+
+        // Remove id from body to prevent overwriting
+        const updateData = { ...req.body };
+        delete updateData.id;
+
         const result = await Asset.update(
-            { ...req.body, updatedAt: Date.now() },
+            { ...updateData, updatedAt: Date.now() },
             {
                 where: {
-                    id: req.params.id,
+                    id: id,
                 },
             }
         );
@@ -72,17 +101,27 @@ router.patch("/:id", async (req, res) => {
         if (result[0] === 0) {
             return res.status(404).json({
                 status: "fail",
-                message: "Server with that ID not found",
+                message: "Asset with that ID not found",
             });
         }
 
-        const asset = await Asset.findByPk(req.params.id);
+        const asset = await Asset.findByPk(id, {
+            include: [{ model: Brand }, { model: Type }, { model: Category }, { model: Model }]
+        });
 
         res.status(200).json({
             status: "success",
             asset
         });
     } catch (error) {
+        if (error.name === 'SequelizeValidationError') {
+            return res.status(400).json({
+                status: "error",
+                message: "Validation error",
+                errors: error.errors.map(err => err.message)
+            });
+        }
+
         res.status(500).json({
             status: "error",
             message: error.message,
@@ -92,15 +131,22 @@ router.patch("/:id", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
     try {
-        const asset = await Asset.findByPk(req.params.id,
-            {
-                include: [{ model: Brand }, { model: Type }, { model: Category }, { model: Model }]
+        const id = parseInt(req.params.id);
+        if (!id || isNaN(id)) {
+            return res.status(400).json({
+                status: "error",
+                message: "Invalid asset ID",
             });
+        }
+
+        const asset = await Asset.findByPk(id, {
+            include: [{ model: Brand }, { model: Type }, { model: Category }, { model: Model }]
+        });
 
         if (!asset) {
             return res.status(404).json({
                 status: "fail",
-                message: "Server with that ID not found",
+                message: "Asset with that ID not found",
             });
         }
 
@@ -118,19 +164,30 @@ router.get("/:id", async (req, res) => {
 
 router.delete("/:id", async (req, res) => {
     try {
+        const id = parseInt(req.params.id);
+        if (!id || isNaN(id)) {
+            return res.status(400).json({
+                status: "error",
+                message: "Invalid asset ID",
+            });
+        }
+
         const result = await Asset.destroy({
-            where: { id: req.params.id },
+            where: { id: id },
             force: true,
         });
 
         if (result === 0) {
             return res.status(404).json({
                 status: "fail",
-                message: "Server with that ID not found",
+                message: "Asset with that ID not found",
             });
         }
 
-        res.status(204).json();
+        res.status(200).json({
+            status: "success",
+            message: "Asset deleted successfully"
+        });
     } catch (error) {
         res.status(500).json({
             status: "error",

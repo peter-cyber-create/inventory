@@ -153,13 +153,19 @@ const Form76A = () => {
         return;
       }
 
+      // Get user context from localStorage
+      const userStr = localStorage.getItem('user');
+      const user = userStr ? JSON.parse(userStr) : null;
+      const userId = user?.id || user?.user_id || null;
+      const departmentId = user?.department_id || null;
+
       const formData = {
         requisition_number: `REQ-${Date.now()}`,
         from_department: values.fromDepartment || '',
         to_department: values.toStore || '',
         purpose_remarks: values.purposeRemarks || '',
-        requested_by: 'admin', // TODO: Get from user context
-        department_id: 1, // TODO: Get from user context
+        requested_by: userId || values.requested_by || null,
+        department_id: departmentId || values.department_id || null,
         status: values.status || 'draft',
         items: items.map(item => ({
           description: item.description || '',
