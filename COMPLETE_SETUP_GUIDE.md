@@ -273,11 +273,14 @@ curl http://localhost:3001
 
 ## Step 5: Configure Firewall
 
+**Note**: Firewall configuration should be done manually by the system administrator. The automated setup script will skip this step.
+
+If you need to configure firewall manually:
 ```bash
 # Check firewall status
 sudo ufw status
 
-# Allow necessary ports
+# Allow necessary ports (if needed)
 sudo ufw allow 22/tcp    # SSH
 sudo ufw allow 5000/tcp  # Backend API
 sudo ufw allow 3001/tcp  # Frontend

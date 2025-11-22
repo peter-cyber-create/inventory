@@ -334,15 +334,8 @@ else
 fi
 
 # Step 17: Setup firewall
-log "Setting up firewall rules..."
-if command -v ufw &> /dev/null; then
-    sudo ufw allow 22/tcp
-    sudo ufw allow 5000/tcp
-    sudo ufw allow 3001/tcp
-    log "Firewall rules configured ✅"
-else
-    warning "ufw not found, skipping firewall configuration"
-fi
+# Skipped - firewall configuration should be done manually by system administrator
+log "Skipping firewall configuration (manual setup required)"
 
 # Step 18: Health check
 log "Performing health check..."
