@@ -286,7 +286,7 @@ if command -v nginx &> /dev/null; then
 # Backend API
 server {
     listen 80;
-    server_name 172.27.0.10;
+    server_name 172.27.0.9 172.27.0.10 _;
 
     # Backend API
     location /api {
