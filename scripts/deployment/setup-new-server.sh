@@ -231,8 +231,8 @@ module.exports = {
   apps: [
     {
       name: 'moh-ims-backend',
-      script: './backend/index.js',
-      cwd: '$APP_DIR',
+      script: 'index.js',
+      cwd: '$APP_DIR/backend',
       instances: 'max',
       exec_mode: 'cluster',
       env: {
@@ -247,8 +247,8 @@ module.exports = {
     },
     {
       name: 'moh-ims-frontend',
-      script: 'serve',
-      args: '-s build -l 3000',
+      script: 'npx',
+      args: 'serve -s build -l 3000',
       cwd: '$APP_DIR/frontend',
       instances: 1,
       env: {
