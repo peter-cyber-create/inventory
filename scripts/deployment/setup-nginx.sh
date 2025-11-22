@@ -17,6 +17,14 @@ if ! command -v nginx &> /dev/null; then
     sudo systemctl enable nginx
 fi
 
+# Create Nginx log directories
+echo "Creating Nginx log directories..."
+sudo mkdir -p /var/log/nginx
+sudo touch /var/log/nginx/access.log
+sudo touch /var/log/nginx/error.log
+sudo chown -R www-data:www-data /var/log/nginx
+sudo chmod 755 /var/log/nginx
+
 # Create Nginx configuration
 echo "Creating Nginx configuration..."
 sudo tee /etc/nginx/sites-available/inventory > /dev/null << 'EOF'
@@ -37,7 +45,16 @@ server {
         proxy_cache_bypass $http_upgrade;
     }
 
-    # Frontend (React app)
+    # Static assets (CSS, JS, images) - serve directly from build
+    location ~* \.(css|js|jpg|jpeg|png|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Frontend (React app) - serve index.html for all other routes
     location / {
         proxy_pass http://localhost:3000;
         proxy_http_version 1.1;
