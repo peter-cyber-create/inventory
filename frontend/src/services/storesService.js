@@ -64,7 +64,7 @@ export const storesService = {
   getStockLedger: (params) => api.get('/stores/ledger', { params }),
   getItemLedger: (itemId, params) => api.get(`/stores/ledger/item/${itemId}`, { params }),
   getStockBalances: (params) => api.get('/stores/ledger/balance', { params }),
-  getLowStockItems: (params) => api.get('/stores/ledger/low-stock', { params }),
+  getLowStockItemsFromLedger: (params) => api.get('/stores/ledger/low-stock', { params }),
   getMovementSummary: (params) => api.get('/stores/ledger/movement/summary', { params }),
   createManualLedgerEntry: (data) => api.post('/stores/ledger', data),
   exportLedgerPDF: (params) => api.get('/stores/ledger/export/pdf', { params, responseType: 'blob' }),
@@ -88,12 +88,6 @@ export const storesService = {
   getGRNSummaryReport: (params) => api.get('/stores/reports/grn-summary', { params }),
   getIssuanceSummaryReport: (params) => api.get('/stores/reports/issuance-summary', { params }),
 
-  // Issuances
-  getIssuances: (params) => api.get('/stores/issuances', { params }),
-  getIssuance: (id) => api.get(`/stores/issuances/${id}`),
-  createIssuance: (data) => api.post('/stores/issuances', data),
-  updateIssuance: (id, data) => api.put(`/stores/issuances/${id}`, data),
-
   // Returns
   getReturns: (params) => api.get('/stores/returns', { params }),
   getReturn: (id) => api.get(`/stores/returns/${id}`),
@@ -111,11 +105,7 @@ export const storesService = {
   // Audit Logs
   getAuditLogs: (params) => api.get('/stores/audit-logs', { params }),
 
-  // Reports
-  getStockMovementReport: (params) => api.get('/stores/reports/stock-movement', { params }),
-  getConsumptionReport: (params) => api.get('/stores/reports/consumption', { params }),
-  getAgingReport: (params) => api.get('/stores/reports/aging', { params }),
-  getValuationReport: (params) => api.get('/stores/reports/valuation', { params }),
+  // Report Export
   exportReport: (reportType, params) => api.get(`/stores/reports/${reportType}/export`, { 
     params,
     responseType: 'blob'

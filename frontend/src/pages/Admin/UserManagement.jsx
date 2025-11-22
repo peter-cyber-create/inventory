@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
-    Table, 
     Button, 
     Space, 
     Tag, 
@@ -30,7 +29,6 @@ import SearchFilters from '../../components/Common/SearchFilters';
 import PasswordChangeModal from '../../components/Common/PasswordChangeModal';
 import API from '../../helpers/api';
 import StandardTable from '../../components/Common/StandardTable';
-import StandardForm from '../../components/Common/StandardForm';
 
 const { Option } = Select;
 const { Text } = Typography;
@@ -54,11 +52,7 @@ const UserManagement = () => {
         fetchUsers();
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    useEffect(() => {
-        applyFilters();
-    }, [users, searchText, roleFilter, statusFilter]);
-
-    const applyFilters = () => {
+    const applyFilters = useCallback(() => {
         let filtered = [...users];
 
         // Search filter
@@ -82,7 +76,11 @@ const UserManagement = () => {
         }
 
         setFilteredUsers(filtered);
-    };
+    }, [users, searchText, roleFilter, statusFilter]);
+
+    useEffect(() => {
+        applyFilters();
+    }, [applyFilters]);
 
     const fetchUsers = async () => {
         setLoading(true);

@@ -1,4 +1,4 @@
-import { message, notification as antdNotification } from 'antd';
+import { notification as antdNotification } from 'antd';
 
 /**
  * Modern Notification Service

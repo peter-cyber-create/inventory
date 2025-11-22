@@ -1,14 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, Row, Col, Statistic, Space, Typography, Alert, Tag } from 'antd';
 import { 
     DesktopOutlined, 
     CarOutlined, 
     ShopOutlined, 
     FileTextOutlined,
-    CheckCircleOutlined,
-    ClockCircleOutlined,
-    DollarCircleOutlined,
-    WarningOutlined
+    DollarCircleOutlined
 } from '@ant-design/icons';
 import { useHistory } from 'react-router-dom';
 
