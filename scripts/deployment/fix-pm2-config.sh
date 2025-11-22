@@ -37,7 +37,7 @@ module.exports = {
     {
       name: 'moh-ims-frontend',
       script: 'npx',
-      args: 'serve -s build -l 3000',
+      args: 'serve -s build -l 3000 --single',
       cwd: '/var/www/inventory/frontend',
       instances: 1,
       env: {
