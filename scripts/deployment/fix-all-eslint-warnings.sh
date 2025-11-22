@@ -89,12 +89,14 @@ if [ -f "$FRONTEND_DIR/components/Layout/Sidebar.jsx" ]; then
     echo "✅ Fixed Sidebar.jsx"
 fi
 
-# Fix Dashboard files
+# Fix Dashboard files - only rename unused variables, not imports
 for file in "$FRONTEND_DIR/pages/Finance/Dashboard.jsx" "$FRONTEND_DIR/pages/Fleet/Dashboard.jsx" "$FRONTEND_DIR/pages/ICT/Dashboard.jsx" "$FRONTEND_DIR/pages/Stores/Dashboard.jsx"; do
     if [ -f "$file" ]; then
-        sed -i 's/const { Table/const { Table: _Table/g' "$file" 2>/dev/null || true
-        sed -i 's/const { Title, Text }/const { Title: _Title, Text: _Text }/g' "$file" 2>/dev/null || true
-        sed -i 's/EditOutlined/EditOutlined as _EditOutlined/g' "$file" 2>/dev/null || true
+        # Only rename Title if it's unused, keep Text and EditOutlined as they're used
+        # Use more specific patterns to avoid breaking imports
+        sed -i 's/const { Table, /const { Table: _Table, /g' "$file" 2>/dev/null || true
+        sed -i 's/const { Title, Text }/const { Title: _Title, Text }/g' "$file" 2>/dev/null || true
+        # Don't rename EditOutlined in imports - it's used in the code
         echo "✅ Fixed $(basename $file)"
     fi
 done

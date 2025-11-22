@@ -13,7 +13,7 @@ import PageLayout from '../../components/Layout/PageLayout';
 import StandardTable from '../../components/Common/StandardTable';
 import API from '../../helpers/api';
 
-const { Title, Text } = Typography;
+const { Title: _Title, Text } = Typography;
 
 const StoresDashboard = () => {
     const [loading, setLoading] = useState(false);
