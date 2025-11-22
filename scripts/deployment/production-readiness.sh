@@ -101,8 +101,8 @@ fi
 echo ""
 echo "5. Checking PM2 Processes..."
 if command -v pm2 &> /dev/null; then
-    BACKEND_RUNNING=$(pm2 list | grep -c "moh-ims-backend.*online" || echo "0")
-    FRONTEND_RUNNING=$(pm2 list | grep -c "moh-ims-frontend.*online" || echo "0")
+    BACKEND_RUNNING=$(pm2 list | grep "moh-ims-backend" | grep -c "online" || echo "0")
+    FRONTEND_RUNNING=$(pm2 list | grep "moh-ims-frontend" | grep -c "online" || echo "0")
     
     if [ "$BACKEND_RUNNING" -gt 0 ]; then
         check_item "Backend is running"
@@ -137,8 +137,15 @@ fi
 # 7. Check required directories
 echo ""
 echo "7. Checking Required Directories..."
-[ -d "$APP_DIR/backend/uploads" ] && check_item "Uploads directory exists" || warn_item "Uploads directory missing"
-[ -d "$APP_DIR/logs" ] && check_item "Logs directory exists" || warn_item "Logs directory missing"
+if [ ! -d "$APP_DIR/backend/uploads" ]; then
+    warn_item "Uploads directory missing - creating..."
+    mkdir -p "$APP_DIR/backend/uploads" "$APP_DIR/backend/uploads/form5" "$APP_DIR/backend/uploads/grn" "$APP_DIR/backend/uploads/reports"
+    chmod -R 755 "$APP_DIR/backend/uploads"
+    check_item "Uploads directory created"
+else
+    check_item "Uploads directory exists"
+fi
+[ -d "$APP_DIR/logs" ] && check_item "Logs directory exists" || (mkdir -p "$APP_DIR/logs" && check_item "Logs directory created")
 
 # 8. Check file permissions
 echo ""
@@ -152,16 +159,25 @@ fi
 # 9. Check ports
 echo ""
 echo "9. Checking Port Availability..."
-if netstat -tuln | grep -q ":5000"; then
-    check_item "Port 5000 (backend) is in use"
+if command -v netstat &> /dev/null; then
+    if netstat -tuln 2>/dev/null | grep -q ":5000"; then
+        check_item "Port 5000 (backend) is in use"
+    else
+        warn_item "Port 5000 (backend) is not in use"
+    fi
+    
+    if netstat -tuln 2>/dev/null | grep -q ":80"; then
+        check_item "Port 80 (Nginx) is in use"
+    else
+        warn_item "Port 80 (Nginx) is not in use - checking Nginx status..."
+        if systemctl is-active --quiet nginx 2>/dev/null; then
+            check_item "Nginx service is active"
+        else
+            warn_item "Nginx service is not active - run: sudo systemctl start nginx"
+        fi
+    fi
 else
-    warn_item "Port 5000 (backend) is not in use"
-fi
-
-if netstat -tuln | grep -q ":80"; then
-    check_item "Port 80 (Nginx) is in use"
-else
-    warn_item "Port 80 (Nginx) is not in use"
+    warn_item "netstat not available - cannot check ports"
 fi
 
 # Summary
