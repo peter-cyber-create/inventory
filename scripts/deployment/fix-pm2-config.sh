@@ -7,6 +7,10 @@ cd /opt/inventory
 
 echo "Fixing PM2 configuration..."
 
+# Create logs directory
+mkdir -p /opt/inventory/logs
+chmod 755 /opt/inventory/logs
+
 # Delete old ecosystem config
 rm -f ecosystem.config.js
 
@@ -24,9 +28,9 @@ module.exports = {
         NODE_ENV: 'production',
         PORT: 5000
       },
-      error_file: '/var/log/moh-ims-backend-error.log',
-      out_file: '/var/log/moh-ims-backend-out.log',
-      log_file: '/var/log/moh-ims-backend.log',
+      error_file: '/opt/inventory/logs/backend-error.log',
+      out_file: '/opt/inventory/logs/backend-out.log',
+      log_file: '/opt/inventory/logs/backend.log',
       time: true,
       max_memory_restart: '1G'
     },
@@ -40,9 +44,9 @@ module.exports = {
         NODE_ENV: 'production',
         PORT: 3000
       },
-      error_file: '/var/log/moh-ims-frontend-error.log',
-      out_file: '/var/log/moh-ims-frontend-out.log',
-      log_file: '/var/log/moh-ims-frontend.log',
+      error_file: '/opt/inventory/logs/frontend-error.log',
+      out_file: '/opt/inventory/logs/frontend-out.log',
+      log_file: '/opt/inventory/logs/frontend.log',
       time: true
     }
   ]

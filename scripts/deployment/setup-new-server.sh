@@ -239,9 +239,9 @@ module.exports = {
         NODE_ENV: 'production',
         PORT: 5000
       },
-      error_file: '/var/log/moh-ims-backend-error.log',
-      out_file: '/var/log/moh-ims-backend-out.log',
-      log_file: '/var/log/moh-ims-backend.log',
+      error_file: '$APP_DIR/logs/backend-error.log',
+      out_file: '$APP_DIR/logs/backend-out.log',
+      log_file: '$APP_DIR/logs/backend.log',
       time: true,
       max_memory_restart: '1G'
     },
@@ -255,9 +255,9 @@ module.exports = {
         NODE_ENV: 'production',
         PORT: 3000
       },
-      error_file: '/var/log/moh-ims-frontend-error.log',
-      out_file: '/var/log/moh-ims-frontend-out.log',
-      log_file: '/var/log/moh-ims-frontend.log',
+      error_file: '$APP_DIR/logs/frontend-error.log',
+      out_file: '$APP_DIR/logs/frontend-out.log',
+      log_file: '$APP_DIR/logs/frontend.log',
       time: true
     }
   ]
@@ -268,10 +268,8 @@ fi
 
 # Step 14: Create logs directory
 log "Creating logs directory..."
-sudo mkdir -p /var/log
-sudo touch /var/log/moh-ims-backend.log
-sudo touch /var/log/moh-ims-frontend.log
-sudo chown -R $USER:$USER /var/log/moh-ims*.log
+mkdir -p "$APP_DIR/logs"
+chmod 755 "$APP_DIR/logs"
 
 # Step 15: Start application
 log "Starting application with PM2..."
