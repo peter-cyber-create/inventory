@@ -1,26 +1,28 @@
 {
   "development": {
-    "username": "inventory_user",
-    "password": "toor",
-    "database": "inventory_db",
-    "host": "localhost",
-    "port": 5432,
-    "dialect": "postgres"
+    "username": "${DB_USER}",
+    "password": "${DB_PASS}",
+    "database": "${DB_NAME}",
+    "host": "${DB_HOST}",
+    "port": "${DB_PORT}",
+    "dialect": "postgres",
+    "use_env_variable": "DATABASE_URL"
   },
   "test": {
-    "username": "inventory_user",
-    "password": "toor",
-    "database": "inventory_db_test",
-    "host": "localhost",
-    "port": 5432,
+    "username": "${DB_USER}",
+    "password": "${DB_PASS}",
+    "database": "${DB_NAME}_test",
+    "host": "${DB_HOST}",
+    "port": "${DB_PORT}",
     "dialect": "postgres"
   },
   "production": {
-    "username": "inventory_user",
-    "password": "toor",
-    "database": "inventory_db",
-    "host": "localhost",
-    "port": 5432,
-    "dialect": "postgres"
+    "username": "${DB_USER}",
+    "password": "${DB_PASS}",
+    "database": "${DB_NAME}",
+    "host": "${DB_HOST}",
+    "port": "${DB_PORT}",
+    "dialect": "postgres",
+    "use_env_variable": "DATABASE_URL"
   }
 }

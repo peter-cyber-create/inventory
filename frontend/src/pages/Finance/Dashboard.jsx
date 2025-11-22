@@ -11,6 +11,7 @@ import {
 } from '@ant-design/icons';
 import PageLayout from '../../components/Layout/PageLayout';
 import StandardTable from '../../components/Common/StandardTable';
+import API from '../../helpers/api';
 
 const { Title, Text } = Typography;
 
@@ -32,8 +33,8 @@ const FinanceDashboard = () => {
         setLoading(true);
         try {
             // Fetch activities data
-            const activitiesResponse = await fetch('http://localhost:5000/api/activity');
-            const activitiesData = await activitiesResponse.json();
+            const activitiesResponse = await API.get('/api/activity');
+            const activitiesData = activitiesResponse.data;
             
             if (activitiesData.status === 'success') {
                 const activities = activitiesData.activities || [];

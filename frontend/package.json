@@ -46,7 +46,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "deploy": "react-scripts build && scp -r ./build/* frank@172.27.1.170:/var/www/inventory/html",
+    "deploy": "echo 'Please configure deployment target in deployment script'",
     "moh": "react-scripts build && sudo cp -r ./build/* /var/www/inventory/html"
   },
   "eslintConfig": {

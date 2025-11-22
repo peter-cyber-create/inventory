@@ -92,6 +92,7 @@ const UserModel = sequelize.define(
 );
 
 //UserModel.sync({ alter: true });
-UserModel.belongsTo(Facility, { foreignKey: "facilityid" });
+// Temporarily disable association to avoid boot-time errors if Facility isn't a Sequelize model
+// UserModel.belongsTo(Facility, { foreignKey: "facilityid" });
 
 module.exports = UserModel;

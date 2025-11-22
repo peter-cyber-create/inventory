@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, Form, Input, Button, message, Space } from 'antd';
 import { LockOutlined, EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
+import API from '../../helpers/api';
 
 const PasswordChangeModal = ({ visible, onCancel, userId, onSuccess }) => {
     const [form] = Form.useForm();
@@ -14,20 +15,14 @@ const PasswordChangeModal = ({ visible, onCancel, userId, onSuccess }) => {
 
         setLoading(true);
         try {
-            const response = await fetch(`http://localhost:5000/api/users/${userId}/password`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    currentPassword: values.currentPassword,
-                    newPassword: values.newPassword
-                })
+            const response = await API.patch(`/api/users/${userId}/password`, {
+                currentPassword: values.currentPassword,
+                newPassword: values.newPassword
             });
 
-            const data = await response.json();
+            const data = response.data;
 
-            if (response.ok && data.status === 'success') {
+            if (data.status === 'success') {
                 message.success('Password changed successfully');
                 form.resetFields();
                 onSuccess();

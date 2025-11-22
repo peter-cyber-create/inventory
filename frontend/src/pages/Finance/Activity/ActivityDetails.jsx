@@ -191,7 +191,7 @@ const ActivityDetails = ({ match }) => {
                                                     <th scope="row">Activity Report:</th>
                                                     <td>
                                                         <a
-                                                            href={`http://localhost:9000/uploads/reports/${activity.reportPath.split('/').pop()}`}
+                                                            href={`${process.env.REACT_APP_API_BASE_URL_PROD || process.env.REACT_APP_API_BASE_URL_DEV || 'http://localhost:5000'}/uploads/reports/${activity.reportPath.split('/').pop()}`}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             className="btn btn-sm btn-info"

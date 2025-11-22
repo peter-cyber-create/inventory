@@ -11,6 +11,7 @@ import {
 } from '@ant-design/icons';
 import PageLayout from '../../components/Layout/PageLayout';
 import StandardTable from '../../components/Common/StandardTable';
+import API from '../../helpers/api';
 
 const { Title, Text } = Typography;
 
@@ -32,8 +33,8 @@ const ICTDashboard = () => {
         setLoading(true);
         try {
             // Fetch assets data
-            const assetsResponse = await fetch('http://localhost:5000/api/assets');
-            const assetsData = await assetsResponse.json();
+            const assetsResponse = await API.get('/api/assets');
+            const assetsData = assetsResponse.data;
             
             if (assetsData.status === 'success') {
                 const assets = assetsData.assets || [];

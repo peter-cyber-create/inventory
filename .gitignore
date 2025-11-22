@@ -147,3 +147,20 @@ cypress/screenshots/
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Environment configuration files (keep examples)
+config/environments/backend.env
+production.env
+*.env
+!*.env.example
+
+# Sensitive configuration
+backend/.env
+frontend/.env.production
+frontend/.env.development
+
+# Deployment specific
+ecosystem.config.js
+*.pid
+backend.pid
+frontend.pid

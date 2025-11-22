@@ -11,6 +11,7 @@ import {
 } from '@ant-design/icons';
 import PageLayout from '../../components/Layout/PageLayout';
 import StandardTable from '../../components/Common/StandardTable';
+import API from '../../helpers/api';
 
 const { Title, Text } = Typography;
 
@@ -32,8 +33,8 @@ const FleetDashboard = () => {
         setLoading(true);
         try {
             // Fetch vehicles data
-            const vehiclesResponse = await fetch('http://localhost:5000/api/v/vehicle');
-            const vehiclesData = await vehiclesResponse.json();
+            const vehiclesResponse = await API.get('/api/v/vehicle');
+            const vehiclesData = vehiclesResponse.data;
             
             if (vehiclesData.status === 'success') {
                 const vehicles = vehiclesData.vehicles || [];

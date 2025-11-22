@@ -1,12 +1,12 @@
 import axios from "axios";
 
 const baseURL =
-  process.env.NODE_ENV === "development"
+  (process.env.NODE_ENV === "development"
     ? process.env.REACT_APP_API_BASE_URL_DEV
-    : process.env.REACT_APP_API_BASE_URL_PROD;
+    : process.env.REACT_APP_API_BASE_URL_PROD) || "http://localhost:5000";
 
 const API = axios.create({
-  baseURL: baseURL || "",
+  baseURL,
 });
 
 // Enable mock API in standalone mode

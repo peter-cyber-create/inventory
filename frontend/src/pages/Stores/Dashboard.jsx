@@ -11,6 +11,7 @@ import {
 } from '@ant-design/icons';
 import PageLayout from '../../components/Layout/PageLayout';
 import StandardTable from '../../components/Common/StandardTable';
+import API from '../../helpers/api';
 
 const { Title, Text } = Typography;
 
@@ -33,16 +34,16 @@ const StoresDashboard = () => {
         setLoading(true);
         try {
             // Fetch stock balances
-            const balanceResponse = await fetch('http://localhost:5000/api/stores/ledger/balance');
-            const balanceData = await balanceResponse.json();
+            const balanceResponse = await API.get('/api/stores/ledger/balance');
+            const balanceData = balanceResponse.data;
             
             // Fetch low stock items
-            const lowStockResponse = await fetch('http://localhost:5000/api/stores/ledger/low-stock');
-            const lowStockData = await lowStockResponse.json();
+            const lowStockResponse = await API.get('/api/stores/ledger/low-stock');
+            const lowStockData = lowStockResponse.data;
             
             // Fetch recent transactions
-            const transactionsResponse = await fetch('http://localhost:5000/api/stores/ledger');
-            const transactionsData = await transactionsResponse.json();
+            const transactionsResponse = await API.get('/api/stores/ledger');
+            const transactionsData = transactionsResponse.data;
             
             if (balanceData.status === 'success') {
                 const items = balanceData.data || [];

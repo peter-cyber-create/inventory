@@ -28,6 +28,7 @@ import {
 import PageLayout from '../../components/Layout/PageLayout';
 import SearchFilters from '../../components/Common/SearchFilters';
 import PasswordChangeModal from '../../components/Common/PasswordChangeModal';
+import API from '../../helpers/api';
 import StandardTable from '../../components/Common/StandardTable';
 import StandardForm from '../../components/Common/StandardForm';
 
@@ -86,8 +87,8 @@ const UserManagement = () => {
     const fetchUsers = async () => {
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:5000/api/users');
-            const data = await response.json();
+            const response = await API.get('/api/users');
+            const data = response.data;
             if (data.status === 'success') {
                 setUsers(data.users);
             } else {
@@ -154,16 +155,9 @@ const UserManagement = () => {
     const handleDeleteUser = async (userId) => {
         try {
             // API call to delete user
-            const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
-                method: 'DELETE'
-            });
-            
-            if (response.ok) {
-                message.success('User deleted successfully');
-                fetchUsers();
-            } else {
-                message.error('Failed to delete user');
-            }
+            await API.delete(`/api/users/${userId}`);
+            message.success('User deleted successfully');
+            fetchUsers();
         } catch (error) {
             console.error('Error deleting user:', error);
             message.error('Error deleting user');
@@ -172,26 +166,21 @@ const UserManagement = () => {
 
     const handleModalSubmit = async (values) => {
         try {
-            const url = editingUser 
-                ? `http://localhost:5000/api/users/${editingUser.id}`
-                : 'http://localhost:5000/api/users';
+            let response;
+            if (editingUser) {
+                response = await API.patch(`/api/users/${editingUser.id}`, values);
+            } else {
+                response = await API.post('/api/users', values);
+            }
             
-            const method = editingUser ? 'PATCH' : 'POST';
+            const data = response.data;
             
-            const response = await fetch(url, {
-                method,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(values)
-            });
-
-            if (response.ok) {
+            if (data.status === 'success') {
                 message.success(editingUser ? 'User updated successfully' : 'User created successfully');
                 setModalVisible(false);
                 fetchUsers();
             } else {
-                message.error('Failed to save user');
+                message.error(data.message || 'Failed to save user');
             }
         } catch (error) {
             console.error('Error saving user:', error);

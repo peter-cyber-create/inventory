@@ -35,7 +35,7 @@ const User = sequelize.define("users", {
     type: DataTypes.STRING,
     allowNull: false,
   },
-}, { timestamps: true });
+}, { timestamps: true, createdAt: 'createdat', updatedAt: 'updatedat' });
 
 // All module users to create
 const users = [
@@ -229,6 +229,14 @@ async function createUsers() {
 }
 
 createUsers();
+
+
+
+
+
+
+
+
 
 
 

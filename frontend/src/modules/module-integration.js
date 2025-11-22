@@ -182,7 +182,7 @@ export const MODULE_VALIDATION = {
 // ===== MODULE API INTEGRATION =====
 export const MODULE_API = {
     // Base API Configuration
-    baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5001',
+    baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000',
     timeout: 30000,
     
     // API Endpoints
