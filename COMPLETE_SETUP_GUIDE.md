@@ -273,9 +273,11 @@ curl http://localhost:3001
 
 ## Step 5: Configure Firewall
 
-**Note**: Firewall configuration should be done manually by the system administrator. The automated setup script will skip this step.
+**Note**: Firewall settings are already configured correctly and should NOT be modified. The automated setup script will skip this step completely to preserve existing firewall rules.
 
-If you need to configure firewall manually:
+**DO NOT** modify firewall settings - they are already properly configured.
+
+If you need to check firewall status (read-only):
 ```bash
 # Check firewall status
 sudo ufw status

@@ -334,8 +334,9 @@ else
 fi
 
 # Step 17: Setup firewall
-# Skipped - firewall configuration should be done manually by system administrator
-log "Skipping firewall configuration (manual setup required)"
+# SKIPPED - Firewall settings are already configured and should not be modified
+# Do not touch firewall configuration - existing settings are correct
+log "Skipping firewall configuration (existing settings preserved)"
 
 # Step 18: Health check
 log "Performing health check..."
