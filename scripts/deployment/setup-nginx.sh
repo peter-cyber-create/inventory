@@ -1,9 +1,12 @@
 #!/bin/bash
 
-# Setup Nginx to serve application on port 80
-# This allows access via http://172.27.0.9 or http://172.27.0.10 (no port needed)
+# Setup Nginx reverse proxy to serve on port 80
+# This allows accessing the site at http://172.27.0.10 (without :3000)
 
-echo "🔧 Setting up Nginx reverse proxy on port 80..."
+cd /var/www/inventory
+
+echo "🌐 Setting up Nginx reverse proxy..."
+echo ""
 
 # Check if Nginx is installed
 if ! command -v nginx &> /dev/null; then
@@ -16,16 +19,10 @@ fi
 
 # Create Nginx configuration
 echo "Creating Nginx configuration..."
-sudo cat > /etc/nginx/sites-available/inventory << 'NGINX_EOF'
+sudo tee /etc/nginx/sites-available/inventory > /dev/null << 'EOF'
 server {
     listen 80;
-    server_name 172.27.0.9 172.27.0.10 _;
-
-    # Increase timeouts for slow authentication
-    proxy_connect_timeout 300;
-    proxy_send_timeout 300;
-    proxy_read_timeout 300;
-    send_timeout 300;
+    server_name 172.27.0.10;
 
     # Backend API
     location /api {
@@ -38,14 +35,9 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_cache_bypass $http_upgrade;
-        
-        # Increase buffer sizes
-        proxy_buffer_size 128k;
-        proxy_buffers 4 256k;
-        proxy_busy_buffers_size 256k;
     }
 
-    # Frontend
+    # Frontend (React app)
     location / {
         proxy_pass http://localhost:3000;
         proxy_http_version 1.1;
@@ -56,32 +48,16 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_cache_bypass $http_upgrade;
-        
-        # Increase buffer sizes
-        proxy_buffer_size 128k;
-        proxy_buffers 4 256k;
-        proxy_busy_buffers_size 256k;
-    }
-
-    # Static assets
-    location /static {
-        proxy_pass http://localhost:3000;
-        proxy_cache_valid 200 1d;
-        expires 1d;
-        add_header Cache-Control "public, immutable";
     }
 }
-NGINX_EOF
+EOF
 
 # Enable site
 echo "Enabling Nginx site..."
 sudo ln -sf /etc/nginx/sites-available/inventory /etc/nginx/sites-enabled/
 
 # Remove default site if it exists
-if [ -f "/etc/nginx/sites-enabled/default" ]; then
-    echo "Removing default Nginx site..."
-    sudo rm /etc/nginx/sites-enabled/default
-fi
+sudo rm -f /etc/nginx/sites-enabled/default
 
 # Test Nginx configuration
 echo "Testing Nginx configuration..."
@@ -97,14 +73,13 @@ fi
 # Check Nginx status
 echo ""
 echo "Nginx status:"
-sudo systemctl status nginx --no-pager | head -10
+sudo systemctl status nginx --no-pager | head -5
 
 echo ""
-echo "✅ Nginx setup complete!"
+echo "✅ Nginx reverse proxy configured!"
 echo ""
-echo "You can now access the application at:"
-echo "  http://172.27.0.9"
-echo "  http://172.27.0.10"
+echo "You can now access the site at:"
+echo "  http://172.27.0.10 (no port needed)"
 echo ""
-echo "No port number needed - Nginx serves on port 80 (default HTTP port)"
+echo "Backend API: http://172.27.0.10/api"
 
