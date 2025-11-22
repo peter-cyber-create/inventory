@@ -43,17 +43,24 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "GENERATE_SOURCEMAP=false react-scripts build",
+    "build:dev": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "deploy": "echo 'Please configure deployment target in deployment script'",
-    "moh": "react-scripts build && sudo cp -r ./build/* /var/www/inventory/html"
+    "moh": "GENERATE_SOURCEMAP=false react-scripts build && sudo cp -r ./build/* /var/www/inventory/html"
   },
   "eslintConfig": {
     "extends": [
       "react-app",
       "react-app/jest"
-    ]
+    ],
+    "rules": {
+      "no-unused-vars": "warn",
+      "react-hooks/exhaustive-deps": "warn",
+      "jsx-a11y/anchor-is-valid": "warn",
+      "no-script-url": "warn"
+    }
   },
   "browserslist": {
     "production": [
