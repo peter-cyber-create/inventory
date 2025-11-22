@@ -1,7 +1,5 @@
 import React from 'react';
-import { Route } from "react-router-dom";
 import ProtectedRoute from '../components/ProtectedRoute';
-import Dashboard from '../pages/Dashboard'
 import ICTDashboard from '../pages/ICT/Dashboard';
 import AssetsInventoryDashboard from '../pages/AssetsInventory/Dashboard';
 import Maintanance from '../pages/AssetsInventory/Maintanance';

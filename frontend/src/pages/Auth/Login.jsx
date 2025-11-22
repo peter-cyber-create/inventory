@@ -17,36 +17,54 @@ const Login = () => {
     const history = useHistory();
 
     const handleSubmit = async (e) => {
-        setLoading(true)
         e.preventDefault();
-        try {
-            const res = await API.post(`/users/login`, { username, password });
-            console.log(res)
+        
+        // Validate inputs
+        if (!username.trim()) {
+            toast.error("Please enter your username");
+            return;
+        }
+        if (!password.trim()) {
+            toast.error("Please enter your password");
+            return;
+        }
 
-            if (res.data.status === 'success') {
-                toast.success(`User Login Successful`);
-                setLoading(false)
+        setLoading(true);
+        
+        try {
+            const res = await API.post(`/users/login`, { username: username.trim(), password });
+
+            if (res.data && res.data.status === 'success') {
+                toast.success(`Login successful! Welcome back.`);
+                setLoading(false);
+                
                 localStorage.setItem("token", res.data.accessToken);
                 localStorage.setItem("user", JSON.stringify(res.data.user));
                 localStorage.setItem("userRole", res.data.user.role);
 
+                // Navigate based on role
                 if (res.data.user.role === 'it') {
-                    history.push('/ict/dashboard')
+                    history.push('/ict/dashboard');
                 } else if (res.data.user.role === 'garage') {
-                    history.push('/fleet/dashboard')
+                    history.push('/fleet/dashboard');
                 } else if (res.data.user.role === 'store') {
-                    history.push('/stores/dashboard')
+                    history.push('/stores/dashboard');
                 } else if (res.data.user.role === 'finance') {
-                    history.push('/finance/dashboard')
+                    history.push('/finance/dashboard');
                 } else if (res.data.user.role === 'admin') {
-                    history.push('/dashboard')  // Main admin dashboard
+                    history.push('/dashboard');
                 } else {
-                    history.push('/ict/dashboard')
+                    history.push('/ict/dashboard');
                 }
+            } else {
+                setLoading(false);
+                toast.error("Invalid response from server. Please try again.");
             }
         } catch (error) {
             setLoading(false);
-            toast.error(`User Login Failed`);
+            const errorMessage = error.message || "Login failed. Please check your credentials and try again.";
+            toast.error(errorMessage);
+            console.error("Login error:", error);
         }
     };
 

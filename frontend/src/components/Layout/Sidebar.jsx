@@ -22,7 +22,6 @@ import {
   ContainerOutlined,
   CarFilled,
   ToolFilled,
-  ShopFilled,
   FileTextFilled,
   ExclamationCircleOutlined,
   LaptopOutlined,
@@ -90,8 +89,6 @@ const AppSidebar = ({ collapsed, user }) => {
     if (path.includes('/admin/') || path.includes('/users/') || path.includes('/settings/')) return 'admin';
     return null;
   };
-
-  const currentModule = getCurrentModule();
 
   useEffect(() => {
     // Set selected key based on current location

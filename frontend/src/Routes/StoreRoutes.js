@@ -10,7 +10,6 @@ import Reports from '../pages/Stores/Reports';
 import StoresDashboard from '../pages/Stores/Dashboard';  // Updated dashboard
 
 // Legacy components for backward compatibility
-import LegacyStoresDashboard from '../pages/Stores/StoresDashboard';
 import ItemsManagement from '../pages/Stores/ItemsManagement';
 import SuppliersManagement from '../pages/Stores/SuppliersManagement';
 import LocationsManagement from '../pages/Stores/LocationsManagement';

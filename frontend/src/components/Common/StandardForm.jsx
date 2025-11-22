@@ -1,7 +1,6 @@
 import React from 'react';
 import { Modal, Form, Input, Button, Space, Row, Col, Typography, Divider, DatePicker, Select, Upload } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
-import dayjs from 'dayjs';
 
 const { Title } = Typography;
 const { TextArea } = Input;

@@ -1,5 +1,4 @@
 import React from 'react';
-import { Route } from "react-router-dom";
 import ProtectedRoute from '../components/ProtectedRoute';
 import Vehicles from '../pages/Fleet/Vehicles';
 import VehicleTypes from '../pages/Fleet/Settings/Type'
@@ -13,7 +12,6 @@ import Departments from '../pages/Fleet/Settings/Departments';
 import FleetDashboard from '../pages/Fleet/Dashboard';
 import Requistion from '../pages/Fleet/InHouse/Requistion';
 import Receiving from '../pages/Fleet/InHouse/Receiving';
-import JobCard from '../pages/Fleet/InHouse/JobCard';
 import Service from '../pages/Fleet/InHouse/JobCard/Service';
 import ServiceHistory from '../pages/Fleet/Reports/ServiceHistory';
 import NewJob from '../pages/Fleet/JobCard/NewJob';

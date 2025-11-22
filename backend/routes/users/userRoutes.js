@@ -117,12 +117,18 @@ router.post("/login", async (req, res) => {
 
             if (isSame) {
                 let token = jwt.sign({ id: user.id }, process.env.SECRETKEY, { expiresIn: 86400 }); // 24 hours
-                return res.status(201).json({ status: 'success', accessToken: token, user });
+                return res.status(200).json({ status: 'success', accessToken: token, user });
             } else {
-                return res.status(401).send("Authentication failed");
+                return res.status(401).json({ 
+                    status: 'error', 
+                    message: 'Invalid username or password' 
+                });
             }
         } else {
-            return res.status(401).send("Authentication failed");
+            return res.status(401).json({ 
+                status: 'error', 
+                message: 'Invalid username or password' 
+            });
         }
 
     } catch (error) {
