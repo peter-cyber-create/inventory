@@ -185,7 +185,7 @@ fi
 
 if [ ! -f "frontend/.env.production" ]; then
     log "Creating frontend .env.production..."
-    read -p "Enter frontend URL (e.g., http://your-server-ip:3001): " FRONTEND_URL
+    read -p "Enter frontend URL (e.g., http://your-server-ip:3000): " FRONTEND_URL
     read -p "Enter backend API URL (e.g., http://your-server-ip:5000): " BACKEND_URL
     
     cat > frontend/.env.production << EOF
@@ -248,12 +248,12 @@ module.exports = {
     {
       name: 'moh-ims-frontend',
       script: 'serve',
-      args: '-s build -l 3001',
+      args: '-s build -l 3000',
       cwd: '$APP_DIR/frontend',
       instances: 1,
       env: {
         NODE_ENV: 'production',
-        PORT: 3001
+        PORT: 3000
       },
       error_file: '/var/log/moh-ims-frontend-error.log',
       out_file: '/var/log/moh-ims-frontend-out.log',
@@ -303,7 +303,7 @@ server {
 
     # Frontend
     location / {
-        proxy_pass http://localhost:3001;
+        proxy_pass http://localhost:3000;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -348,7 +348,7 @@ else
     warning "Backend health check failed. Check logs: pm2 logs moh-ims-backend"
 fi
 
-if curl -f http://localhost:3001 > /dev/null 2>&1; then
+if curl -f http://localhost:3000 > /dev/null 2>&1; then
     log "Frontend health check passed ✅"
 else
     warning "Frontend health check failed. Check logs: pm2 logs moh-ims-frontend"
@@ -368,7 +368,7 @@ echo "  pm2 restart all     - Restart all applications"
 echo "  pm2 stop all        - Stop all applications"
 echo ""
 echo "Access URLs:"
-echo "  Frontend: http://localhost:3001"
+echo "  Frontend: http://localhost:3000"
 echo "  Backend API: http://localhost:5000"
 echo ""
 warning "⚠️  Remember to:"
