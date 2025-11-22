@@ -45,16 +45,15 @@ server {
         proxy_cache_bypass $http_upgrade;
     }
 
-    # Static assets (CSS, JS, images) - serve directly from build
-    location ~* \.(css|js|jpg|jpeg|png|gif|ico|svg|woff|woff2|ttf|eot)$ {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
+    # Static assets (CSS, JS, images) - serve directly from build directory
+    location ~* ^/(static|assets)/ {
+        root /var/www/inventory/frontend/build;
         expires 1y;
         add_header Cache-Control "public, immutable";
+        try_files $uri =404;
     }
 
-    # Frontend (React app) - serve index.html for all other routes
+    # Frontend (React app) - proxy to serve for SPA routing
     location / {
         proxy_pass http://localhost:3000;
         proxy_http_version 1.1;
