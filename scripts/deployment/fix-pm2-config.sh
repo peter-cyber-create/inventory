@@ -3,13 +3,13 @@
 # Quick fix script for PM2 configuration
 # Run this on the server after pulling latest changes
 
-cd /opt/inventory
+cd /var/www/inventory
 
 echo "Fixing PM2 configuration..."
 
 # Create logs directory
-mkdir -p /opt/inventory/logs
-chmod 755 /opt/inventory/logs
+mkdir -p /var/www/inventory/logs
+chmod 755 /var/www/inventory/logs
 
 # Delete old ecosystem config
 rm -f ecosystem.config.js
@@ -21,16 +21,16 @@ module.exports = {
     {
       name: 'moh-ims-backend',
       script: 'index.js',
-      cwd: '/opt/inventory/backend',
+      cwd: '/var/www/inventory/backend',
       instances: 1,
       exec_mode: 'fork',
       env: {
         NODE_ENV: 'production',
         PORT: 5000
       },
-      error_file: '/opt/inventory/logs/backend-error.log',
-      out_file: '/opt/inventory/logs/backend-out.log',
-      log_file: '/opt/inventory/logs/backend.log',
+      error_file: '/var/www/inventory/logs/backend-error.log',
+      out_file: '/var/www/inventory/logs/backend-out.log',
+      log_file: '/var/www/inventory/logs/backend.log',
       time: true,
       max_memory_restart: '1G'
     },
@@ -38,15 +38,15 @@ module.exports = {
       name: 'moh-ims-frontend',
       script: 'npx',
       args: 'serve -s build -l 3000',
-      cwd: '/opt/inventory/frontend',
+      cwd: '/var/www/inventory/frontend',
       instances: 1,
       env: {
         NODE_ENV: 'production',
         PORT: 3000
       },
-      error_file: '/opt/inventory/logs/frontend-error.log',
-      out_file: '/opt/inventory/logs/frontend-out.log',
-      log_file: '/opt/inventory/logs/frontend.log',
+      error_file: '/var/www/inventory/logs/frontend-error.log',
+      out_file: '/var/www/inventory/logs/frontend-out.log',
+      log_file: '/var/www/inventory/logs/frontend.log',
       time: true
     }
   ]

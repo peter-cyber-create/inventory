@@ -40,10 +40,10 @@ echo ""
 
 # Check if ecosystem.config.js exists
 echo "6. Configuration Check:"
-if [ -f "/opt/inventory/ecosystem.config.js" ]; then
+if [ -f "/var/www/inventory/ecosystem.config.js" ]; then
     echo "  ✅ ecosystem.config.js exists"
     echo "  Contents:"
-    cat /opt/inventory/ecosystem.config.js | head -20
+    cat /var/www/inventory/ecosystem.config.js | head -20
 else
     echo "  ❌ ecosystem.config.js not found"
 fi
@@ -51,9 +51,9 @@ echo ""
 
 # Check if build directory exists
 echo "7. Build Check:"
-if [ -d "/opt/inventory/frontend/build" ]; then
+if [ -d "/var/www/inventory/frontend/build" ]; then
     echo "  ✅ Frontend build directory exists"
-    ls -la /opt/inventory/frontend/build | head -5
+    ls -la /var/www/inventory/frontend/build | head -5
 else
     echo "  ❌ Frontend build directory not found"
 fi
@@ -61,7 +61,7 @@ echo ""
 
 # Check backend index.js
 echo "8. Backend File Check:"
-if [ -f "/opt/inventory/backend/index.js" ]; then
+if [ -f "/var/www/inventory/backend/index.js" ]; then
     echo "  ✅ backend/index.js exists"
 else
     echo "  ❌ backend/index.js not found"

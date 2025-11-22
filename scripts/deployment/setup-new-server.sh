@@ -20,7 +20,7 @@ DB_HOST="${DB_HOST:-localhost}"
 DB_PORT="${DB_PORT:-5432}"
 DB_NAME="${DB_NAME:-inventory_db}"
 DB_USER="${DB_USER:-inventory_user}"
-APP_DIR="${APP_DIR:-/opt/inventory}"
+APP_DIR="${APP_DIR:-/var/www/inventory}"
 
 log() {
     echo -e "${GREEN}[INFO]${NC} $1"
@@ -126,6 +126,8 @@ log "Database setup completed ✅"
 log "Setting up application directory..."
 sudo mkdir -p "$APP_DIR"
 sudo chown -R $USER:$USER "$APP_DIR"
+# Also create www-data group access if needed for web server
+sudo chmod 755 "$APP_DIR"
 
 # Step 7: Clone repository (if not already cloned)
 if [ ! -d "$APP_DIR/.git" ]; then

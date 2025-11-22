@@ -3,7 +3,7 @@
 # Start application script
 # Run this to ensure everything is started correctly
 
-cd /opt/inventory
+cd /var/www/inventory
 
 echo "🚀 Starting Application..."
 echo ""
