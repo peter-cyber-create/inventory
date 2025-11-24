@@ -59,7 +59,9 @@ fi
 # 3. Check if backend is running
 echo ""
 echo "3. Checking backend status..."
-if pm2 list | grep -q "moh-ims-backend.*online"; then
+BACKEND_STATUS=$(pm2 jlist | grep -o '"name":"moh-ims-backend"[^}]*"status":"[^"]*"' | grep -o '"status":"[^"]*"' | cut -d'"' -f4 || echo "not_found")
+
+if [ "$BACKEND_STATUS" = "online" ]; then
     echo "✅ Backend is running"
     
     # Test backend connectivity
@@ -67,17 +69,101 @@ if pm2 list | grep -q "moh-ims-backend.*online"; then
         echo "✅ Backend is responding on port 5000"
     else
         echo "⚠️  Backend not responding on port 5000 - checking logs..."
-        pm2 logs moh-ims-backend --lines 10 --nostream
+        pm2 logs moh-ims-backend --lines 20 --nostream
     fi
-else
-    echo "❌ Backend is not running - starting..."
+elif [ "$BACKEND_STATUS" = "errored" ] || [ "$BACKEND_STATUS" = "stopped" ]; then
+    echo "❌ Backend has crashed - checking logs..."
+    echo "=========================================="
+    pm2 logs moh-ims-backend --lines 50 --nostream || echo "No logs available"
+    echo ""
+    
+    # Check backend.env has all required variables
+    echo "Checking backend environment configuration..."
+    if [ -f "$APP_DIR/config/environments/backend.env" ]; then
+        # Ensure all required variables exist
+        if ! grep -q "^DB_HOST=" "$APP_DIR/config/environments/backend.env"; then
+            echo "DB_HOST=localhost" >> "$APP_DIR/config/environments/backend.env"
+        fi
+        if ! grep -q "^DB_PORT=" "$APP_DIR/config/environments/backend.env"; then
+            echo "DB_PORT=5432" >> "$APP_DIR/config/environments/backend.env"
+        fi
+        if ! grep -q "^DB_NAME=" "$APP_DIR/config/environments/backend.env"; then
+            echo "DB_NAME=inventory_db" >> "$APP_DIR/config/environments/backend.env"
+        fi
+        if ! grep -q "^DB_USER=" "$APP_DIR/config/environments/backend.env"; then
+            echo "DB_USER=inventory_user" >> "$APP_DIR/config/environments/backend.env"
+        fi
+        if ! grep -q "^DB_PASS=" "$APP_DIR/config/environments/backend.env"; then
+            echo "DB_PASS=toor" >> "$APP_DIR/config/environments/backend.env"
+        fi
+        if ! grep -q "^JWT_SECRET=" "$APP_DIR/config/environments/backend.env"; then
+            echo "JWT_SECRET=$(openssl rand -base64 32)" >> "$APP_DIR/config/environments/backend.env"
+        fi
+        if ! grep -q "^PORT=" "$APP_DIR/config/environments/backend.env"; then
+            echo "PORT=5000" >> "$APP_DIR/config/environments/backend.env"
+        fi
+        if ! grep -q "^NODE_ENV=" "$APP_DIR/config/environments/backend.env"; then
+            echo "NODE_ENV=production" >> "$APP_DIR/config/environments/backend.env"
+        fi
+        echo "✅ Backend environment variables checked"
+    else
+        echo "❌ backend.env not found - creating it..."
+        cat > "$APP_DIR/config/environments/backend.env" << 'EOF'
+# Ministry of Health Uganda Inventory Management System
+PORT=5000
+NODE_ENV=production
+
+# Database Configuration (PostgreSQL)
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=inventory_db
+DB_USER=inventory_user
+DB_PASS=toor
+
+# JWT Configuration
+JWT_SECRET=your_super_secure_jwt_secret_key_here_change_in_production
+JWT_EXPIRE=30d
+
+# CORS Configuration
+FRONTEND_URL=http://172.27.0.10
+CORS_ORIGIN=http://172.27.0.10
+
+# File Upload Configuration
+MAX_FILE_SIZE=10000000
+UPLOAD_PATH=./uploads
+EOF
+        echo "✅ Created backend.env"
+    fi
+    
+    # Test database connection
+    echo ""
+    echo "Testing database connection..."
+    if command -v psql &> /dev/null; then
+        if PGPASSWORD=toor psql -h localhost -U inventory_user -d inventory_db -c "SELECT 1;" > /dev/null 2>&1; then
+            echo "✅ Database connection successful"
+        else
+            echo "⚠️  Database connection failed - ensure PostgreSQL is running"
+            echo "   Run: sudo systemctl status postgresql"
+        fi
+    fi
+    
+    # Try to restart backend
+    echo ""
+    echo "Attempting to restart backend..."
     cd "$APP_DIR"
+    pm2 delete moh-ims-backend 2>/dev/null || true
     if [ -f "ecosystem.config.js" ]; then
         pm2 start ecosystem.config.js --only moh-ims-backend
+        sleep 3
+        pm2 logs moh-ims-backend --lines 20 --nostream
         pm2 save
     else
         echo "❌ ecosystem.config.js not found"
     fi
+else
+    echo "⚠️  Backend status: $BACKEND_STATUS"
+    echo "Checking logs..."
+    pm2 logs moh-ims-backend --lines 20 --nostream || true
 fi
 
 # 4. Check Nginx configuration
