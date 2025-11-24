@@ -191,15 +191,32 @@ else
     fi
 fi
 
-# 5. Rebuild frontend with correct API URL
+# 5. Fix missing route files
 echo ""
-echo "5. Rebuilding frontend with correct API configuration..."
+echo "5. Checking for missing route files..."
+if [ ! -f "$APP_DIR/backend/routes/uploads/index.js" ]; then
+    echo "⚠️  Missing route files detected - fixing..."
+    if [ -f "$APP_DIR/scripts/deployment/fix-missing-routes.sh" ]; then
+        chmod +x "$APP_DIR/scripts/deployment/fix-missing-routes.sh"
+        "$APP_DIR/scripts/deployment/fix-missing-routes.sh"
+    else
+        echo "Creating missing uploads route..."
+        mkdir -p "$APP_DIR/backend/routes/uploads"
+        # File will be created by git pull or fix script
+    fi
+else
+    echo "✅ Route files exist"
+fi
+
+# 6. Rebuild frontend with correct API URL
+echo ""
+echo "6. Rebuilding frontend with correct API configuration..."
 cd "$APP_DIR/frontend"
 npm run build
 cd "$APP_DIR"
 echo "✅ Frontend rebuilt"
 
-# 6. Restart services
+# 7. Restart services
 echo ""
 echo "6. Restarting services..."
 pm2 restart all
