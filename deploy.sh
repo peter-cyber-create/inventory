@@ -1,70 +1,49 @@
 #!/bin/bash
 
-# Production Deployment Script for Ministry of Health Uganda Inventory Management System
+# Quick Deployment Script
+# This script clones the repository and runs the setup script
 
-echo "🚀 Starting Production Deployment..."
+set -e
 
-# Check if Node.js and npm are installed
-if ! command -v node &> /dev/null; then
-    echo "❌ Node.js is not installed. Please install Node.js first."
-    exit 1
-fi
+# Configuration (can be overridden with environment variables)
+SERVER_IP="${SERVER_IP:-172.27.0.10}"
+FRONTEND_PORT="${FRONTEND_PORT:-3000}"
+BACKEND_PORT="${BACKEND_PORT:-5000}"
+APP_DIR="${APP_DIR:-/var/www/inventory}"
+REPO_URL="${REPO_URL:-https://github.com/peter-cyber-create/inventory.git}"
 
-if ! command -v npm &> /dev/null; then
-    echo "❌ npm is not installed. Please install npm first."
-    exit 1
-fi
-
-# Check if PostgreSQL is installed
-if ! command -v psql &> /dev/null; then
-    echo "❌ PostgreSQL is not installed. Please install PostgreSQL first."
-    exit 1
-fi
-
-echo "✅ Prerequisites check passed"
-
-# Install dependencies
-echo "📦 Installing dependencies..."
-npm install
-
-# Install backend dependencies
-echo "📦 Installing backend dependencies..."
-cd backend && npm install && cd ..
-
-# Install frontend dependencies
-echo "📦 Installing frontend dependencies..."
-cd frontend && npm install && cd ..
-
-# Build frontend for production
-echo "🏗️ Building frontend for production..."
-cd frontend && npm run build && cd ..
-
-# Create production environment file if it doesn't exist
-if [ ! -f .env ]; then
-    echo "📝 Creating production environment file..."
-    cp production.env.example .env
-    echo "⚠️  Please update .env file with your production configuration"
-fi
-
-# Create logs directory
-mkdir -p logs
-
-# Set proper permissions
-chmod +x scripts/maintenance/stop-application.sh
-chmod +x scripts/maintenance/start-application.sh
-
-echo "✅ Deployment preparation completed!"
+echo "🚀 Starting Deployment for MoH Uganda IMS..."
+echo "Configuration:"
+echo "  Server IP: $SERVER_IP"
+echo "  Frontend Port: $FRONTEND_PORT"
+echo "  Backend Port: $BACKEND_PORT"
+echo "  App Directory: $APP_DIR"
 echo ""
-echo "📋 Next steps:"
-echo "1. Update .env file with your production configuration"
-echo "2. Set up PostgreSQL database"
-echo "3. Run: npm run start:production"
+
+# Export variables for the setup script
+export SERVER_IP FRONTEND_PORT BACKEND_PORT APP_DIR
+
+# Clone or update repository
+if [ -d "$APP_DIR/.git" ]; then
+    echo "📦 Repository exists, updating..."
+    cd "$APP_DIR"
+    git pull origin main
+else
+    echo "📦 Cloning repository..."
+    sudo mkdir -p "$(dirname $APP_DIR)"
+    sudo git clone "$REPO_URL" "$APP_DIR"
+    sudo chown -R $USER:$USER "$APP_DIR"
+    cd "$APP_DIR"
+fi
+
+# Make setup script executable and run
+echo "🔧 Running setup script..."
+chmod +x scripts/deployment/setup-new-server.sh
+./scripts/deployment/setup-new-server.sh
+
 echo ""
-echo "🌐 Your application will be available at:"
-echo "   Frontend: http://your-domain:3001"
-echo "   Backend API: http://your-domain:5000"
+echo "✅ Deployment completed!"
 echo ""
-echo "🔐 Default admin credentials:"
-echo "   Username: admin"
-echo "   Password: admin123"
-echo "   ⚠️  Please change the default password after first login!"
+echo "Access your application at:"
+echo "  Frontend: http://$SERVER_IP:$FRONTEND_PORT"
+echo "  Backend: http://$SERVER_IP:$BACKEND_PORT/api"
