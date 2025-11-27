@@ -29,7 +29,16 @@ cd /opt/inventory  # or /var/www/inventory
 git pull origin main
 ```
 
-## Step 3: Run the Fix Script
+## Step 3: (Optional) Fix PM2 path mismatch
+
+If PM2 was previously configured to point at `/var/www/inventory` (or another path) and you now cloned the repo elsewhere, synchronize the paths before restarting services:
+
+```bash
+chmod +x scripts/deployment/fix-path-mismatch.sh
+./scripts/deployment/fix-path-mismatch.sh
+```
+
+## Step 4: Run the Fix Script
 
 ```bash
 # Make script executable

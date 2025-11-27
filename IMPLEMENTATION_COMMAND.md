@@ -2,16 +2,19 @@
 
 ## Quick Start (Default Configuration)
 
-For a quick deployment with default settings (IP: 172.27.0.10, Ports: 3000/5000):
+> **Note:** The setup script clones the production copy into `APP_DIR` (defaults to `/var/www/inventory`).  
+> If you prefer a different location (e.g. `/opt/inventory`), export `APP_DIR` before running the script.
 
 ```bash
-# 1. Clone the repository
+# Optional: pick where the live app will live
+export APP_DIR="/var/www/inventory"
+
+# Download helper script and run
 cd /opt
 sudo git clone https://github.com/peter-cyber-create/inventory.git inventory
 sudo chown -R $USER:$USER inventory
 cd inventory
 
-# 2. Make script executable and run
 chmod +x scripts/deployment/setup-new-server.sh
 ./scripts/deployment/setup-new-server.sh
 ```
@@ -56,13 +59,19 @@ export SERVER_IP="172.27.0.10" FRONTEND_PORT="3000" BACKEND_PORT="5000" APP_DIR=
 
 ## For Existing Repository (Update and Redeploy)
 
-If the repository already exists and you want to update:
+Once the application has been provisioned on the server (for example under `/var/www/inventory`), redeploy by pulling the latest changes and rebuilding:
 
 ```bash
-cd /opt/inventory
+cd /var/www/inventory   # or wherever APP_DIR points
 git pull origin main
-chmod +x scripts/deployment/setup-new-server.sh
-./scripts/deployment/setup-new-server.sh
+./scripts/deployment/redeploy-from-git.sh
+```
+
+or run everything via `deploy.sh` (re-runs the full setup if needed):
+
+```bash
+cd /opt/inventory       # management clone
+./deploy.sh
 ```
 
 ## What the Script Does
@@ -100,7 +109,11 @@ After the script completes, remember to:
    - Database user password
    - Admin user password (if using default)
 
-3. **Configure SSL/HTTPS** (recommended for production):
+3. **Sync PM2 configuration**  
+   - `ecosystem.config.js` now auto-detects the install directory via `APP_DIR`
+   - Use `scripts/deployment/fix-path-mismatch.sh` if PM2 was previously configured with outdated paths
+
+4. **Configure SSL/HTTPS** (recommended for production):
    ```bash
    sudo apt install certbot python3-certbot-nginx
    sudo certbot --nginx -d your-domain.com
@@ -140,11 +153,13 @@ If you encounter issues:
    node -e "require('dotenv').config({path: '../config/environments/backend.env'}); require('./config/db').connectDB().then(() => console.log('✅ Connected')).catch(e => console.error('❌ Failed:', e))"
    ```
 
-4. **Restart services**:
+4. **Restart services / redeploy**:
    ```bash
-   pm2 restart all
-   sudo systemctl restart postgresql
-   sudo systemctl restart nginx
+./scripts/deployment/redeploy-from-git.sh          # preferred
+# or manually
+pm2 restart all
+sudo systemctl restart postgresql
+sudo systemctl restart nginx
    ```
 
 ## Access URLs

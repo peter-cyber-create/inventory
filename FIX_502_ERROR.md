@@ -10,6 +10,15 @@ chmod +x scripts/deployment/fix-502-error.sh
 ./scripts/deployment/fix-502-error.sh
 ```
 
+If PM2 is still pointing to an old directory (common when the app was previously installed under `/var/www/*`), fix the paths first:
+
+```bash
+cd /opt/inventory  # management clone
+chmod +x scripts/deployment/fix-path-mismatch.sh
+./scripts/deployment/fix-path-mismatch.sh
+./scripts/deployment/fix-502-error.sh
+```
+
 ### Option 2: Manual Fix Steps
 
 #### Step 1: Check if backend is running
