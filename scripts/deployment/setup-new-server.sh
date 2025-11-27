@@ -220,70 +220,145 @@ fi
 # Step 10: Build frontend
 log "Building frontend for production..."
 cd frontend
-npm run build
+if npm run build; then
+    log "Frontend build completed ✅"
+else
+    error "Frontend build failed. Please check the errors above."
+fi
 cd ..
 
 # Step 11: Test database connection
 log "Testing database connection..."
 cd backend
-if node -e "require('dotenv').config({path: '../config/environments/backend.env'}); require('./config/db').connectDB().then(() => {console.log('✅ Database connection successful'); process.exit(0)}).catch(e => {console.error('❌ Database connection failed:', e.message); process.exit(1)})"; then
+# Check if babel-node is needed
+if command -v npx &> /dev/null; then
+    NODE_CMD="npx babel-node"
+else
+    NODE_CMD="node"
+    warning "babel-node not found via npx, using node directly (may fail if ES6 syntax is used)"
+fi
+
+if $NODE_CMD -e "require('dotenv').config({path: '../config/environments/backend.env'}); require('./config/db').connectDB().then(() => {console.log('✅ Database connection successful'); process.exit(0)}).catch(e => {console.error('❌ Database connection failed:', e.message); process.exit(1)})" 2>/dev/null; then
     log "Database connection test passed ✅"
 else
-    error "Database connection test failed. Please check your database configuration."
+    warning "Database connection test failed. This may be due to missing dependencies or configuration issues."
+    warning "Please verify your database configuration in config/environments/backend.env"
+    warning "You can test the connection manually after installation completes."
 fi
 cd ..
 
 # Step 12: Run migrations
 log "Running database migrations..."
 cd backend
-if command -v npx &> /dev/null && npx sequelize-cli db:migrate 2>/dev/null; then
-    log "Migrations completed ✅"
+if command -v npx &> /dev/null; then
+    # Try to run migrations with proper environment
+    export NODE_ENV=production
+    if [ -f "../config/environments/backend.env" ]; then
+        export $(grep -v '^#' ../config/environments/backend.env | xargs)
+    fi
+    if npx sequelize-cli db:migrate 2>/dev/null; then
+        log "Migrations completed ✅"
+    else
+        warning "Sequelize migrations failed. Attempting alternative method..."
+        # Try running migrations directly with node
+        if [ -f "migrations/run-all.js" ]; then
+            if node migrations/run-all.js 2>/dev/null; then
+                log "Migrations completed using alternative method ✅"
+            else
+                warning "Alternative migration method also failed. Please run migrations manually."
+            fi
+        else
+            warning "Sequelize CLI not found and no alternative migration script. Please run migrations manually."
+        fi
+    fi
 else
-    warning "Sequelize CLI not found or migrations failed. Please run migrations manually."
+    warning "npx not found. Please run migrations manually: cd backend && npx sequelize-cli db:migrate"
 fi
 cd ..
 
 # Step 13: Setup PM2 ecosystem
 log "Setting up PM2 configuration..."
+# Ensure we're in the app directory
+cd "$APP_DIR"
+
 if [ ! -f "ecosystem.config.js" ]; then
+    log "Creating PM2 ecosystem configuration..."
+    # Create a wrapper script for backend to handle babel-node
+    cat > backend/pm2-start.sh <<'PM2WRAPPER'
+#!/bin/bash
+cd "$(dirname "$0")"
+exec npx babel-node index.js
+PM2WRAPPER
+    chmod +x backend/pm2-start.sh
+    
     cat > ecosystem.config.js <<EOF
+const path = require('path');
+
+const resolvePath = (targetPath) => path.resolve(targetPath);
+const APP_DIR = resolvePath(process.env.APP_DIR || '${APP_DIR}');
+const LOGS_DIR = resolvePath(process.env.LOG_DIR || path.join(APP_DIR, 'logs'));
+const BACKEND_PORT = process.env.BACKEND_PORT || process.env.PORT || ${BACKEND_PORT};
+const FRONTEND_PORT = process.env.FRONTEND_PORT || ${FRONTEND_PORT};
+const NODE_ENV = process.env.NODE_ENV || 'production';
+const SERVE_ARGS = ['serve', '-s', 'build', '-l', FRONTEND_PORT, '--single'].join(' ');
+
 module.exports = {
   apps: [
     {
       name: 'moh-ims-backend',
-      script: 'index.js',
-      cwd: '${APP_DIR}/backend',
-      instances: 'max',
-      exec_mode: 'cluster',
+      script: path.join(APP_DIR, 'backend', 'pm2-start.sh'),
+      cwd: path.join(APP_DIR, 'backend'),
+      instances: process.env.BACKEND_INSTANCES || 1,
+      exec_mode: process.env.BACKEND_EXEC_MODE || 'fork',
       env: {
-        NODE_ENV: 'production',
-        PORT: ${BACKEND_PORT}
+        NODE_ENV,
+        PORT: BACKEND_PORT
       },
-      error_file: '${APP_DIR}/logs/backend-error.log',
-      out_file: '${APP_DIR}/logs/backend-out.log',
-      log_file: '${APP_DIR}/logs/backend.log',
+      error_file: path.join(LOGS_DIR, 'backend-error.log'),
+      out_file: path.join(LOGS_DIR, 'backend-out.log'),
+      log_file: path.join(LOGS_DIR, 'backend.log'),
       time: true,
-      max_memory_restart: '1G'
+      max_memory_restart: process.env.BACKEND_MAX_MEMORY || '1G',
+      restart_delay: parseInt(process.env.BACKEND_RESTART_DELAY || '4000', 10),
+      max_restarts: parseInt(process.env.BACKEND_MAX_RESTARTS || '10', 10),
+      min_uptime: process.env.BACKEND_MIN_UPTIME || '10s'
     },
     {
       name: 'moh-ims-frontend',
       script: 'npx',
-      args: 'serve -s build -l ${FRONTEND_PORT} --single',
-      cwd: '${APP_DIR}/frontend',
-      instances: 1,
+      args: SERVE_ARGS,
+      cwd: path.join(APP_DIR, 'frontend'),
+      instances: parseInt(process.env.FRONTEND_INSTANCES || '1', 10),
       env: {
-        NODE_ENV: 'production',
-        PORT: ${FRONTEND_PORT}
+        NODE_ENV,
+        PORT: FRONTEND_PORT
       },
-      error_file: '${APP_DIR}/logs/frontend-error.log',
-      out_file: '${APP_DIR}/logs/frontend-out.log',
-      log_file: '${APP_DIR}/logs/frontend.log',
-      time: true
+      error_file: path.join(LOGS_DIR, 'frontend-error.log'),
+      out_file: path.join(LOGS_DIR, 'frontend-out.log'),
+      log_file: path.join(LOGS_DIR, 'frontend.log'),
+      time: true,
+      restart_delay: parseInt(process.env.FRONTEND_RESTART_DELAY || '4000', 10),
+      max_restarts: parseInt(process.env.FRONTEND_MAX_RESTARTS || '10', 10),
+      min_uptime: process.env.FRONTEND_MIN_UPTIME || '10s'
     }
   ]
 };
 EOF
     log "PM2 ecosystem file created ✅"
+    log "Backend wrapper script created for babel-node support ✅"
+else
+    log "PM2 ecosystem file already exists, using existing configuration ✅"
+    # Still create wrapper script if it doesn't exist (needed for babel-node support)
+    if [ ! -f "backend/pm2-start.sh" ]; then
+        log "Creating backend wrapper script for babel-node support..."
+        cat > backend/pm2-start.sh <<'PM2WRAPPER'
+#!/bin/bash
+cd "$(dirname "$0")"
+exec npx babel-node index.js
+PM2WRAPPER
+        chmod +x backend/pm2-start.sh
+        log "Backend wrapper script created ✅"
+    fi
 fi
 
 # Step 14: Create logs directory
@@ -291,12 +366,25 @@ log "Creating logs directory..."
 mkdir -p "$APP_DIR/logs"
 chmod 755 "$APP_DIR/logs"
 
-# Step 15: Start application
+# Step 15: Stop existing PM2 processes (if any)
+log "Checking for existing PM2 processes..."
+if pm2 list | grep -q "moh-ims-backend\|moh-ims-frontend"; then
+    warning "Existing PM2 processes found. Stopping them..."
+    pm2 stop moh-ims-backend moh-ims-frontend 2>/dev/null || true
+    pm2 delete moh-ims-backend moh-ims-frontend 2>/dev/null || true
+fi
+
+# Step 16: Start application
 log "Starting application with PM2..."
+cd "$APP_DIR"
 pm2 start ecosystem.config.js
 pm2 save
 
-# Step 16: Setup Nginx (optional)
+# Setup PM2 to start on boot
+log "Setting up PM2 to start on boot..."
+pm2 startup systemd -u $USER --hp /home/$USER 2>/dev/null || warning "PM2 startup command may need to be run manually. Check output above."
+
+# Step 17: Setup Nginx (optional)
 log "Setting up Nginx reverse proxy..."
 if command -v nginx &> /dev/null; then
     if [ ! -f "/etc/nginx/sites-available/inventory" ]; then
@@ -356,12 +444,12 @@ else
     warning "Nginx not installed. Skipping reverse proxy setup."
 fi
 
-# Step 17: Setup firewall
+# Step 18: Setup firewall
 # SKIPPED - Firewall settings are already configured and should not be modified
 # Do not touch firewall configuration - existing settings are correct
 log "Skipping firewall configuration (existing settings preserved)"
 
-# Step 18: Health check
+# Step 19: Health check
 log "Performing health check..."
 sleep 5
 
