@@ -151,7 +151,7 @@ router.get('/dashboard', auth, async (req, res) => {
       // Total active items
       Item.count({ where: { is_active: true } }),
       
-      // Low stock items (below reorder level)
+      // Low stock items (below reorder level) - Safe static query
       sequelize.query(`
         SELECT COUNT(DISTINCT i.item_id) as count
         FROM items i
@@ -166,7 +166,7 @@ router.get('/dashboard', auth, async (req, res) => {
       // Pending requisitions
       Requisition.count({ where: { status: ['pending', 'supervisor_approved', 'finance_approved'] } }),
       
-      // Total inventory value
+      // Total inventory value - Safe static query
       sequelize.query(`
         SELECT SUM(total_value) as total_value
         FROM stock_balances

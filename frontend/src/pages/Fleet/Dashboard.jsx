@@ -1,193 +1,470 @@
+/**
+ * Ministry of Health Uganda - Fleet Management Dashboard
+ * Functional, actionable dashboard - No decorative elements
+ */
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Statistic, Typography, Table, Tag, Button, Space } from 'antd';
-import { 
-    CarOutlined, 
-    ToolOutlined, 
-    WarningOutlined, 
-    CheckCircleOutlined,
-    PlusOutlined,
-    EyeOutlined,
-    EditOutlined
-} from '@ant-design/icons';
-import PageLayout from '../../components/Layout/PageLayout';
-import StandardTable from '../../components/Common/StandardTable';
+import { useHistory } from 'react-router-dom';
 import API from '../../helpers/api';
-
-const { Title, Text } = Typography;
+import InstitutionalTable from '../../components/Common/InstitutionalTable';
+import StatusBadge from '../../components/Common/StatusBadge';
+import '../../theme/moh-institutional-theme.css';
 
 const FleetDashboard = () => {
+    const history = useHistory();
     const [loading, setLoading] = useState(false);
     const [stats, setStats] = useState({
         totalVehicles: 0,
         activeVehicles: 0,
         maintenanceDue: 0,
-        totalMileage: 0
+        overdueJobCards: 0
     });
+    const [overdueJobCards, setOverdueJobCards] = useState([]);
+    const [maintenanceDue, setMaintenanceDue] = useState([]);
     const [recentVehicles, setRecentVehicles] = useState([]);
 
     useEffect(() => {
-        fetchDashboardData();
+        loadDashboardData();
     }, []);
 
-    const fetchDashboardData = async () => {
+    const loadDashboardData = async () => {
         setLoading(true);
         try {
-            // Fetch vehicles data
+            // Load vehicles
             const vehiclesResponse = await API.get('/api/v/vehicle');
-            const vehiclesData = vehiclesResponse.data;
+            const vehicles = vehiclesResponse.data?.vehicles || [];
             
-            if (vehiclesData.status === 'success') {
-                const vehicles = vehiclesData.vehicles || [];
-                setStats({
-                    totalVehicles: vehicles.length,
-                    activeVehicles: vehicles.filter(vehicle => vehicle.status === 'Active').length,
-                    maintenanceDue: vehicles.filter(vehicle => vehicle.maintenance_due).length,
-                    totalMileage: vehicles.reduce((sum, vehicle) => sum + (parseInt(vehicle.mileage) || 0), 0)
+            setStats({
+                totalVehicles: vehicles.length,
+                activeVehicles: vehicles.filter(v => v.status === 'Active' || v.status === 'active').length,
+                maintenanceDue: vehicles.filter(v => v.maintenance_due || v.next_service_date).length,
+                overdueJobCards: 0 // Will be updated from job cards
+            });
+
+            // Recent vehicles
+            setRecentVehicles(vehicles.slice(0, 10));
+
+            // Maintenance due vehicles
+            const maintenanceVehicles = vehicles.filter(v => {
+                if (v.next_service_date) {
+                    const dueDate = new Date(v.next_service_date);
+                    return dueDate <= new Date();
+                }
+                return v.maintenance_due;
+            });
+            setMaintenanceDue(maintenanceVehicles.slice(0, 10));
+
+            // Overdue job cards
+            try {
+                const jobCardsResponse = await API.get('/api/v/jobcard?status=open');
+                const jobCards = jobCardsResponse.data?.jobCards || [];
+                const overdue = jobCards.filter(jc => {
+                    if (jc.due_date) {
+                        return new Date(jc.due_date) < new Date();
+                    }
+                    return false;
                 });
-                
-                // Set recent vehicles (last 5)
-                setRecentVehicles(vehicles.slice(0, 5));
+                setOverdueJobCards(overdue.slice(0, 10));
+                setStats(prev => ({ ...prev, overdueJobCards: overdue.length }));
+            } catch (e) {
+                console.error('Error loading job cards:', e);
             }
         } catch (error) {
-            console.error('Error fetching dashboard data:', error);
+            console.error('Error loading dashboard data:', error);
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
-    const handleViewVehicle = (vehicle) => {
-        console.log('View vehicle:', vehicle);
-    };
+    const jobCardColumns = [
+        {
+            key: 'job_card_no',
+            label: 'Job Card No.',
+            sortable: true
+        },
+        {
+            key: 'vehicle_number_plate',
+            label: 'Vehicle',
+            sortable: true
+        },
+        {
+            key: 'service_type',
+            label: 'Service Type',
+            sortable: true
+        },
+        {
+            key: 'due_date',
+            label: 'Due Date',
+            render: (value) => value ? new Date(value).toLocaleDateString() : '-'
+        },
+        {
+            key: 'status',
+            label: 'Status',
+            render: (value) => <StatusBadge type="error">{value || 'overdue'}</StatusBadge>
+        },
+        {
+            key: 'actions',
+            label: 'Actions',
+            render: (_, row) => (
+                <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
+                    onClick={() => history.push(`/fleet/jobcards/${row.id}`)}
+                >
+                    View Job Card
+                </button>
+            )
+        }
+    ];
 
-    const handleEditVehicle = (vehicle) => {
-        console.log('Edit vehicle:', vehicle);
-    };
-
-    const handleDeleteVehicle = (vehicle) => {
-        console.log('Delete vehicle:', vehicle);
-    };
+    const maintenanceColumns = [
+        {
+            key: 'new_number_plate',
+            label: 'Number Plate',
+            sortable: true
+        },
+        {
+            key: 'make',
+            label: 'Make',
+            sortable: true
+        },
+        {
+            key: 'model',
+            label: 'Model',
+            sortable: true
+        },
+        {
+            key: 'next_service_date',
+            label: 'Service Due',
+            render: (value) => value ? new Date(value).toLocaleDateString() : 'Overdue'
+        },
+        {
+            key: 'mileage',
+            label: 'Mileage',
+            render: (value) => value ? `${value} km` : 'N/A'
+        },
+        {
+            key: 'actions',
+            label: 'Actions',
+            render: (_, row) => (
+                <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
+                    onClick={() => history.push(`/fleet/vehicles/${row.id}`)}
+                >
+                    View Vehicle
+                </button>
+            )
+        }
+    ];
 
     const vehicleColumns = [
         {
-            title: 'Vehicle ID',
-            dataIndex: 'id',
-            key: 'id',
-            width: 80,
-        },
-        {
-            title: 'Number Plate',
-            dataIndex: 'new_number_plate',
             key: 'new_number_plate',
+            label: 'Number Plate',
+            sortable: true
         },
         {
-            title: 'Make/Model',
-            key: 'make_model',
-            render: (_, record) => `${record.make || ''} ${record.model || ''}`,
+            key: 'make',
+            label: 'Make',
+            sortable: true
         },
         {
-            title: 'Year',
-            dataIndex: 'YOM',
+            key: 'model',
+            label: 'Model',
+            sortable: true
+        },
+        {
             key: 'YOM',
+            label: 'Year',
+            sortable: true
         },
         {
-            title: 'Mileage',
-            dataIndex: 'mileage',
             key: 'mileage',
-            render: (mileage) => mileage ? `${mileage} km` : 'N/A',
+            label: 'Mileage',
+            render: (value) => value ? `${value} km` : 'N/A'
         },
         {
-            title: 'Status',
-            dataIndex: 'status',
             key: 'status',
-            render: (status) => (
-                <Tag color={status === 'Active' ? 'green' : 'orange'}>
-                    {status || 'Unknown'}
-                </Tag>
-            ),
+            label: 'Status',
+            render: (value) => {
+                const statusMap = {
+                    'Active': 'success',
+                    'active': 'success',
+                    'Inactive': 'warning',
+                    'inactive': 'warning',
+                    'Under Maintenance': 'warning',
+                    'under_maintenance': 'warning'
+                };
+                return <StatusBadge type={statusMap[value] || 'neutral'}>{value || 'Unknown'}</StatusBadge>;
+            }
         },
+        {
+            key: 'actions',
+            label: 'Actions',
+            render: (_, row) => (
+                <button
+                    type="button"
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => history.push(`/fleet/vehicles/${row.id}`)}
+                >
+                    View
+                </button>
+            )
+        }
     ];
 
     return (
-        <PageLayout
-            title="Fleet Management Dashboard"
-            subtitle="Manage vehicles, maintenance, and fleet operations"
-        >
-            {/* Statistics Cards */}
-            <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card>
-                        <Statistic
-                            title="Total Vehicles"
-                            value={stats.totalVehicles}
-                            prefix={<CarOutlined />}
-                            valueStyle={{ color: '#1890ff' }}
-                        />
-                    </Card>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card>
-                        <Statistic
-                            title="Active Vehicles"
-                            value={stats.activeVehicles}
-                            prefix={<CheckCircleOutlined />}
-                            valueStyle={{ color: '#52c41a' }}
-                        />
-                    </Card>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card>
-                        <Statistic
-                            title="Maintenance Due"
-                            value={stats.maintenanceDue}
-                            prefix={<WarningOutlined />}
-                            valueStyle={{ color: '#faad14' }}
-                        />
-                    </Card>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card>
-                        <Statistic
-                            title="Total Mileage"
-                            value={stats.totalMileage}
-                            suffix="km"
-                            precision={0}
-                            valueStyle={{ color: '#722ed1' }}
-                        />
-                    </Card>
-                </Col>
-            </Row>
+        <div>
+            {/* Uganda Flag Stripe */}
+            <div style={{
+                height: '6px',
+                background: 'linear-gradient(to right, var(--uganda-black) 0%, var(--uganda-black) 33.33%, var(--uganda-yellow) 33.33%, var(--uganda-yellow) 66.66%, var(--uganda-red) 66.66%, var(--uganda-red) 100%)',
+                marginBottom: 'var(--space-6)'
+            }} />
+
+            {/* Page Header */}
+            <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 'var(--space-6)'
+            }}>
+                <div>
+                    <h1 style={{
+                        fontSize: 'var(--font-size-2xl)',
+                        fontWeight: 'var(--font-weight-bold)',
+                        color: 'var(--color-text-primary)',
+                        marginBottom: 'var(--space-2)'
+                    }}>
+                        Fleet Management Dashboard
+                    </h1>
+                    <p style={{
+                        fontSize: 'var(--font-size-sm)',
+                        color: 'var(--color-text-secondary)',
+                        margin: 0
+                    }}>
+                        Manage vehicles, maintenance, and fleet operations
+                    </p>
+                </div>
+                <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => history.push('/fleet/vehicles')}
+                >
+                    View All Vehicles
+                </button>
+            </div>
+
+            {/* Summary Cards */}
+            <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: 'var(--space-4)',
+                marginBottom: 'var(--space-6)'
+            }}>
+                <div className="card" style={{
+                    borderLeft: '4px solid var(--color-info)'
+                }}>
+                    <div className="card-body">
+                        <div style={{
+                            fontSize: 'var(--font-size-xs)',
+                            color: 'var(--color-text-tertiary)',
+                            textTransform: 'uppercase',
+                            marginBottom: 'var(--space-2)'
+                        }}>
+                            Total Vehicles
+                        </div>
+                        <div style={{
+                            fontSize: 'var(--font-size-3xl)',
+                            fontWeight: 'var(--font-weight-bold)',
+                            color: 'var(--color-info)'
+                        }}>
+                            {stats.totalVehicles}
+                        </div>
+                    </div>
+                </div>
+                <div className="card" style={{
+                    borderLeft: '4px solid var(--color-success)'
+                }}>
+                    <div className="card-body">
+                        <div style={{
+                            fontSize: 'var(--font-size-xs)',
+                            color: 'var(--color-text-tertiary)',
+                            textTransform: 'uppercase',
+                            marginBottom: 'var(--space-2)'
+                        }}>
+                            Active Vehicles
+                        </div>
+                        <div style={{
+                            fontSize: 'var(--font-size-3xl)',
+                            fontWeight: 'var(--font-weight-bold)',
+                            color: 'var(--color-success)'
+                        }}>
+                            {stats.activeVehicles}
+                        </div>
+                    </div>
+                </div>
+                <div className="card" style={{
+                    borderLeft: '4px solid var(--color-warning)'
+                }}>
+                    <div className="card-body">
+                        <div style={{
+                            fontSize: 'var(--font-size-xs)',
+                            color: 'var(--color-text-tertiary)',
+                            textTransform: 'uppercase',
+                            marginBottom: 'var(--space-2)'
+                        }}>
+                            Maintenance Due
+                        </div>
+                        <div style={{
+                            fontSize: 'var(--font-size-3xl)',
+                            fontWeight: 'var(--font-weight-bold)',
+                            color: 'var(--color-warning)'
+                        }}>
+                            {stats.maintenanceDue}
+                        </div>
+                    </div>
+                </div>
+                <div className="card" style={{
+                    borderLeft: '4px solid var(--color-error)'
+                }}>
+                    <div className="card-body">
+                        <div style={{
+                            fontSize: 'var(--font-size-xs)',
+                            color: 'var(--color-text-tertiary)',
+                            textTransform: 'uppercase',
+                            marginBottom: 'var(--space-2)'
+                        }}>
+                            Overdue Job Cards
+                        </div>
+                        <div style={{
+                            fontSize: 'var(--font-size-3xl)',
+                            fontWeight: 'var(--font-weight-bold)',
+                            color: 'var(--color-error)'
+                        }}>
+                            {stats.overdueJobCards}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Overdue Job Cards Alert */}
+            {overdueJobCards.length > 0 && (
+                <div style={{ marginBottom: 'var(--space-6)' }}>
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: 'var(--space-4)'
+                    }}>
+                        <h2 style={{
+                            fontSize: 'var(--font-size-xl)',
+                            fontWeight: 'var(--font-weight-semibold)',
+                            margin: 0
+                        }}>
+                            Overdue Job Cards
+                        </h2>
+                        <button
+                            type="button"
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => history.push('/fleet/jobcards')}
+                        >
+                            View All
+                        </button>
+                    </div>
+                    <div className="card" style={{
+                        borderLeft: '4px solid var(--color-error)',
+                        marginBottom: 'var(--space-4)'
+                    }}>
+                        <div className="card-body">
+                            <div style={{
+                                fontSize: 'var(--font-size-sm)',
+                                color: 'var(--color-error)',
+                                fontWeight: 'var(--font-weight-semibold)'
+                            }}>
+                                ⚠️ {overdueJobCards.length} job cards are overdue and require immediate attention.
+                            </div>
+                        </div>
+                    </div>
+                    <InstitutionalTable
+                        data={overdueJobCards}
+                        columns={jobCardColumns}
+                        loading={loading}
+                        sortable={true}
+                        pagination={false}
+                        emptyMessage="No overdue job cards"
+                    />
+                </div>
+            )}
+
+            {/* Maintenance Due */}
+            {maintenanceDue.length > 0 && (
+                <div style={{ marginBottom: 'var(--space-6)' }}>
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: 'var(--space-4)'
+                    }}>
+                        <h2 style={{
+                            fontSize: 'var(--font-size-xl)',
+                            fontWeight: 'var(--font-weight-semibold)',
+                            margin: 0
+                        }}>
+                            Maintenance Due
+                        </h2>
+                        <button
+                            type="button"
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => history.push('/fleet/vehicles')}
+                        >
+                            View All
+                        </button>
+                    </div>
+                    <InstitutionalTable
+                        data={maintenanceDue}
+                        columns={maintenanceColumns}
+                        loading={loading}
+                        sortable={true}
+                        pagination={false}
+                        emptyMessage="No maintenance due vehicles"
+                    />
+                </div>
+            )}
 
             {/* Recent Vehicles */}
-            <StandardTable
-                title="Recent Vehicles"
-                dataSource={recentVehicles}
-                columns={vehicleColumns}
-                loading={loading}
-                onCreateClick={() => console.log('Create vehicle')}
-                onViewClick={handleViewVehicle}
-                onEditClick={handleEditVehicle}
-                onDeleteClick={handleDeleteVehicle}
-                createButtonText="Add Vehicle"
-                rowKey="id"
-            />
-
-            {/* Quick Actions */}
-            <Card title="Quick Actions" style={{ marginTop: '24px' }}>
-                <Space wrap>
-                    <Button type="primary" icon={<PlusOutlined />}>
-                        Add New Vehicle
-                    </Button>
-                    <Button icon={<EyeOutlined />}>
-                        View All Vehicles
-                    </Button>
-                    <Button icon={<ToolOutlined />}>
-                        Schedule Maintenance
-                    </Button>
-                    <Button>
-                        Generate Report
-                    </Button>
-                </Space>
-            </Card>
-        </PageLayout>
+            <div>
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: 'var(--space-4)'
+                }}>
+                    <h2 style={{
+                        fontSize: 'var(--font-size-xl)',
+                        fontWeight: 'var(--font-weight-semibold)',
+                        margin: 0
+                    }}>
+                        Recent Vehicles
+                    </h2>
+                    <button
+                        type="button"
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => history.push('/fleet/vehicles')}
+                    >
+                        View All
+                    </button>
+                </div>
+                <InstitutionalTable
+                    data={recentVehicles}
+                    columns={vehicleColumns}
+                    loading={loading}
+                    sortable={true}
+                    pagination={false}
+                    emptyMessage="No vehicles found"
+                />
+            </div>
+        </div>
     );
 };
 

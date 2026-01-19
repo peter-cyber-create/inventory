@@ -1,5 +1,5 @@
 import React, { Fragment } from 'react'
-import { Route, Switch } from "react-router-dom";
+import { Route, Switch, Redirect } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -9,6 +9,7 @@ import Landing from '../pages/Landing';
 import Login from '../pages/Auth/Login';
 import Settings from '../pages/Settings';
 import Dashboard from '../pages/Dashboard';
+import NotFound from '../pages/NotFound';
 import ITRoutes from './ITRoutes';
 import FleetRoutes from './FleetRoutes';
 import StoreRoutes from './StoreRoutes';
@@ -22,15 +23,21 @@ const App = () => {
       <Switch>
         <Route exact path="/" component={Login} />
         <Route exact path="/landing" component={Landing} />
-        <Layout>
-          <ProtectedRoute exact path="/dashboard" component={Dashboard} allowedRoles={['admin']} />
-          <Route exact path="/settings" component={Settings} />
-          <ITRoutes />
-          <FleetRoutes />
-          <StoreRoutes />
-          <ACtivityRoutes />
-          <AdminRoutes />
-        </Layout>
+        <Route path="/" render={() => (
+          <Layout>
+            <Switch>
+              <ProtectedRoute exact path="/dashboard" component={Dashboard} allowedRoles={['admin']} />
+              <Route exact path="/settings" component={Settings} />
+              <ITRoutes />
+              <FleetRoutes />
+              <StoreRoutes />
+              <ACtivityRoutes />
+              <AdminRoutes />
+              {/* Catch-all route for 404 */}
+              <Route component={NotFound} />
+            </Switch>
+          </Layout>
+        )} />
       </Switch>
     </Fragment>
   )

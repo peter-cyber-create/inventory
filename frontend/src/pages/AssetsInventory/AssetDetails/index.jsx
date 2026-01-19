@@ -1,15 +1,31 @@
-import React, { useState, useEffect, Fragment } from "react";
+/**
+ * Ministry of Health Uganda - ICT Asset Details Page
+ * Official asset register format - Professional, institutional design
+ */
+import React, { useState, useEffect } from "react";
+import { Tabs, Card } from 'antd';
+import { 
+    InfoCircleOutlined, 
+    UserOutlined, 
+    SwapOutlined, 
+    ToolOutlined, 
+    DeleteOutlined, 
+    HistoryOutlined 
+} from '@ant-design/icons';
 import API from "../../../helpers/api";
+import PageLayout from "../../../components/Layout/PageLayout";
 import AssetInfo from "./AssetInfo";
 import AssignedUser from "./AssignedUser";
 import Transfer from "./TransferHistory";
 import Maintenance from "./Maintenance";
 import Disposal from "./Disposal";
 import AuditHistory from "./AuditHistory";
+import '../../../theme/moh-institutional-theme.css';
 
 const AssetDetails = ({ match }) => {
     const [asset, setAsset] = useState({})
     const [loading, setLoading] = useState(false)
+    const [activeTab, setActiveTab] = useState('asset-info')
 
     const { id } = match.params;
 
@@ -17,7 +33,6 @@ const AssetDetails = ({ match }) => {
         setLoading(true);
         try {
             const res = await API.get(`/assets/${id}`);
-            console.log(res)
             setLoading(false);
             setAsset(res.data.asset);
         } catch (error) {
@@ -29,71 +44,97 @@ const AssetDetails = ({ match }) => {
         getAsset();
     }, []);
 
+    const tabItems = [
+        {
+            key: 'asset-info',
+            label: (
+                <span>
+                    <InfoCircleOutlined style={{ marginRight: '8px' }} />
+                    Asset Information
+                </span>
+            ),
+            children: <AssetInfo asset={asset} />
+        },
+        {
+            key: 'user',
+            label: (
+                <span>
+                    <UserOutlined style={{ marginRight: '8px' }} />
+                    Assigned User
+                </span>
+            ),
+            children: <AssignedUser id={id} />
+        },
+        {
+            key: 'movement',
+            label: (
+                <span>
+                    <SwapOutlined style={{ marginRight: '8px' }} />
+                    Transfer History
+                </span>
+            ),
+            children: <Transfer id={id} />
+        },
+        {
+            key: 'maintenance',
+            label: (
+                <span>
+                    <ToolOutlined style={{ marginRight: '8px' }} />
+                    Preventive Maintenance
+                </span>
+            ),
+            children: <Maintenance id={id} />
+        },
+        {
+            key: 'disposal',
+            label: (
+                <span>
+                    <DeleteOutlined style={{ marginRight: '8px' }} />
+                    Asset Disposal
+                </span>
+            ),
+            children: <Disposal id={id} />
+        },
+        {
+            key: 'history',
+            label: (
+                <span>
+                    <HistoryOutlined style={{ marginRight: '8px' }} />
+                    Audit History
+                </span>
+            ),
+            children: <AuditHistory id={id} />
+        }
+    ];
+
     return (
-        <Fragment>
-            <div class="row">
-                <div class="col-12">
-                    <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                        <h4 class="font-size-18">Asset Serial Number: {asset.serialNo} & Engraved Number: {asset.engravedNo}</h4>
-                        {/* <div class="page-title-right">
-                            <ol class="breadcrumb m-0">
-                                <li class="breadcrumb-item"><a href="javascript: void(0);">Crypto</a></li>
-                                <li class="breadcrumb-item active">Orders</li>
-                            </ol>
-                        </div> */}
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="card">
-                        <div class="card-body">
-                            <h4 class="card-title mb-3">Asset Details</h4>
-                            <ul class="nav nav-tabs nav-tabs-custom" role="tablist">
-                                <li class="nav-item" role="presentation">
-                                    <a class="nav-link active" data-bs-toggle="tab" href="#asset-info" role="tab" aria-selected="true">
-                                        Asset Info
-                                    </a>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <a class="nav-link" data-bs-toggle="tab" href="#user" role="tab" aria-selected="false" tabindex="-1">
-                                        Assigned User
-                                    </a>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <a class="nav-link" data-bs-toggle="tab" href="#movement" role="tab" aria-selected="false" tabindex="-1">
-                                        Asset Tranfer History
-                                    </a>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <a class="nav-link" data-bs-toggle="tab" href="#maintenance" role="tab" aria-selected="false" tabindex="-1">
-                                        Preventive Maintenance
-                                    </a>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <a class="nav-link" data-bs-toggle="tab" href="#disposal" role="tab" aria-selected="false" tabindex="-1">
-                                        Asset Disposal
-                                    </a>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <a class="nav-link" data-bs-toggle="tab" href="#history" role="tab" aria-selected="false" tabindex="-1">
-                                        Asset Audit History
-                                    </a>
-                                </li>
-                            </ul>
-                            <div class="tab-content p-3">
-                                <AssetInfo asset={asset} />
-                                <AssignedUser id={id} />
-                                <Transfer id={id} />
-                                <Maintenance id={id} />
-                                <Disposal id={id} />
-                                <AuditHistory id={id} />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </Fragment>
+        <PageLayout
+            title={`ICT Asset Details`}
+            subtitle={`Serial: ${asset.serialNo || 'N/A'} | Engraved: ${asset.engravedNo || 'N/A'}`}
+            loading={loading}
+        >
+            <Card 
+                className="institutional-card"
+                style={{ 
+                    border: '1px solid #E1E5E9',
+                    borderRadius: '8px',
+                    boxShadow: '0 1px 3px rgba(0, 103, 71, 0.08)'
+                }}
+            >
+                <Tabs
+                    activeKey={activeTab}
+                    onChange={setActiveTab}
+                    items={tabItems}
+                    style={{
+                        fontFamily: 'var(--font-family)'
+                    }}
+                    tabBarStyle={{
+                        borderBottom: '2px solid #E2E8F0',
+                        marginBottom: '24px'
+                    }}
+                />
+            </Card>
+        </PageLayout>
     )
 }
 

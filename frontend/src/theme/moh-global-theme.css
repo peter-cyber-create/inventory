@@ -1,0 +1,504 @@
+/**
+ * Ministry of Health Uganda - Global Professional Theme
+ * Applied across entire application for consistent government aesthetics
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* ============================================
+   CSS VARIABLES - MOH Uganda Official Colors
+   ============================================ */
+:root {
+  /* Primary Ministry Colors */
+  --moh-primary: #006747;
+  --moh-primary-light: #00A968;
+  --moh-primary-dark: #004D35;
+  --moh-primary-rgb: 0, 103, 71;
+  
+  /* Secondary Colors */
+  --moh-secondary: #FFD600;
+  --moh-secondary-light: #FFE033;
+  --moh-secondary-dark: #B3951F;
+  
+  /* Accent Colors */
+  --moh-accent: #E53935;
+  --moh-accent-light: #EF5350;
+  --moh-accent-dark: #C62828;
+  
+  /* Uganda Flag Colors */
+  --uganda-black: #000000;
+  --uganda-yellow: #FFD100;
+  --uganda-red: #CE1126;
+  
+  /* Neutral Colors */
+  --color-background: #FAFBFC;
+  --color-background-alt: #F5F7FA;
+  --color-surface: #FFFFFF;
+  --color-surface-hover: #F8F9FA;
+  
+  /* Text Colors */
+  --color-text: #1A1A1A;
+  --color-text-secondary: #5A6872;
+  --color-text-tertiary: #8B9499;
+  --color-text-on-primary: #FFFFFF;
+  
+  /* Border Colors */
+  --color-border: #E1E5E9;
+  --color-border-light: #F0F3F7;
+  --color-border-focus: #006747;
+  
+  /* Status Colors */
+  --color-success: #00A968;
+  --color-success-light: #E8F5E8;
+  --color-info: #1976D2;
+  --color-info-light: #E3F2FD;
+  --color-warning: #FF8F00;
+  --color-warning-light: #FFF8E1;
+  --color-error: #E53935;
+  --color-error-light: #FFEBEE;
+  
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 103, 71, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 103, 71, 0.1);
+  --shadow-lg: 0 8px 24px rgba(0, 103, 71, 0.12);
+  --shadow-xl: 0 12px 32px rgba(0, 103, 71, 0.15);
+  
+  /* Typography */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-size-base: 16px;
+  --line-height-base: 1.6;
+  
+  /* Transitions */
+  --transition-fast: 0.15s ease-in-out;
+  --transition-normal: 0.25s ease-in-out;
+  --transition-slow: 0.4s ease-in-out;
+}
+
+/* ============================================
+   GLOBAL RESET & BASE STYLES
+   ============================================ */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  color: var(--color-text);
+  background-color: var(--color-background);
+  margin: 0;
+  padding: 0;
+}
+
+/* ============================================
+   TYPOGRAPHY
+   ============================================ */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-md) 0;
+}
+
+h1 { font-size: 2rem; font-weight: 700; }
+h2 { font-size: 1.5rem; font-weight: 600; }
+h3 { font-size: 1.25rem; font-weight: 600; }
+h4 { font-size: 1.125rem; font-weight: 600; }
+h5 { font-size: 1rem; font-weight: 600; }
+h6 { font-size: 0.875rem; font-weight: 600; }
+
+p {
+  margin: 0 0 var(--spacing-md) 0;
+  color: var(--color-text-secondary);
+}
+
+/* ============================================
+   BUTTONS - MOH Professional Styling
+   ============================================ */
+.btn-primary,
+.ant-btn-primary,
+button[type="submit"].btn-primary {
+  background: var(--moh-primary) !important;
+  border-color: var(--moh-primary) !important;
+  color: var(--color-text-on-primary) !important;
+  font-weight: 600 !important;
+  border-radius: var(--radius-md) !important;
+  padding: 12px 24px !important;
+  height: 44px !important;
+  transition: all var(--transition-normal) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.btn-primary:hover,
+.ant-btn-primary:hover {
+  background: var(--moh-primary-dark) !important;
+  border-color: var(--moh-primary-dark) !important;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md) !important;
+}
+
+.btn-primary:active,
+.ant-btn-primary:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.btn-secondary,
+.ant-btn-default {
+  border: 2px solid var(--moh-primary) !important;
+  color: var(--moh-primary) !important;
+  background: transparent !important;
+  font-weight: 600 !important;
+  border-radius: var(--radius-md) !important;
+  padding: 10px 24px !important;
+  height: 44px !important;
+  transition: all var(--transition-normal) !important;
+}
+
+.btn-secondary:hover,
+.ant-btn-default:hover {
+  background: var(--color-success-light) !important;
+  border-color: var(--moh-primary) !important;
+  color: var(--moh-primary) !important;
+}
+
+.btn-danger,
+.ant-btn-dangerous {
+  background: var(--moh-accent) !important;
+  border-color: var(--moh-accent) !important;
+  color: var(--color-text-on-primary) !important;
+}
+
+/* ============================================
+   FORM INPUTS - Professional Styling
+   ============================================ */
+.form-control,
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-select-selector {
+  height: 44px !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-md) !important;
+  padding: 12px 16px !important;
+  font-size: 16px !important;
+  transition: all var(--transition-normal) !important;
+  background: var(--color-surface) !important;
+}
+
+.form-control:focus,
+.ant-input:focus,
+.ant-input-affix-wrapper-focused,
+.ant-select-focused .ant-select-selector {
+  border-color: var(--moh-primary) !important;
+  box-shadow: 0 0 0 3px rgba(0, 103, 71, 0.1) !important;
+  outline: none !important;
+}
+
+.form-control:hover,
+.ant-input:hover,
+.ant-input-affix-wrapper:hover,
+.ant-select:hover .ant-select-selector {
+  border-color: var(--moh-primary-light) !important;
+}
+
+.form-label,
+.ant-form-item-label > label {
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  color: var(--color-text) !important;
+  margin-bottom: 8px !important;
+}
+
+.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
+  color: var(--moh-accent) !important;
+}
+
+/* ============================================
+   CARDS & PANELS
+   ============================================ */
+.card,
+.ant-card,
+.panel {
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: all var(--transition-normal) !important;
+}
+
+.card:hover,
+.ant-card:hover {
+  box-shadow: var(--shadow-md) !important;
+}
+
+.ant-card-head {
+  background: linear-gradient(135deg, #FAFBFC 0%, #F5F7FA 100%) !important;
+  border-bottom: 1px solid var(--color-border) !important;
+  padding: 20px 24px !important;
+}
+
+.ant-card-head-title {
+  font-weight: 600 !important;
+  font-size: 1.125rem !important;
+  color: var(--color-text) !important;
+}
+
+/* ============================================
+   TABLES - Professional Styling
+   ============================================ */
+.table,
+.ant-table {
+  background: var(--color-surface) !important;
+  border-radius: var(--radius-lg) !important;
+  overflow: hidden;
+}
+
+.ant-table-thead > tr > th {
+  background: linear-gradient(135deg, #FAFBFC 0%, #F5F7FA 100%) !important;
+  border-bottom: 2px solid var(--color-border) !important;
+  font-weight: 600 !important;
+  color: var(--color-text) !important;
+  padding: 16px !important;
+}
+
+.ant-table-tbody > tr:hover > td {
+  background: var(--color-surface-hover) !important;
+}
+
+.ant-table-tbody > tr > td {
+  border-bottom: 1px solid var(--color-border-light) !important;
+  padding: 16px !important;
+}
+
+/* ============================================
+   HEADER & NAVIGATION
+   ============================================ */
+.ant-layout-header,
+.moh-header {
+  background: var(--color-surface) !important;
+  border-bottom: 1px solid var(--color-border-light) !important;
+  box-shadow: var(--shadow-sm) !important;
+  padding: 0 var(--spacing-lg) !important;
+  height: 72px !important;
+  line-height: 72px !important;
+}
+
+.ant-layout-sider {
+  background: var(--color-background) !important;
+  border-right: 1px solid var(--color-border-light) !important;
+}
+
+.ant-menu {
+  background: transparent !important;
+}
+
+.ant-menu-item {
+  margin: 4px 12px !important;
+  border-radius: var(--radius-md) !important;
+  transition: all var(--transition-normal) !important;
+}
+
+.ant-menu-item:hover {
+  background: var(--color-surface-hover) !important;
+}
+
+.ant-menu-item-selected {
+  background: var(--color-success-light) !important;
+  color: var(--moh-primary) !important;
+  font-weight: 600 !important;
+}
+
+.ant-menu-item-selected::after {
+  border-right-color: var(--moh-primary) !important;
+  border-right-width: 3px !important;
+}
+
+.ant-menu-item:hover {
+  background: var(--color-surface-hover) !important;
+  color: var(--moh-primary) !important;
+}
+
+.ant-menu-item-active {
+  background: var(--color-surface-hover) !important;
+  color: var(--moh-primary) !important;
+}
+
+/* ============================================
+   MODALS & DIALOGS
+   ============================================ */
+.ant-modal,
+.ant-drawer {
+  border-radius: var(--radius-xl) !important;
+}
+
+.ant-modal-header {
+  background: linear-gradient(135deg, var(--moh-primary) 0%, var(--moh-primary-dark) 100%) !important;
+  border-bottom: none !important;
+  padding: 24px 32px !important;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0 !important;
+}
+
+.ant-modal-title {
+  color: var(--color-text-on-primary) !important;
+  font-weight: 600 !important;
+  font-size: 1.5rem !important;
+}
+
+.ant-modal-body {
+  padding: 32px !important;
+}
+
+.ant-modal-footer {
+  border-top: 1px solid var(--color-border) !important;
+  padding: 20px 32px !important;
+}
+
+/* ============================================
+   BADGES & TAGS
+   ============================================ */
+.ant-badge-status-dot {
+  width: 8px !important;
+  height: 8px !important;
+}
+
+.ant-tag {
+  border-radius: var(--radius-sm) !important;
+  padding: 4px 12px !important;
+  font-weight: 500 !important;
+  border: none !important;
+}
+
+.ant-tag-success {
+  background: var(--color-success-light) !important;
+  color: var(--color-success) !important;
+}
+
+.ant-tag-error {
+  background: var(--color-error-light) !important;
+  color: var(--color-error) !important;
+}
+
+.ant-tag-warning {
+  background: var(--color-warning-light) !important;
+  color: var(--color-warning) !important;
+}
+
+.ant-tag-info {
+  background: var(--color-info-light) !important;
+  color: var(--color-info) !important;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+@media (max-width: 768px) {
+  :root {
+    --spacing-lg: 16px;
+    --spacing-xl: 24px;
+  }
+  
+  .ant-modal-body {
+    padding: 20px !important;
+  }
+  
+  .ant-card-head {
+    padding: 16px 20px !important;
+  }
+  
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.375rem; }
+  h3 { font-size: 1.125rem; }
+}
+
+@media (max-width: 640px) {
+  .btn-primary,
+  .btn-secondary,
+  .ant-btn {
+    width: 100%;
+    margin-bottom: 12px;
+  }
+  
+  .ant-modal {
+    margin: 0 !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    border-radius: 0 !important;
+  }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+.text-moh-primary {
+  color: var(--moh-primary) !important;
+}
+
+.bg-moh-primary {
+  background: var(--moh-primary) !important;
+}
+
+.border-moh-primary {
+  border-color: var(--moh-primary) !important;
+}
+
+.shadow-moh {
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+  .ant-btn,
+  .btn-primary,
+  .btn-secondary {
+    display: none !important;
+  }
+  
+  .card,
+  .ant-card {
+    box-shadow: none !important;
+    border: 1px solid var(--color-border) !important;
+    break-inside: avoid;
+  }
+}
+

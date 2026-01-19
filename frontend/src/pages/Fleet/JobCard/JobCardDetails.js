@@ -1,34 +1,33 @@
+/**
+ * Ministry of Health Uganda - Fleet Job Card Detail Page
+ * Procedural record format - Professional, institutional design
+ */
 import React, { useState, useEffect, useRef } from "react";
+import { Table, Card, Button } from 'antd';
+import { PrinterOutlined } from '@ant-design/icons';
 import API from "../../../helpers/api";
 import FNSpinner from "../../../components/FNSpinner";
+import PageLayout from "../../../components/Layout/PageLayout";
 import JobCardData from "./JobCardData";
-import EditSpare from "./EditSpare";
-import AddJobCardSpare from "./AddJobCardSpare";
+import "../../../theme/moh-institutional-theme.css";
 
 const JobCardDetail = ({ match }) => {
   const [jobcard, setJobCard] = useState({});
   const [jobCardSpare, setJobCardSpare] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [showModal, setShowModal] = useState(false);
 
   const { id } = match.params;
   const printRef = useRef();
-
-  const handleShow = () => setShowModal(true);
-  const handleClose = () => setShowModal(false);
 
   const loadJobCard = async () => {
     setLoading(true);
     try {
       const res = await API.get(`/jobcards/${id}`);
-      console.log("Fetched Job Card:", res);
       setJobCard(res?.data.job);
-
       await loadJobCardSpare();
-
-      setLoading(false);
     } catch (error) {
       console.error("Error fetching job card:", error);
+    } finally {
       setLoading(false);
     }
   };
@@ -36,8 +35,7 @@ const JobCardDetail = ({ match }) => {
   const loadJobCardSpare = async () => {
     try {
       const res = await API.get(`/jobcard/spare/${id}`);
-      console.log("Fetched Job Card spare:", res?.data?.spareparts);
-      setJobCardSpare(res?.data?.spareparts);
+      setJobCardSpare(res?.data?.spareparts || []);
     } catch (error) {
       console.error("Error fetching items:", error);
     }
@@ -45,7 +43,8 @@ const JobCardDetail = ({ match }) => {
 
   useEffect(() => {
     loadJobCard();
-  }, []); // Added loadJobCard to dependencies
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handlePrint = () => {
     const printContent = printRef.current.innerHTML;
@@ -55,79 +54,107 @@ const JobCardDetail = ({ match }) => {
     document.body.innerHTML = originalContent;
   };
 
+  const sparePartsColumns = [
+    {
+      title: 'Spare Part Name',
+      dataIndex: 'partname',
+      key: 'partname',
+      width: '40%',
+    },
+    {
+      title: 'Part Number',
+      dataIndex: 'partno',
+      key: 'partno',
+      width: '20%',
+      render: (text) => text || '-',
+    },
+    {
+      title: 'Quantity Used',
+      dataIndex: 'qtyUsed',
+      key: 'qtyUsed',
+      width: '15%',
+      render: (text) => text || 0,
+    },
+    {
+      title: 'Unit of Measure',
+      dataIndex: 'measure',
+      key: 'measure',
+      width: '25%',
+      render: (text) => text || 'N/A',
+    },
+  ];
+
   if (loading) {
     return <FNSpinner />;
   }
 
   return (
-    <div className="container-flui ">
-      <div className="row justify-content-cent ">
-        <div className="col-12">
-          <div className="card bg-light border rounded shadow">
-            <div className="card-body">
-              <div ref={printRef}>
-                <JobCardData id={id} />
-                <div className="row">
-                  <div className="col-12">
-                    <div className="card bg-transparent">
-                      <div className="card-body">
-                        <h4 className="card-title mb-4">
-                          Job Card Spare Parts
-                        </h4>
-                        <section>
-                          <table className="table table-striped table-sm">
-                            <thead className="table-light">
-                              <tr>
-                                <th style={{ width: "30%" }}>
-                                  Spare Part Name
-                                </th>
-                                <th style={{ width: "20%" }}>part Number</th>
-                                <th style={{ width: "15%" }}>Qty Used</th>
-                                <th style={{ width: "25%" }}>
-                                  Unit Of Measure
-                                </th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {jobCardSpare.map((part, index) => (
-                                <tr key={index}>
-                                  <td className="bg-transparent">
-                                    {part?.partname}
-                                  </td>
-                                  <td className="bg-transparent">
-                                    {part.partno || 0}
-                                  </td>
-                                  <td className="bg-transparent">
-                                    {part.qtyUsed || 0}
-                                  </td>
+    <PageLayout
+      title={`Fleet Job Card Detail: ${jobcard?.jobcard_no || 'N/A'}`}
+      subtitle={`Vehicle: ${jobcard?.vehicle_number_plate || 'N/A'} - Status: ${jobcard?.status || 'N/A'}`}
+      extra={[
+        <Button 
+          key="print" 
+          type="primary" 
+          icon={<PrinterOutlined />} 
+          onClick={handlePrint}
+          style={{
+            background: '#006747',
+            borderColor: '#006747',
+            borderRadius: '4px',
+            fontWeight: 600
+          }}
+        >
+          Print Job Card
+        </Button>
+      ]}
+      loading={loading}
+    >
+      <div ref={printRef}>
+        <Card 
+          className="institutional-card"
+          style={{ 
+            border: '1px solid #E1E5E9',
+            borderRadius: '8px',
+            boxShadow: '0 1px 3px rgba(0, 103, 71, 0.08)',
+            marginBottom: '24px'
+          }}
+        >
+          <JobCardData id={id} />
+        </Card>
 
-                                  <td className="bg-transparent">
-                                    {part.measure || "None"}
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </section>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="d-flex justify-content-end mb-4">
-                <button
-                  className="btn btn-outline-warning"
-                  onClick={handlePrint}
-                >
-                  <i className="bi bi-printer me-2"></i>
-                  Print Job Card
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <Card 
+          className="institutional-card"
+          title={
+            <span style={{ 
+              color: '#006747', 
+              fontSize: '16px', 
+              fontWeight: 600 
+            }}>
+              Spare Parts Used
+            </span>
+          }
+          style={{ 
+            border: '1px solid #E1E5E9',
+            borderRadius: '8px',
+            boxShadow: '0 1px 3px rgba(0, 103, 71, 0.08)'
+          }}
+        >
+          <Table
+            dataSource={jobCardSpare}
+            columns={sparePartsColumns}
+            pagination={false}
+            rowKey={(record, index) => record.id || index}
+            bordered
+            size="middle"
+            className="institutional-table"
+            locale={{
+              emptyText: 'No spare parts recorded for this job card'
+            }}
+          />
+        </Card>
       </div>
-    </div>
+    </PageLayout>
   );
 };
 

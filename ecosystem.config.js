@@ -1,10 +1,43 @@
 const path = require('path');
+const fs = require('fs');
+
+// Load environment variables from production.env if it exists
+const productionEnvPath = path.join(__dirname, 'production.env');
+if (fs.existsSync(productionEnvPath)) {
+  const envContent = fs.readFileSync(productionEnvPath, 'utf8');
+  envContent.split('\n').forEach(line => {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+      const [key, ...valueParts] = trimmed.split('=');
+      const value = valueParts.join('=');
+      if (key && value) {
+        process.env[key.trim()] = value.trim();
+      }
+    }
+  });
+}
+
+// Load backend.env for database configuration
+const backendEnvPath = path.join(__dirname, 'config', 'environments', 'backend.env');
+if (fs.existsSync(backendEnvPath)) {
+  const envContent = fs.readFileSync(backendEnvPath, 'utf8');
+  envContent.split('\n').forEach(line => {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+      const [key, ...valueParts] = trimmed.split('=');
+      const value = valueParts.join('=');
+      if (key && value) {
+        process.env[key.trim()] = value.trim();
+      }
+    }
+  });
+}
 
 const resolvePath = (targetPath) => path.resolve(targetPath);
 const APP_DIR = resolvePath(process.env.APP_DIR || __dirname);
 const LOGS_DIR = resolvePath(process.env.LOG_DIR || path.join(APP_DIR, 'logs'));
 const BACKEND_PORT = process.env.BACKEND_PORT || process.env.PORT || 5000;
-const FRONTEND_PORT = process.env.FRONTEND_PORT || 3000;
+const FRONTEND_PORT = process.env.FRONTEND_PORT || 3001;
 const NODE_ENV = process.env.NODE_ENV || 'production';
 const SERVE_ARGS = ['serve', '-s', 'build', '-l', FRONTEND_PORT, '--single'].join(' ');
 
@@ -12,13 +45,24 @@ module.exports = {
   apps: [
     {
       name: 'moh-ims-backend',
-      script: path.join(APP_DIR, 'backend', 'index.js'),
+      script: 'npx',
+      args: 'babel-node index.js',
       cwd: path.join(APP_DIR, 'backend'),
-      instances: process.env.BACKEND_INSTANCES || 'max',
-      exec_mode: process.env.BACKEND_EXEC_MODE || 'cluster',
+      instances: process.env.BACKEND_INSTANCES || 1,
+      exec_mode: process.env.BACKEND_EXEC_MODE || 'fork',
       env: {
         NODE_ENV,
-        PORT: BACKEND_PORT
+        PORT: BACKEND_PORT,
+        // Pass through database and security env vars
+        DB_HOST: process.env.DB_HOST,
+        DB_PORT: process.env.DB_PORT,
+        DB_NAME: process.env.DB_NAME,
+        DB_USER: process.env.DB_USER,
+        DB_PASS: process.env.DB_PASS,
+        SECRETKEY: process.env.SECRETKEY,
+        JWT_SECRET: process.env.JWT_SECRET,
+        CORS_ORIGIN: process.env.CORS_ORIGIN,
+        FRONTEND_URL: process.env.FRONTEND_URL
       },
       error_file: path.join(LOGS_DIR, 'backend-error.log'),
       out_file: path.join(LOGS_DIR, 'backend-out.log'),

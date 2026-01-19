@@ -1,123 +1,229 @@
-import React, { useState, useEffect, Fragment } from 'react'
-import { Link, useHistory } from 'react-router-dom';
-import API from "../../helpers/api";
-import { toast } from "react-toastify";
-import FNModal from '../../components/FNModal'
-import AddAsset from './AddAsset'
+import React, { useState, useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
+import API from '../../helpers/api';
+import { toast } from 'react-toastify';
+import FNSpinner from '../../components/FNSpinner';
+import InstitutionalTable from '../../components/Common/InstitutionalTable';
+import InstitutionalModal from '../../components/Common/InstitutionalModal';
+import AddAsset from './AddAsset';
 import EditAsset from './EditAsset';
-import FNSpinner from '../../components/FNSpinner'
-import FNTable from '../../components/FNTable';
+import '../../theme/moh-institutional-theme.css';
 
 const AssetsInventory = () => {
-    const [assets, setAssets] = useState([]);
-    const [loading, setLoading] = useState([]);
-    const [id, setId] = useState("");
-    const [showModal, setShowModal] = useState(false);
-    const [updateModal, setUpdate] = useState(false);
+  const [assets, setAssets] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedId, setSelectedId] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
-    const handleShow = () => setShowModal(true);
-    const handleClose = () => setShowModal(false);
-    const updateClose = () => setUpdate(false);
+  const history = useHistory();
 
-    const history = useHistory();
+  const loadAssets = async () => {
+    setLoading(true);
+    try {
+      const res = await API.get('/asset');
+      setAssets(res.data.assets || []);
+    } catch (error) {
+      console.error('Error loading assets', error);
+      toast.error('Failed to load assets');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const loadAssets = async () => {
-        setLoading(true);
-        try {
-            const res = await API.get("/asset");
-            console.log(res)
-            setAssets(res.data.assets);
-            setLoading(false);
-        } catch (error) {
-            console.log("error", error);
-            setLoading(false);
-        }
-    };
+  const handleView = (id) => {
+    history.push(`/ict/assets/${id}`);
+  };
 
-    const handleView = (id) => {
-        history.push(`/ict/assets/${id}`);
-    };
+  const handleOpenCreate = () => {
+    setShowCreateModal(true);
+  };
 
-    useEffect(() => {
-        loadAssets();
-    }, []);
+  const handleCloseCreate = () => {
+    setShowCreateModal(false);
+  };
 
-    const tableColumns = [
-        { key: 'serialNo', label: 'Serial No' },
-        { key: 'engranvedNo', label: 'Engraved No' },
-        { key: 'category', label: 'Category' },
-        { key: 'make', label: 'Make' },
-        { key: 'model', label: 'Model' },
-        { key: 'user', label: 'User' },
-        { key: 'department', label: 'Department' },
-        { key: 'officeNo', label: 'Office No' },
-    ];
+  const handleOpenEdit = (id) => {
+    setSelectedId(id);
+    setShowEditModal(true);
+  };
 
+  const handleCloseEdit = () => {
+    setShowEditModal(false);
+    setSelectedId(null);
+  };
+
+  useEffect(() => {
+    loadAssets();
+  }, []);
+
+  const filteredAssets = assets.filter((asset) => {
+    if (!searchTerm.trim()) return true;
+    const term = searchTerm.toLowerCase();
     return (
-        <Fragment>
-            <FNModal
-                showModal={showModal}
-                handleClose={handleClose}
-                lg="xl"
-                title="Add ICT Asset"
-            >
-                <AddAsset close={handleClose} refresh={loadAssets} />
-            </FNModal>
-            <FNModal
-                showModal={updateModal}
-                handleClose={updateClose}
-                lg="lg"
-                title="Update Law"
-            >
-                <EditAsset close={updateClose} refresh={loadAssets} id={id} />
-            </FNModal>
-            <div class="row">
-                <div class="col-12">
-                    <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                        <h4 class="mb-sm-0 font-size-18">ICT Assets Listing</h4>
-                        <div class="page-title-right">
-                            <ol class="breadcrumb m-0">
-                                <li class="breadcrumb-item"><Link to="/ict/assets">Assets</Link></li>
-                                <li class="breadcrumb-item active">Listing</li>
-                            </ol>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {loading ? <FNSpinner /> :
-                <>
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-12">
-                                    <div class="card">
-                                        <div class="card-body">
-                                            <div class="row mb-2">
-                                                <div class="col-sm-4">
-                                                    <div class="search-box me-2 mb-2 d-inline-block">
-                                                        <div class="position-relative">
-                                                            <input type="text" class="form-control" id="searchTableList" placeholder="Search..." />
-                                                            <i class="bx bx-search-alt search-icon"></i>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-sm-8">
-                                                    <div class="text-sm-end">
-                                                        <button type="submit" class="btn btn-primary waves-effect waves-light" onClick={handleShow}>Add New Asset</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <FNTable columns={tableColumns} data={assets} onViewDetails={handleView} />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </>
-            }
-        </Fragment>
-    )
-}
+      asset.serialNo?.toLowerCase().includes(term) ||
+      asset.engranvedNo?.toLowerCase().includes(term) ||
+      asset.category?.toLowerCase().includes(term) ||
+      asset.make?.toLowerCase().includes(term) ||
+      asset.model?.toLowerCase().includes(term) ||
+      asset.user?.toLowerCase().includes(term) ||
+      asset.department?.toLowerCase().includes(term) ||
+      asset.officeNo?.toLowerCase().includes(term)
+    );
+  });
 
-export default AssetsInventory
+  const tableColumns = [
+    { key: 'serialNo', label: 'Serial No', sortable: true },
+    { key: 'engranvedNo', label: 'Engraved No', sortable: true },
+    { key: 'category', label: 'Category', sortable: true },
+    { key: 'make', label: 'Make', sortable: true },
+    { key: 'model', label: 'Model', sortable: true },
+    { key: 'user', label: 'User', sortable: true },
+    { key: 'department', label: 'Department', sortable: true },
+    { key: 'officeNo', label: 'Office No', sortable: true },
+    {
+      key: 'actions',
+      label: 'Actions',
+      render: (_, row) => (
+        <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            onClick={() => handleView(row.id)}
+          >
+            View
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            onClick={() => handleOpenEdit(row.id)}
+          >
+            Edit
+          </button>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div>
+      {/* Uganda Flag Stripe */}
+      <div
+        style={{
+          height: '6px',
+          background:
+            'linear-gradient(to right, var(--uganda-black) 0%, var(--uganda-black) 33.33%, var(--uganda-yellow) 33.33%, var(--uganda-yellow) 66.66%, var(--uganda-red) 66.66%, var(--uganda-red) 100%)',
+          marginBottom: 'var(--space-6)',
+        }}
+      />
+
+      {/* Page Header */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: 'var(--space-6)',
+        }}
+      >
+        <div>
+          <h1
+            style={{
+              fontSize: 'var(--font-size-2xl)',
+              fontWeight: 'var(--font-weight-bold)',
+              color: 'var(--color-text-primary)',
+              marginBottom: 'var(--space-2)',
+            }}
+          >
+            ICT Assets Listing
+          </h1>
+          <p
+            style={{
+              fontSize: 'var(--font-size-sm)',
+              color: 'var(--color-text-secondary)',
+              margin: 0,
+            }}
+          >
+            Official register of ICT assets with location and assignment details
+          </p>
+        </div>
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={handleOpenCreate}
+        >
+          + Add New Asset
+        </button>
+      </div>
+
+      {/* Search and Filters */}
+      <div
+        className="card"
+        style={{ marginBottom: 'var(--space-4)', borderRadius: 'var(--radius-lg)' }}
+      >
+        <div className="card-body">
+          <div
+            style={{
+              display: 'flex',
+              gap: 'var(--space-4)',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+            }}
+          >
+            <div style={{ flex: '1 1 300px' }}>
+              <label className="form-label">Search</label>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Search by serial, category, user, department..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {loading ? (
+        <FNSpinner />
+      ) : (
+        <InstitutionalTable
+          data={filteredAssets}
+          columns={tableColumns}
+          loading={loading}
+          sortable={true}
+          filterable={false}
+          pagination={true}
+          pageSize={10}
+          onRowClick={(row) => handleView(row.id)}
+          emptyMessage="No ICT assets found"
+        />
+      )}
+
+      {/* Create Asset Modal */}
+      <InstitutionalModal
+        visible={showCreateModal}
+        onClose={handleCloseCreate}
+        title="Add ICT Asset"
+        width={900}
+      >
+        <AddAsset close={handleCloseCreate} refresh={loadAssets} />
+      </InstitutionalModal>
+
+      {/* Edit Asset Modal */}
+      <InstitutionalModal
+        visible={showEditModal}
+        onClose={handleCloseEdit}
+        title="Edit ICT Asset"
+        width={800}
+      >
+        {selectedId && (
+          <EditAsset close={handleCloseEdit} refresh={loadAssets} id={selectedId} />
+        )}
+      </InstitutionalModal>
+    </div>
+  );
+};
+
+export default AssetsInventory;

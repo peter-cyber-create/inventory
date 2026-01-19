@@ -3,13 +3,28 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const Auth = require("../../middleware/auth.js");
 const UserModel = require("../../models/users/userModel.js");
+const { validatePassword, validatePasswordMiddleware } = require("../../middleware/passwordPolicy.js");
+const { logAuthEvent, logDataModification, AUDIT_ACTIONS } = require("../../middleware/auditLogger.js");
 
 const router = express.Router();
 
+// Bcrypt rounds - increased for better security (12 is recommended for production)
+const BCRYPT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS) || 12;
+
 // Create new user (admin endpoint)
-router.post("/", async (req, res) => {
+router.post("/", Auth, validatePasswordMiddleware, async (req, res) => {
     try {
         const { username, email, role, password, firstname, lastname, phone, designation, module, depart, health_email, department_id, is_active } = req.body;
+
+        // Validate password policy
+        const passwordValidation = validatePassword(password, username);
+        if (!passwordValidation.valid) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Password does not meet security requirements',
+                errors: passwordValidation.errors
+            });
+        }
 
         const data = {
             username,
@@ -24,10 +39,20 @@ router.post("/", async (req, res) => {
             health_email,
             department_id,
             is_active: is_active !== undefined ? is_active : true,
-            password: await bcrypt.hash(password, 10),
+            password: await bcrypt.hash(password, BCRYPT_ROUNDS),
         };
 
         const user = await UserModel.create(data);
+
+        // Audit log user creation
+        await logDataModification(
+            AUDIT_ACTIONS.USER_CREATE,
+            'user',
+            user.id,
+            null,
+            { username, email, role, is_active },
+            req
+        );
 
         res.status(201).json({ 
             status: 'success', 
@@ -58,10 +83,20 @@ router.post("/", async (req, res) => {
     }
 });
 
-router.post("/register", async (req, res) => {
+router.post("/register", validatePasswordMiddleware, async (req, res) => {
 
     try {
         const { username, email, role, password, firstname, lastname, phoneNo, facilityId, module, depart  } = req.body;
+
+        // Validate password policy
+        const passwordValidation = validatePassword(password, username);
+        if (!passwordValidation.valid) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Password does not meet security requirements',
+                errors: passwordValidation.errors
+            });
+        }
 
         const data = {
             username,
@@ -73,10 +108,20 @@ router.post("/register", async (req, res) => {
             facilityId,
             module,
             depart,
-            password: await bcrypt.hash(password, 10),
+            password: await bcrypt.hash(password, BCRYPT_ROUNDS),
         };
 
         const user = await UserModel.create(data);
+
+        // Audit log user registration
+        await logDataModification(
+            AUDIT_ACTIONS.USER_CREATE,
+            'user',
+            user.id,
+            null,
+            { username, email, role },
+            req
+        );
 
         if (user) {
             let token = jwt.sign({ id: user.id }, process.env.SECRETKEY, {
@@ -84,8 +129,12 @@ router.post("/register", async (req, res) => {
             });
 
             res.cookie("jwt", token, { maxAge: 1 * 24 * 60 * 60, httpOnly: true });
-            console.log("user", JSON.stringify(user, null, 2));
-            console.log(token);
+            
+            // Security: Never log tokens or sensitive user data in production
+            if (process.env.NODE_ENV === 'development') {
+                console.log("User registered successfully:", user.username);
+            }
+            
             //send users details
             return res.status(201).json({ status: 'success', user });
         } else {
@@ -116,15 +165,34 @@ router.post("/login", async (req, res) => {
             const isSame = await bcrypt.compare(password, user.password);
 
             if (isSame) {
+                // Check if user is active
+                if (!user.is_active) {
+                    await logAuthEvent(AUDIT_ACTIONS.LOGIN_FAILURE, req, username, false, 'Account is inactive');
+                    return res.status(403).json({ 
+                        status: 'error', 
+                        message: 'Account is inactive. Please contact administrator.' 
+                    });
+                }
+
                 let token = jwt.sign({ id: user.id }, process.env.SECRETKEY, { expiresIn: 86400 }); // 24 hours
+                
+                // Audit log successful login
+                await logAuthEvent(AUDIT_ACTIONS.LOGIN_SUCCESS, req, username, true);
+                
                 return res.status(200).json({ status: 'success', accessToken: token, user });
             } else {
+                // Audit log failed login
+                await logAuthEvent(AUDIT_ACTIONS.LOGIN_FAILURE, req, username, false, 'Invalid password');
+                
                 return res.status(401).json({ 
                     status: 'error', 
                     message: 'Invalid username or password' 
                 });
             }
         } else {
+            // Audit log failed login (user not found)
+            await logAuthEvent(AUDIT_ACTIONS.LOGIN_FAILURE, req, username, false, 'User not found');
+            
             return res.status(401).json({ 
                 status: 'error', 
                 message: 'Invalid username or password' 
@@ -220,17 +288,35 @@ router.get("/agents", async (req, res) => {
     }
 });
 
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", Auth, async (req, res) => {
     const password = req.body.password;
     const fields = Object.assign({}, req.body);
     delete fields.password;
 
     try {
-        if (password) {
-            fields.password = await bcrypt.hash(password, 10);
+        // Get old user data for audit log
+        const oldUser = await UserModel.findByPk(req.params.id);
+        if (!oldUser) {
+            return res.status(404).json({
+                status: "fail",
+                message: "User with that ID not found",
+            });
         }
 
-        const updateData = Object.assign({}, fields, { updatedAt: Date.now() });
+        if (password) {
+            // Validate password policy if password is being changed
+            const passwordValidation = validatePassword(password, oldUser.username);
+            if (!passwordValidation.valid) {
+                return res.status(400).json({
+                    status: 'error',
+                    message: 'Password does not meet security requirements',
+                    errors: passwordValidation.errors
+                });
+            }
+            fields.password = await bcrypt.hash(password, BCRYPT_ROUNDS);
+        }
+
+        const updateData = Object.assign({}, fields, { updatedAt: new Date() });
         const result = await UserModel.update(
             updateData,
             {
@@ -243,11 +329,21 @@ router.patch("/:id", async (req, res) => {
         if (result[0] === 0) {
             return res.status(404).json({
                 status: "fail",
-                message: "Note with that ID not found",
+                message: "User with that ID not found",
             });
         }
 
         const user = await UserModel.findByPk(req.params.id);
+
+        // Audit log user update
+        await logDataModification(
+            AUDIT_ACTIONS.USER_UPDATE,
+            'user',
+            user.id,
+            { ...oldUser.toJSON(), password: undefined }, // Don't log password
+            { ...user.toJSON(), password: undefined },
+            req
+        );
 
         res.status(200).json({
             status: "success",
@@ -286,8 +382,17 @@ router.get("/:id", async (req, res) => {
     }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", Auth, async (req, res) => {
     try {
+        // Get user data before deletion for audit log
+        const user = await UserModel.findByPk(req.params.id);
+        if (!user) {
+            return res.status(404).json({
+                status: "fail",
+                message: "User with that ID not found",
+            });
+        }
+
         const result = await UserModel.destroy({
             where: { id: req.params.id },
             force: true,
@@ -300,6 +405,16 @@ router.delete("/:id", async (req, res) => {
             });
         }
 
+        // Audit log user deletion
+        await logDataModification(
+            AUDIT_ACTIONS.USER_DELETE,
+            'user',
+            req.params.id,
+            { username: user.username, email: user.email, role: user.role },
+            null,
+            req
+        );
+
         res.status(204).json();
     } catch (error) {
         res.status(500).json({
@@ -310,7 +425,7 @@ router.delete("/:id", async (req, res) => {
 });
 
 // Change password endpoint
-router.patch("/:id/password", async (req, res) => {
+router.patch("/:id/password", Auth, validatePasswordMiddleware, async (req, res) => {
     try {
         const { currentPassword, newPassword } = req.body;
         const userId = req.params.id;
@@ -327,20 +442,45 @@ router.patch("/:id/password", async (req, res) => {
         // Verify current password
         const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
         if (!isCurrentPasswordValid) {
+            // Audit log failed password change attempt
+            await logAuthEvent(AUDIT_ACTIONS.PASSWORD_CHANGE, req, user.username, false, 'Current password incorrect');
+            
             return res.status(400).json({
                 status: "fail",
                 message: "Current password is incorrect",
             });
         }
 
-        // Hash new password
-        const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+        // Validate new password policy
+        const passwordValidation = validatePassword(newPassword, user.username);
+        if (!passwordValidation.valid) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'New password does not meet security requirements',
+                errors: passwordValidation.errors
+            });
+        }
+
+        // Check if new password is same as current
+        const isSamePassword = await bcrypt.compare(newPassword, user.password);
+        if (isSamePassword) {
+            return res.status(400).json({
+                status: "fail",
+                message: "New password must be different from current password",
+            });
+        }
+
+        // Hash new password with increased rounds
+        const hashedNewPassword = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
 
         // Update password
         await UserModel.update(
-            { password: hashedNewPassword },
+            { password: hashedNewPassword, updatedAt: new Date() },
             { where: { id: userId } }
         );
+
+        // Audit log successful password change
+        await logAuthEvent(AUDIT_ACTIONS.PASSWORD_CHANGE, req, user.username, true, 'Password changed successfully');
 
         res.status(200).json({
             status: "success",

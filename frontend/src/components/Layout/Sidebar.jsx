@@ -1,649 +1,474 @@
-
+/**
+ * Ministry of Health Uganda - Institutional Sidebar Component
+ * Professional, role-aware navigation with clear module separation
+ */
 import React, { useState, useEffect, useCallback } from 'react';
-import { Layout, Menu, Typography, Avatar } from 'antd';
-import {
-  CarOutlined,
-  FileTextOutlined,
-  UserOutlined,
-  SettingOutlined,
-  DashboardOutlined,
-  DatabaseOutlined,
-  ToolOutlined,
-  FileSearchOutlined,
-  BarChartOutlined,
-  TeamOutlined,
-  BankOutlined,
-  CalendarOutlined,
-  DollarOutlined,
-  SafetyOutlined,
-  GlobalOutlined,
-  AppstoreOutlined,
-  BuildOutlined,
-  ContainerOutlined,
-  CarFilled,
-  ToolFilled,
-  FileTextFilled,
-  ExclamationCircleOutlined,
-  LaptopOutlined,
-  InboxOutlined
-} from '@ant-design/icons';
 import { useHistory, useLocation } from 'react-router-dom';
-
-const { Sider } = Layout;
-const { Text, Title } = Typography;
+import '../../theme/moh-institutional-theme.css';
 
 const AppSidebar = ({ collapsed, user }) => {
-  const [selectedKeys, setSelectedKeys] = useState([]);
-  const [openKeys, setOpenKeys] = useState([]);
-  const history = useHistory();
-  const location = useLocation();
+    const [selectedKeys, setSelectedKeys] = useState([]);
+    const [openKeys, setOpenKeys] = useState([]);
+    const history = useHistory();
+    const location = useLocation();
 
-  // Define all modules with their information
-  const modules = [
-    {
-      key: 'dashboard',
-      title: 'Dashboard',
-      icon: <DashboardOutlined />,
-      roles: ['admin'] // Only admin sees main dashboard
-    },
-    {
-      key: 'it',
-      title: 'IT Assets',
-      icon: <LaptopOutlined />,
-      roles: ['admin', 'it'] // Admin and IT users
-    },
-    {
-      key: 'fleet',
-      title: 'Fleet Management',
-      icon: <CarOutlined />,
-      roles: ['admin', 'garage'] // Admin and garage users
-    },
-    {
-      key: 'stores',
-      title: 'Stores Management',
-      icon: <InboxOutlined />,
-      roles: ['admin', 'store'] // Admin and store users
-    },
-    {
-      key: 'finance',
-      title: 'Finance',
-      icon: <DollarOutlined />,
-      roles: ['admin', 'finance'] // Admin and finance users
-    },
-    {
-      key: 'admin',
-      title: 'Administration',
-      icon: <SettingOutlined />,
-      roles: ['admin'] // Only admin sees administration
-    }
-  ];
+    // Module definitions with icons (using emoji for simplicity, can be replaced with icon library)
+    const modules = [
+        {
+            key: 'dashboard',
+            title: 'Dashboard',
+            icon: '📊',
+            roles: ['admin']
+        },
+        {
+            key: 'it',
+            title: 'ICT Assets',
+            icon: '💻',
+            roles: ['admin', 'it']
+        },
+        {
+            key: 'fleet',
+            title: 'Fleet Management',
+            icon: '🚗',
+            roles: ['admin', 'garage']
+        },
+        {
+            key: 'stores',
+            title: 'Stores Management',
+            icon: '📦',
+            roles: ['admin', 'store']
+        },
+        {
+            key: 'finance',
+            title: 'Finance Activities',
+            icon: '💰',
+            roles: ['admin', 'finance']
+        },
+        {
+            key: 'admin',
+            title: 'Administration',
+            icon: '⚙️',
+            roles: ['admin']
+        }
+    ];
 
-  // Get current module from pathname
-  const getCurrentModule = () => {
-    const path = location.pathname;
-    if (path === '/' || path === '/dashboard') return 'dashboard';
-    if (path.includes('/ict/')) return 'it';
-    if (path.includes('/fleet/')) return 'fleet';
-    if (path.includes('/stores/')) return 'stores';
-    if (path.includes('/finance/')) return 'finance';
-    if (path.includes('/admin/') || path.includes('/users/') || path.includes('/settings/')) return 'admin';
-    return null;
-  };
+    // Get menu items for a module
+    const getModuleMenuItems = useCallback((moduleKey) => {
+        switch (moduleKey) {
+            case 'dashboard':
+                return [
+                    { key: '/dashboard', label: 'Overview' }
+                ];
 
-  useEffect(() => {
-    // Set selected key based on current location
-    const path = location.pathname;
-    setSelectedKeys([path]);
-    
-    // Set open keys for submenus
-    if (path.includes('/ict/')) {
-      setOpenKeys(['ict-admin', 'ict-reports']);
-    } else if (path.includes('/fleet/')) {
-      setOpenKeys(['fleet-masters', 'fleet-reports']);
-    } else if (path.includes('/stores/')) {
-      setOpenKeys(['stores-admin', 'stores-reports']);
-    } else if (path.includes('/activities/') || path.includes('/report/')) {
-      setOpenKeys(['activity-reports']);
-    } else if (path.includes('/admin/')) {
-      setOpenKeys(['admin-reports']);
-    }
-  }, [location]);
+            case 'it':
+                return [
+                    { key: '/ict/dashboard', label: 'Dashboard' },
+                    { key: '/ict/assets', label: 'Assets Inventory' },
+                    { key: '/ict/maintanance', label: 'Maintenance' },
+                    { key: '/ict/requisition', label: 'Requisitions' },
+                    { key: '/ict/issue', label: 'Issue Management' },
+                    { key: '/ict/servers', label: 'Servers' },
+                    {
+                        key: 'ict-admin',
+                        label: 'Administration',
+                        children: [
+                            { key: '/ict/categories', label: 'Categories' },
+                            { key: '/ict/brands', label: 'Brands' },
+                            { key: '/ict/models', label: 'Models' },
+                            { key: '/ict/types', label: 'Types' },
+                            { key: '/ict/departments', label: 'Departments' },
+                            { key: '/ict/divisions', label: 'Divisions' },
+                            { key: '/ict/facilities', label: 'Facilities' },
+                            { key: '/ict/staff', label: 'Staff' },
+                            { key: '/ict/users', label: 'Users' }
+                        ]
+                    },
+                    {
+                        key: 'ict-reports',
+                        label: 'Reports',
+                        children: [
+                            { key: '/ict/reports/inventory', label: 'Inventory Report' },
+                            { key: '/ict/reports/users', label: 'Users Report' },
+                            { key: '/ict/reports/transfers', label: 'Transfers Report' },
+                            { key: '/ict/reports/maintenance', label: 'Maintenance Report' },
+                            { key: '/ict/reports/disposal', label: 'Disposal Report' }
+                        ]
+                    }
+                ];
 
-  const handleMenuClick = ({ key }) => {
-    if (key === 'dashboard') {
-      // Role-specific dashboard routing
-      const userRole = user?.role || localStorage.getItem('userRole');
-      if (userRole === 'admin') {
-        history.push('/dashboard'); // Main admin dashboard
-      } else if (userRole === 'it') {
-        history.push('/ict/dashboard');
-      } else if (userRole === 'garage') {
-        history.push('/fleet/dashboard');
-      } else if (userRole === 'store') {
-        history.push('/stores/dashboard');
-      } else if (userRole === 'finance') {
-        history.push('/finance/dashboard');
-      } else {
-        history.push('/ict/dashboard');
-      }
-    } else if (key === 'landing') {
-      history.push('/landing');
-    } else {
-      history.push(key);
-    }
-  };
+            case 'fleet':
+                return [
+                    { key: '/fleet/dashboard', label: 'Dashboard' },
+                    { key: '/fleet/vehicles', label: 'Vehicles' },
+                    { key: '/fleet/spareparts', label: 'Spare Parts' },
+                    { key: '/fleet/requistion', label: 'Requisitions' },
+                    { key: '/fleet/receiving', label: 'Receiving' },
+                    { key: '/fleet/jobcards', label: 'Job Cards' },
+                    {
+                        key: 'fleet-masters',
+                        label: 'Master Data',
+                        children: [
+                            { key: '/fleet/vehicles/types', label: 'Vehicle Types' },
+                            { key: '/fleet/vehicles/make', label: 'Vehicle Makes' },
+                            { key: '/fleet/masters/drivers', label: 'Drivers' },
+                            { key: '/fleet/masters/garages', label: 'Garages' },
+                            { key: '/fleet/masters/categories', label: 'Spare Categories' },
+                            { key: '/fleet/masters/departments', label: 'Departments' }
+                        ]
+                    },
+                    {
+                        key: 'fleet-reports',
+                        label: 'Reports',
+                        children: [
+                            { key: '/fleet/reports/servicehistory', label: 'Service History' }
+                        ]
+                    }
+                ];
 
-  // Get menu items for a specific module
-  const getModuleMenuItems = useCallback((moduleKey) => {
-    if (!moduleKey) return [];
+            case 'stores':
+                return [
+                    { key: '/stores/dashboard', label: 'Dashboard' },
+                    { key: '/stores/grn', label: 'GRN (Goods Received Notes)' },
+                    { key: '/stores/ledger', label: 'Stock Ledger' },
+                    { key: '/stores/form76a', label: 'Requisitions/Issuance (Form 76A)' },
+                    { key: '/stores/reports', label: 'Reports' }
+                ];
 
-    switch (moduleKey) {
-      case 'dashboard':
-        return [
-          {
-            key: '/dashboard',
-            icon: <DashboardOutlined />,
-            label: 'Overview'
-          },
-          {
-            key: '/dashboard/analytics',
-            icon: <BarChartOutlined />,
-            label: 'Analytics'
-          }
-        ];
+            case 'finance':
+                return [
+                    { key: '/finance/dashboard', label: 'Dashboard' },
+                    { key: '/activities/add', label: 'Add Activity' },
+                    { key: '/activities/listing', label: 'Activities List' },
+                    { key: '/activities/users', label: 'Users' },
+                    {
+                        key: 'activity-reports',
+                        label: 'Reports',
+                        children: [
+                            { key: '/report/activities', label: 'Activities by Date' },
+                            { key: '/report/funding', label: 'Activities by Funding' },
+                            { key: '/report/person', label: 'Activities by Person' },
+                            { key: '/report/accountability', label: 'Pending Accountability' },
+                            { key: '/report/participant/activity', label: 'Activities by Participant' },
+                            { key: '/report/flagged', label: 'Flagged Users' },
+                            { key: '/report/user/amounts', label: 'User Amounts' }
+                        ]
+                    }
+                ];
 
-      case 'it':
-        return [
-          {
-            key: '/ict/dashboard',
-            icon: <DashboardOutlined />,
-            label: 'Dashboard'
-          },
-          {
-            key: '/ict/assets',
-            icon: <DatabaseOutlined />,
-            label: 'Assets Inventory'
-          },
-          {
-            key: '/ict/maintanance',
-            icon: <ToolOutlined />,
-            label: 'Maintenance'
-          },
-          {
-            key: '/ict/requisition',
-            icon: <FileSearchOutlined />,
-            label: 'Requisitions'
-          },
-          {
-            key: '/ict/issue',
-            icon: <ContainerOutlined />,
-            label: 'Issue Management'
-          },
-          {
-            key: '/ict/servers',
-            icon: <GlobalOutlined />,
-            label: 'Servers'
-          },
-          {
-            key: 'ict-admin',
-            icon: <SettingOutlined />,
-            label: 'Administration',
-            children: [
-              {
-                key: '/ict/categories',
-                icon: <AppstoreOutlined />,
-                label: 'Categories'
-              },
-              {
-                key: '/ict/brands',
-                icon: <AppstoreOutlined />,
-                label: 'Brands'
-              },
-              {
-                key: '/ict/models',
-                icon: <AppstoreOutlined />,
-                label: 'Models'
-              },
-              {
-                key: '/ict/types',
-                icon: <AppstoreOutlined />,
-                label: 'Types'
-              },
-              {
-                key: '/ict/departments',
-                icon: <TeamOutlined />,
-                label: 'Departments'
-              },
-              {
-                key: '/ict/divisions',
-                icon: <TeamOutlined />,
-                label: 'Divisions'
-              },
-              {
-                key: '/ict/facilities',
-                icon: <BankOutlined />,
-                label: 'Facilities'
-              },
-              {
-                key: '/ict/staff',
-                icon: <UserOutlined />,
-                label: 'Staff'
-              },
-              {
-                key: '/ict/users',
-                icon: <UserOutlined />,
-                label: 'Users'
-              }
-            ]
-          },
-          {
-            key: 'ict-reports',
-            icon: <BarChartOutlined />,
-            label: 'Reports',
-            children: [
-              {
-                key: '/ict/reports/inventory',
-                icon: <BarChartOutlined />,
-                label: 'Inventory Report'
-              },
-              {
-                key: '/ict/reports/users',
-                icon: <BarChartOutlined />,
-                label: 'Users Report'
-              },
-              {
-                key: '/ict/reports/transfers',
-                icon: <BarChartOutlined />,
-                label: 'Transfers Report'
-              },
-              {
-                key: '/ict/reports/maintenance',
-                icon: <BarChartOutlined />,
-                label: 'Maintenance Report'
-              },
-              {
-                key: '/ict/reports/disposal',
-                icon: <BarChartOutlined />,
-                label: 'Disposal Report'
-              }
-            ]
-          }
-        ];
+            case 'admin':
+                return [
+                    { key: '/admin/dashboard', label: 'Admin Dashboard' },
+                    { key: '/admin/users', label: 'User Management' },
+                    { key: '/admin/roles', label: 'Roles & Permissions' },
+                    { key: '/admin/settings', label: 'System Settings' },
+                    {
+                        key: 'admin-reports',
+                        label: 'System Reports',
+                        children: [
+                            { key: '/admin/reports/overview', label: 'System Overview' },
+                            { key: '/admin/reports/modules', label: 'Module Reports' }
+                        ]
+                    }
+                ];
 
-      case 'fleet':
-        return [
-          {
-            key: '/fleet/dashboard',
-            icon: <DashboardOutlined />,
-            label: 'Dashboard'
-          },
-          {
-            key: '/fleet/vehicles',
-            icon: <CarFilled />,
-            label: 'Vehicles'
-          },
-          {
-            key: '/fleet/spareparts',
-            icon: <ToolFilled />,
-            label: 'Spare Parts'
-          },
-          {
-            key: '/fleet/requistion',
-            icon: <FileSearchOutlined />,
-            label: 'Requisitions'
-          },
-          {
-            key: '/fleet/receiving',
-            icon: <ContainerOutlined />,
-            label: 'Receiving'
-          },
-          {
-            key: '/fleet/jobcards',
-            icon: <FileTextFilled />,
-            label: 'Job Cards'
-          },
-          {
-            key: 'fleet-masters',
-            icon: <SettingOutlined />,
-            label: 'Master Data',
-            children: [
-              {
-                key: '/fleet/vehicles/types',
-                icon: <AppstoreOutlined />,
-                label: 'Vehicle Types'
-              },
-              {
-                key: '/fleet/vehicles/make',
-                icon: <AppstoreOutlined />,
-                label: 'Vehicle Makes'
-              },
-              {
-                key: '/fleet/masters/drivers',
-                icon: <UserOutlined />,
-                label: 'Drivers'
-              },
-              {
-                key: '/fleet/masters/garages',
-                icon: <BuildOutlined />,
-                label: 'Garages'
-              },
-              {
-                key: '/fleet/masters/categories',
-                icon: <AppstoreOutlined />,
-                label: 'Spare Categories'
-              },
-              {
-                key: '/fleet/masters/departments',
-                icon: <TeamOutlined />,
-                label: 'Departments'
-              }
-            ]
-          },
-          {
-            key: 'fleet-reports',
-            icon: <BarChartOutlined />,
-            label: 'Reports',
-            children: [
-              {
-                key: '/fleet/reports/servicehistory',
-                icon: <BarChartOutlined />,
-                label: 'Service History'
-              }
-            ]
-          }
-        ];
+            default:
+                return [];
+        }
+    }, []);
 
-      case 'stores':
-        return [
-          {
-            key: '/stores/dashboard',
-            icon: <DashboardOutlined />,
-            label: 'Dashboard'
-          },
-          {
-            key: '/stores/grn',
-            icon: <FileTextOutlined />,
-            label: 'GRN (Goods Received Notes)'
-          },
-          {
-            key: '/stores/ledger',
-            icon: <FileTextOutlined />,
-            label: 'Stock Ledger'
-          },
-          {
-            key: '/stores/form76a',
-            icon: <FileSearchOutlined />,
-            label: 'Requisitions/Issuance (Form 76A)'
-          },
-          {
-            key: '/stores/reports',
-            icon: <BarChartOutlined />,
-            label: 'Reports'
-          }
-        ];
+    // Filter modules based on user role
+    const visibleModules = modules.filter(module => {
+        const userRole = user?.role || localStorage.getItem('userRole');
+        if (!userRole) return false;
+        if (userRole === 'admin') return true;
+        if (userRole === 'it' && module.key === 'it') return true;
+        if (userRole === 'garage' && module.key === 'fleet') return true;
+        if (userRole === 'store' && module.key === 'stores') return true;
+        if (userRole === 'finance' && module.key === 'finance') return true;
+        return false;
+    });
 
-      case 'finance':
-        return [
-          {
-            key: '/finance/dashboard',
-            icon: <DashboardOutlined />,
-            label: 'Dashboard'
-          },
-          {
-            key: '/activities/add',
-            icon: <FileTextOutlined />,
-            label: 'Add Activity'
-          },
-          {
-            key: '/activities/listing',
-            icon: <FileTextOutlined />,
-            label: 'Activities List'
-          },
-          {
-            key: '/activities/users',
-            icon: <UserOutlined />,
-            label: 'Users'
-          },
-          {
-            key: 'activity-reports',
-            icon: <BarChartOutlined />,
-            label: 'Reports',
-            children: [
-              {
-                key: '/report/activities',
-                icon: <CalendarOutlined />,
-                label: 'Activities by Date'
-              },
-              {
-                key: '/report/funding',
-                icon: <DollarOutlined />,
-                label: 'Activities by Funding'
-              },
-              {
-                key: '/report/person',
-                icon: <UserOutlined />,
-                label: 'Activities by Person'
-              },
-              {
-                key: '/report/accountability',
-                icon: <SafetyOutlined />,
-                label: 'Pending Accountability'
-              },
-              {
-                key: '/report/participant/activity',
-                icon: <TeamOutlined />,
-                label: 'Activities by Participant'
-              },
-              {
-                key: '/report/flagged',
-                icon: <ExclamationCircleOutlined />,
-                label: 'Flagged Users'
-              },
-              {
-                key: '/report/user/amounts',
-                icon: <DollarOutlined />,
-                label: 'User Amounts'
-              }
-            ]
-          }
-        ];
+    useEffect(() => {
+        const path = location.pathname;
+        setSelectedKeys([path]);
+        
+        if (path.includes('/ict/')) {
+            setOpenKeys(['ict-admin', 'ict-reports']);
+        } else if (path.includes('/fleet/')) {
+            setOpenKeys(['fleet-masters', 'fleet-reports']);
+        } else if (path.includes('/stores/')) {
+            setOpenKeys(['stores-admin', 'stores-reports']);
+        } else if (path.includes('/activities/') || path.includes('/report/')) {
+            setOpenKeys(['activity-reports']);
+        } else if (path.includes('/admin/')) {
+            setOpenKeys(['admin-reports']);
+        }
+    }, [location]);
 
-      case 'admin':
-        return [
-          {
-            key: '/admin/dashboard',
-            icon: <DashboardOutlined />,
-            label: 'Admin Dashboard'
-          },
-          {
-            key: '/admin/users',
-            icon: <UserOutlined />,
-            label: 'User Management'
-          },
-          {
-            key: '/admin/roles',
-            icon: <TeamOutlined />,
-            label: 'Roles & Permissions'
-          },
-          {
-            key: '/admin/settings',
-            icon: <SettingOutlined />,
-            label: 'System Settings'
-          },
-          {
-            key: 'admin-reports',
-            icon: <BarChartOutlined />,
-            label: 'System Reports',
-            children: [
-              {
-                key: '/admin/reports/overview',
-                icon: <BarChartOutlined />,
-                label: 'System Overview'
-              },
-              {
-                key: '/admin/reports/modules',
-                icon: <BarChartOutlined />,
-                label: 'Module Reports'
-              }
-            ]
-          }
-        ];
+    const handleMenuClick = (key) => {
+        if (key === 'dashboard') {
+            const userRole = user?.role || localStorage.getItem('userRole');
+            if (userRole === 'admin') {
+                history.push('/dashboard');
+            } else if (userRole === 'it') {
+                history.push('/ict/dashboard');
+            } else if (userRole === 'garage') {
+                history.push('/fleet/dashboard');
+            } else if (userRole === 'store') {
+                history.push('/stores/dashboard');
+            } else if (userRole === 'finance') {
+                history.push('/finance/dashboard');
+            } else {
+                history.push('/ict/dashboard');
+            }
+        } else {
+            history.push(key);
+        }
+    };
 
-      default:
-        return [];
-    }
-  }, []);
+    const renderMenuItem = (item, level = 0) => {
+        const isSelected = selectedKeys.includes(item.key);
+        const isOpen = openKeys.includes(item.key);
+        const hasChildren = item.children && item.children.length > 0;
 
-  // Filter modules based on user role - users only see their specific module
-  const visibleModules = modules.filter(module => {
-    const userRole = user?.role;
-    
-    if (!userRole) return false;
-    
-    // Admin sees all modules
-    if (userRole === 'admin') {
-      return true;
-    }
-    
-    // Other users only see their specific module
-    if (userRole === 'it' && module.key === 'it') return true;
-    if (userRole === 'garage' && module.key === 'fleet') return true;
-    if (userRole === 'store' && module.key === 'stores') return true;
-    if (userRole === 'finance' && module.key === 'finance') return true;
-    
-    return false;
-  });
+        if (hasChildren) {
+            return (
+                <div key={item.key} style={{ marginBottom: level === 0 ? 'var(--space-2)' : 0 }}>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            if (isOpen) {
+                                setOpenKeys(openKeys.filter(k => k !== item.key));
+                            } else {
+                                setOpenKeys([...openKeys, item.key]);
+                            }
+                        }}
+                        style={{
+                            width: '100%',
+                            padding: 'var(--space-3) var(--space-4)',
+                            textAlign: 'left',
+                            background: isSelected ? 'var(--color-success-bg)' : 'transparent',
+                            border: 'none',
+                            borderRadius: 'var(--radius-md)',
+                            cursor: 'pointer',
+                            fontSize: 'var(--font-size-sm)',
+                            fontWeight: isSelected ? 'var(--font-weight-semibold)' : 'var(--font-weight-regular)',
+                            color: isSelected ? 'var(--moh-primary)' : 'var(--color-text-primary)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            transition: 'all var(--transition-base)',
+                            paddingLeft: level > 0 ? `calc(var(--space-4) * ${level + 1})` : 'var(--space-4)'
+                        }}
+                        onMouseEnter={(e) => {
+                            if (!isSelected) {
+                                e.target.style.background = 'var(--color-surface-hover)';
+                            }
+                        }}
+                        onMouseLeave={(e) => {
+                            if (!isSelected) {
+                                e.target.style.background = 'transparent';
+                            }
+                        }}
+                    >
+                        <span>{item.label}</span>
+                        <span style={{
+                            fontSize: 'var(--font-size-xs)',
+                            transition: 'transform var(--transition-base)',
+                            transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)'
+                        }}>
+                            ▼
+                        </span>
+                    </button>
+                    {isOpen && (
+                        <div style={{ marginLeft: 'var(--space-4)' }}>
+                            {item.children.map(child => renderMenuItem(child, level + 1))}
+                        </div>
+                    )}
+                </div>
+            );
+        }
 
-  return (
-    <Sider 
-      trigger={null} 
-      collapsible 
-      collapsed={collapsed}
-              style={{
-            background: '#1e293b',
-            boxShadow: '2px 0 8px rgba(0,0,0,0.1)',
-            borderRight: '2px solid #FFD700',
-            overflow: 'hidden',
-            overflowY: 'auto',
+        return (
+            <button
+                key={item.key}
+                type="button"
+                onClick={() => handleMenuClick(item.key)}
+                style={{
+                    width: '100%',
+                    padding: 'var(--space-3) var(--space-4)',
+                    textAlign: 'left',
+                    background: isSelected ? 'var(--color-success-bg)' : 'transparent',
+                    border: 'none',
+                    borderRadius: 'var(--radius-md)',
+                    cursor: 'pointer',
+                    fontSize: 'var(--font-size-sm)',
+                    fontWeight: isSelected ? 'var(--font-weight-semibold)' : 'var(--font-weight-regular)',
+                    color: isSelected ? 'var(--moh-primary)' : 'var(--color-text-primary)',
+                    transition: 'all var(--transition-base)',
+                    paddingLeft: level > 0 ? `calc(var(--space-4) * ${level + 1})` : 'var(--space-4)',
+                    borderLeft: isSelected ? '3px solid var(--moh-primary)' : '3px solid transparent'
+                }}
+                onMouseEnter={(e) => {
+                    if (!isSelected) {
+                        e.target.style.background = 'var(--color-surface-hover)';
+                    }
+                }}
+                onMouseLeave={(e) => {
+                    if (!isSelected) {
+                        e.target.style.background = 'transparent';
+                    }
+                }}
+            >
+                {item.label}
+            </button>
+        );
+    };
+
+    return (
+        <aside className="app-sidebar" style={{
+            width: collapsed ? 'var(--sidebar-collapsed-width)' : 'var(--sidebar-width)',
+            background: 'var(--color-surface)',
+            borderRight: '1px solid var(--color-border-primary)',
             height: '100vh',
             position: 'fixed',
             left: 0,
-            top: 0,
+            top: 'var(--header-height)',
             bottom: 0,
-            zIndex: 1000,
-            scrollbarWidth: 'thin',
-            scrollbarColor: '#FFD700 transparent'
-        }}
-      width={280}
-    >
-      {/* User Profile Section */}
-      {!collapsed && (
-        <div style={{
-          padding: '24px 16px',
-          textAlign: 'center',
-          borderBottom: '1px solid rgba(255,255,255,0.1)',
-          marginBottom: '16px'
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            transition: 'width var(--transition-base)',
+            zIndex: 'var(--z-fixed)'
         }}>
-                      <Avatar
-                size={64}
-                icon={<UserOutlined />}
-                style={{
-                    backgroundColor: '#0f172a',
-                    color: '#ffffff',
-                    border: '3px solid #FFD700',
-                    boxShadow: '0 2px 8px rgba(30,64,175,0.2)',
-                    marginBottom: '12px'
-                }}
-            />
-          <Title level={5} style={{ color: '#FFFFFF', margin: '12px 0 4px 0' }}>
-            {user?.name || 'User Name'}
-          </Title>
-          <Text style={{ color: '#FFD700', fontSize: '12px', textTransform: 'capitalize' }}>
-            {user?.role || 'User Role'}
-          </Text>
-        </div>
-      )}
+            {!collapsed && (
+                <>
+                    {/* Module Navigation */}
+                    <nav style={{
+                        padding: 'var(--space-4)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 'var(--space-6)'
+                    }}>
+                        {visibleModules.map((module) => {
+                            const moduleMenuItems = getModuleMenuItems(module.key);
+                            const isActive = location.pathname.includes(`/${module.key === 'it' ? 'ict' : module.key}/`);
 
-      {/* Navigation Menu */}
-      <div style={{ padding: '0 8px' }}>
-        {/* Show All Modules with Their Pages */}
-        {visibleModules.map((module) => {
-          const moduleMenuItems = getModuleMenuItems(module.key);
-          
-          return (
-            <div key={module.key} style={{ marginBottom: '12px' }}>
-              {/* Module Title */}
-              <div 
-                style={{
-                  color: '#FFD700',
-                  fontSize: '11px',
-                  fontWeight: '700',
-                  padding: '8px 12px',
-                  background: 'rgba(255,215,0,0.15)',
-                  borderRadius: '6px',
-                  borderLeft: '3px solid #FFD700',
-                  marginBottom: '6px',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.8px',
-                  border: '1px solid rgba(255,215,0,0.3)'
-                }}
-              >
-                {module.icon} {!collapsed && <span style={{ marginLeft: '8px' }}>{module.title}</span>}
-              </div>
-              
-              {/* Module Menu Items - ALWAYS SHOW ALL PAGES */}
-              {!collapsed && moduleMenuItems && moduleMenuItems.length > 0 && (
-                <div style={{ 
-                  marginLeft: '4px', 
-                  marginBottom: '8px',
-                  background: 'rgba(255,215,0,0.05)',
-                  borderRadius: '4px',
-                  padding: '4px 0'
-                }}>
-                  <Menu
-                    theme="dark"
-                    mode="inline"
-                    selectedKeys={selectedKeys}
-                    openKeys={openKeys}
-                    onOpenChange={setOpenKeys}
-                    onClick={handleMenuClick}
-                    style={{
-                      background: 'transparent',
-                      border: 'none',
-                      fontSize: '12px'
-                    }}
-                    items={moduleMenuItems}
-                  />
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+                            return (
+                                <div key={module.key}>
+                                    {/* Module Header */}
+                                    <div style={{
+                                        padding: 'var(--space-2) var(--space-3)',
+                                        background: isActive ? 'var(--color-success-bg)' : 'var(--color-bg-secondary)',
+                                        borderLeft: `3px solid ${isActive ? 'var(--moh-primary)' : 'var(--color-border-primary)'}`,
+                                        borderRadius: 'var(--radius-md)',
+                                        marginBottom: 'var(--space-2)'
+                                    }}>
+                                        <div style={{
+                                            fontSize: 'var(--font-size-xs)',
+                                            fontWeight: 'var(--font-weight-bold)',
+                                            color: isActive ? 'var(--moh-primary)' : 'var(--color-text-secondary)',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.05em',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 'var(--space-2)'
+                                        }}>
+                                            <span>{module.icon}</span>
+                                            <span>{module.title}</span>
+                                        </div>
+                                    </div>
 
-      {/* Footer Section */}
-      {!collapsed && (
+                                    {/* Module Menu Items */}
+                                    {moduleMenuItems.length > 0 && (
+                                        <div style={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: 'var(--space-1)'
+                                        }}>
+                                            {moduleMenuItems.map(item => renderMenuItem(item))}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </nav>
+
+                    {/* Footer */}
+                    <div style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        padding: 'var(--space-4)',
+                        borderTop: '1px solid var(--color-border-primary)',
+                        background: 'var(--color-bg-secondary)',
+                        textAlign: 'center'
+                    }}>
+                        <div style={{
+                            fontSize: 'var(--font-size-xs)',
+                            color: 'var(--color-text-tertiary)',
+                            fontWeight: 'var(--font-weight-medium)'
+                        }}>
+                            MoH Uganda IMS
+                        </div>
+                        <div style={{
+                            fontSize: 'var(--font-size-xs)',
+                            color: 'var(--color-text-tertiary)',
+                            marginTop: 'var(--space-1)'
+                        }}>
+                            v2.0.0
+                        </div>
+                    </div>
+                </>
+            )}
+
+            {collapsed && (
                 <div style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            padding: '16px',
-            textAlign: 'center',
-            borderTop: '1px solid rgba(255,255,255,0.1)',
-            background: 'rgba(0,0,0,0.1)'
-        }}>
-                            <Text style={{ color: '#0f172a', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                MoH Uganda IMS
-            </Text>
-            <br />
-            <Text style={{ color: '#cbd5e1', fontSize: '8px', opacity: 0.5, position: 'absolute', bottom: '10px', left: '10px' }}>
-                v2.0.0
-            </Text>
-        </div>
-      )}
-    </Sider>
-  );
+                    padding: 'var(--space-4)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 'var(--space-4)'
+                }}>
+                    {visibleModules.map(module => (
+                        <button
+                            key={module.key}
+                            type="button"
+                            onClick={() => {
+                                const userRole = user?.role || localStorage.getItem('userRole');
+                                const path = module.key === 'it' ? '/ict/dashboard' : `/${module.key}/dashboard`;
+                                history.push(path);
+                            }}
+                            style={{
+                                width: '40px',
+                                height: '40px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: 'transparent',
+                                border: '1px solid var(--color-border-primary)',
+                                borderRadius: 'var(--radius-md)',
+                                cursor: 'pointer',
+                                fontSize: 'var(--font-size-lg)',
+                                transition: 'all var(--transition-base)'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.target.style.background = 'var(--color-surface-hover)';
+                                e.target.style.borderColor = 'var(--moh-primary)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.target.style.background = 'transparent';
+                                e.target.style.borderColor = 'var(--color-border-primary)';
+                            }}
+                            title={module.title}
+                        >
+                            {module.icon}
+                        </button>
+                    ))}
+                </div>
+            )}
+        </aside>
+    );
 };
 
 export default AppSidebar;

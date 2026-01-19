@@ -7,24 +7,29 @@ router.get('/', async (req, res) => {
   try {
     const { page = 1, limit = 50 } = req.query;
     const offset = (page - 1) * limit;
+    
+    // Validate and sanitize inputs
+    const safeLimit = Math.min(Math.max(parseInt(limit) || 50, 1), 100); // Between 1 and 100
+    const safeOffset = Math.max(parseInt(offset) || 0, 0); // Non-negative
 
-    // Simple query without parameters
+    // Parameterized query to prevent SQL injection
     const query = `
       SELECT * FROM ledger 
       ORDER BY "createdAt" DESC
-      LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}
+      LIMIT :limit OFFSET :offset
     `;
 
     const entries = await sequelize.query(query, {
+      replacements: { limit: safeLimit, offset: safeOffset },
       type: sequelize.QueryTypes.SELECT
     });
 
-    // Get total count
+    // Get total count - safe static query
     const countQuery = 'SELECT COUNT(*) as total FROM ledger';
     const countResult = await sequelize.query(countQuery, {
       type: sequelize.QueryTypes.SELECT
     });
-    const total = countResult[0].total;
+    const total = countResult[0]?.total || 0;
 
     res.status(200).json({
       status: 'success',
@@ -84,9 +89,10 @@ router.get('/balance', async (req, res) => {
 // Get low stock items
 router.get('/low-stock', async (req, res) => {
   try {
-    const threshold = parseInt(req.query.threshold) || 10;
+    // Validate and sanitize threshold input
+    const threshold = Math.max(parseInt(req.query.threshold) || 10, 0);
     
-    // Get all items first, then filter in JavaScript
+    // Parameterized query to prevent SQL injection
     const query = `
       SELECT 
         item_code,
@@ -97,15 +103,14 @@ router.get('/low-stock', async (req, res) => {
         MAX(department) as department
       FROM ledger 
       GROUP BY item_code
+      HAVING SUM(balance_on_hand) <= :threshold
       ORDER BY SUM(balance_on_hand) ASC
     `;
 
-    const allItems = await sequelize.query(query, {
+    const lowStockItems = await sequelize.query(query, {
+      replacements: { threshold: threshold },
       type: sequelize.QueryTypes.SELECT
     });
-
-    // Filter low stock items in JavaScript
-    const lowStockItems = allItems.filter(item => parseInt(item.balance_on_hand) <= threshold);
 
     res.status(200).json({
       status: 'success',

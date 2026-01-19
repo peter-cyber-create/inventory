@@ -1,146 +1,398 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
+/**
+ * Ministry of Health Uganda - Institutional Header Component
+ * Professional, minimal, government-grade navigation header
+ */
 import React, { useState, useEffect } from 'react';
-import { Layout, Avatar, Dropdown, Badge, Button, message } from 'antd';
-import { 
-    BellOutlined, 
-    UserOutlined, 
-    SettingOutlined, 
-    LogoutOutlined
-} from '@ant-design/icons';
 import { useHistory } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import notificationService from '../../services/notificationService';
 import NotificationPanel from '../Notification/NotificationPanel';
-
-const { Header } = Layout;
+import '../../theme/moh-institutional-theme.css';
 
 const AppHeader = () => {
     const history = useHistory();
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [showNotificationPanel, setShowNotificationPanel] = useState(false);
+    const [showUserMenu, setShowUserMenu] = useState(false);
+    const [user, setUser] = useState(null);
 
     useEffect(() => {
-        // Subscribe to notification service
+        const userData = localStorage.getItem('user');
+        if (userData) {
+            try {
+                setUser(JSON.parse(userData));
+            } catch (e) {
+                console.error('Error parsing user data:', e);
+            }
+        }
+
         const unsubscribe = notificationService.subscribe((updatedNotifications) => {
             setNotifications(updatedNotifications);
             setUnreadCount(notificationService.getUnreadCount());
         });
 
-        // Initialize with current notifications
         setNotifications(notificationService.getAll());
         setUnreadCount(notificationService.getUnreadCount());
 
         return unsubscribe;
     }, []);
 
-    const handleUserMenuClick = ({ key }) => {
-        switch (key) {
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('userRole');
+        sessionStorage.clear();
+        notificationService.clearSession();
+        toast.success('Logged out successfully');
+        setTimeout(() => {
+            history.push('/');
+            window.location.reload();
+        }, 300);
+    };
+
+    const handleUserMenuClick = (action) => {
+        setShowUserMenu(false);
+        switch (action) {
             case 'profile':
-                message.info('Profile page would open here');
+                toast.info('Profile page coming soon');
                 break;
             case 'settings':
                 history.push('/settings');
                 break;
             case 'logout':
-                // Clear all stored user data
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                localStorage.removeItem('userRole');
-                
-                // Clear session-based data
-                sessionStorage.clear();
-                
-                // Clear notifications for this session
-                notificationService.clearSession();
-                
-                message.success('Logout successful');
-                
-                // Redirect to login page
-                setTimeout(() => {
-                    history.push('/');
-                    window.location.reload();
-                }, 500);
+                handleLogout();
                 break;
             default:
                 break;
         }
     };
 
-    const userMenuItems = [
-        {
-            key: 'profile',
-            icon: <UserOutlined />,
-            label: 'Profile'
-        },
-        {
-            key: 'settings',
-            icon: <SettingOutlined />,
-            label: 'Settings'
-        },
-        {
-            type: 'divider'
-        },
-        {
-            key: 'logout',
-            icon: <LogoutOutlined />,
-            label: 'Logout'
+    const getUserDisplayName = () => {
+        if (user?.firstname && user?.lastname) {
+            return `${user.firstname} ${user.lastname}`;
         }
-    ];
+        return user?.username || 'User';
+    };
 
-    const handleNotificationClick = () => {
-        setShowNotificationPanel(true);
+    const getUserRole = () => {
+        const role = user?.role || localStorage.getItem('userRole') || '';
+        const roleMap = {
+            'admin': 'Administrator',
+            'it': 'IT Manager',
+            'garage': 'Fleet Manager',
+            'store': 'Store Manager',
+            'finance': 'Finance Manager'
+        };
+        return roleMap[role] || role.toUpperCase();
     };
 
     return (
         <>
-            <Header style={{ 
-                background: '#0f172a', 
-                padding: '0 24px', 
-                display: 'flex', 
-                alignItems: 'center', 
+            <header className="app-header" style={{
+                height: 'var(--header-height)',
+                background: 'var(--color-surface)',
+                borderBottom: '1px solid var(--color-border-primary)',
+                display: 'flex',
+                alignItems: 'center',
                 justifyContent: 'space-between',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                padding: '0 var(--space-5)',
+                boxShadow: 'var(--shadow-xs)',
+                position: 'sticky',
+                top: 0,
+                zIndex: 'var(--z-sticky)'
             }}>
-                <div style={{ display: 'flex', alignItems: 'center' }}>
+                {/* Left: Logo & Title */}
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 'var(--space-4)'
+                }}>
                     <img 
                         src="/uganda-coat-of-arms.svg" 
                         alt="MoH Uganda" 
-                        style={{ height: '40px', marginRight: '16px' }}
+                        style={{
+                            height: '36px',
+                            width: 'auto'
+                        }}
                     />
-                    <span style={{ color: '#ffffff', fontSize: '16px', fontWeight: '600', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        MoH Uganda IMS v2.0.0
-                    </span>
+                    <div>
+                        <div style={{
+                            fontSize: 'var(--font-size-sm)',
+                            fontWeight: 'var(--font-weight-semibold)',
+                            color: 'var(--color-text-primary)',
+                            lineHeight: 1.2
+                        }}>
+                            MoH Uganda IMS
+                        </div>
+                        <div style={{
+                            fontSize: 'var(--font-size-xs)',
+                            color: 'var(--color-text-tertiary)',
+                            lineHeight: 1.2
+                        }}>
+                            v2.0.0
+                        </div>
+                    </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <Badge count={unreadCount} size="small">
-                        <Button 
-                            type="text" 
-                            icon={<BellOutlined />} 
-                            style={{ color: '#ffffff', fontSize: '18px' }}
-                            onClick={handleNotificationClick}
-                        />
-                    </Badge>
-
-                    <Dropdown
-                        menu={{ items: userMenuItems, onClick: handleUserMenuClick }}
-                        placement="bottomRight"
-                        trigger={['click']}
+                {/* Right: Actions & User Menu */}
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 'var(--space-4)'
+                }}>
+                    {/* Notifications */}
+                    <button
+                        type="button"
+                        onClick={() => setShowNotificationPanel(true)}
+                        style={{
+                            position: 'relative',
+                            background: 'transparent',
+                            border: 'none',
+                            padding: 'var(--space-2)',
+                            cursor: 'pointer',
+                            color: 'var(--color-text-secondary)',
+                            fontSize: 'var(--font-size-lg)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderRadius: 'var(--radius-md)',
+                            transition: 'all var(--transition-base)'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.target.style.background = 'var(--color-surface-hover)';
+                            e.target.style.color = 'var(--moh-primary)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.target.style.background = 'transparent';
+                            e.target.style.color = 'var(--color-text-secondary)';
+                        }}
+                        aria-label="Notifications"
                     >
-                        <Button 
-                            type="text" 
-                            style={{ color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}
+                        🔔
+                        {unreadCount > 0 && (
+                            <span style={{
+                                position: 'absolute',
+                                top: '4px',
+                                right: '4px',
+                                background: 'var(--color-error)',
+                                color: 'var(--color-text-on-primary)',
+                                fontSize: 'var(--font-size-xs)',
+                                fontWeight: 'var(--font-weight-semibold)',
+                                borderRadius: '50%',
+                                width: '18px',
+                                height: '18px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                lineHeight: 1
+                            }}>
+                                {unreadCount > 9 ? '9+' : unreadCount}
+                            </span>
+                        )}
+                    </button>
+
+                    {/* User Menu */}
+                    <div style={{ position: 'relative' }}>
+                        <button
+                            type="button"
+                            onClick={() => setShowUserMenu(!showUserMenu)}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 'var(--space-3)',
+                                background: 'transparent',
+                                border: '1px solid var(--color-border-primary)',
+                                padding: 'var(--space-2) var(--space-3)',
+                                borderRadius: 'var(--radius-md)',
+                                cursor: 'pointer',
+                                transition: 'all var(--transition-base)'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.target.style.borderColor = 'var(--moh-primary)';
+                                e.target.style.background = 'var(--color-surface-hover)';
+                            }}
+                            onMouseLeave={(e) => {
+                                if (!showUserMenu) {
+                                    e.target.style.borderColor = 'var(--color-border-primary)';
+                                    e.target.style.background = 'transparent';
+                                }
+                            }}
+                            aria-label="User menu"
                         >
-                            <Avatar 
-                                size="small" 
-                                icon={<UserOutlined />} 
-                                style={{ backgroundColor: '#FFD700' }}
-                            />
-                            <span style={{ color: '#ffffff' }}>Admin User</span>
-                        </Button>
-                    </Dropdown>
+                            <div style={{
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '50%',
+                                background: 'var(--moh-primary)',
+                                color: 'var(--color-text-on-primary)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: 'var(--font-size-sm)',
+                                fontWeight: 'var(--font-weight-semibold)'
+                            }}>
+                                {user?.firstname?.[0]?.toUpperCase() || user?.username?.[0]?.toUpperCase() || 'U'}
+                            </div>
+                            <div style={{ textAlign: 'left' }}>
+                                <div style={{
+                                    fontSize: 'var(--font-size-sm)',
+                                    fontWeight: 'var(--font-weight-semibold)',
+                                    color: 'var(--color-text-primary)',
+                                    lineHeight: 1.2
+                                }}>
+                                    {getUserDisplayName()}
+                                </div>
+                                <div style={{
+                                    fontSize: 'var(--font-size-xs)',
+                                    color: 'var(--color-text-tertiary)',
+                                    lineHeight: 1.2
+                                }}>
+                                    {getUserRole()}
+                                </div>
+                            </div>
+                            <span style={{
+                                fontSize: 'var(--font-size-xs)',
+                                color: 'var(--color-text-tertiary)',
+                                transition: 'transform var(--transition-base)',
+                                transform: showUserMenu ? 'rotate(180deg)' : 'rotate(0deg)'
+                            }}>
+                                ▼
+                            </span>
+                        </button>
+
+                        {/* Dropdown Menu */}
+                        {showUserMenu && (
+                            <>
+                                <div
+                                    style={{
+                                        position: 'fixed',
+                                        top: 0,
+                                        left: 0,
+                                        right: 0,
+                                        bottom: 0,
+                                        zIndex: 'var(--z-dropdown)'
+                                    }}
+                                    onClick={() => setShowUserMenu(false)}
+                                />
+                                <div style={{
+                                    position: 'absolute',
+                                    top: 'calc(100% + var(--space-2))',
+                                    right: 0,
+                                    background: 'var(--color-surface)',
+                                    border: '1px solid var(--color-border-primary)',
+                                    borderRadius: 'var(--radius-lg)',
+                                    boxShadow: 'var(--shadow-md)',
+                                    minWidth: '200px',
+                                    zIndex: 'var(--z-dropdown)',
+                                    overflow: 'hidden'
+                                }}>
+                                    <div style={{
+                                        padding: 'var(--space-3) var(--space-4)',
+                                        borderBottom: '1px solid var(--color-border-primary)',
+                                        background: 'var(--color-bg-secondary)'
+                                    }}>
+                                        <div style={{
+                                            fontSize: 'var(--font-size-sm)',
+                                            fontWeight: 'var(--font-weight-semibold)',
+                                            color: 'var(--color-text-primary)'
+                                        }}>
+                                            {getUserDisplayName()}
+                                        </div>
+                                        <div style={{
+                                            fontSize: 'var(--font-size-xs)',
+                                            color: 'var(--color-text-tertiary)',
+                                            marginTop: 'var(--space-1)'
+                                        }}>
+                                            {user?.email || ''}
+                                        </div>
+                                    </div>
+                                    <div style={{ padding: 'var(--space-2)' }}>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleUserMenuClick('profile')}
+                                            style={{
+                                                width: '100%',
+                                                padding: 'var(--space-3) var(--space-4)',
+                                                textAlign: 'left',
+                                                background: 'transparent',
+                                                border: 'none',
+                                                borderRadius: 'var(--radius-md)',
+                                                cursor: 'pointer',
+                                                fontSize: 'var(--font-size-sm)',
+                                                color: 'var(--color-text-primary)',
+                                                transition: 'all var(--transition-base)'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.target.style.background = 'var(--color-surface-hover)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.target.style.background = 'transparent';
+                                            }}
+                                        >
+                                            👤 Profile
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleUserMenuClick('settings')}
+                                            style={{
+                                                width: '100%',
+                                                padding: 'var(--space-3) var(--space-4)',
+                                                textAlign: 'left',
+                                                background: 'transparent',
+                                                border: 'none',
+                                                borderRadius: 'var(--radius-md)',
+                                                cursor: 'pointer',
+                                                fontSize: 'var(--font-size-sm)',
+                                                color: 'var(--color-text-primary)',
+                                                transition: 'all var(--transition-base)'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.target.style.background = 'var(--color-surface-hover)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.target.style.background = 'transparent';
+                                            }}
+                                        >
+                                            ⚙️ Settings
+                                        </button>
+                                        <div style={{
+                                            height: '1px',
+                                            background: 'var(--color-border-primary)',
+                                            margin: 'var(--space-2) 0'
+                                        }} />
+                                        <button
+                                            type="button"
+                                            onClick={() => handleUserMenuClick('logout')}
+                                            style={{
+                                                width: '100%',
+                                                padding: 'var(--space-3) var(--space-4)',
+                                                textAlign: 'left',
+                                                background: 'transparent',
+                                                border: 'none',
+                                                borderRadius: 'var(--radius-md)',
+                                                cursor: 'pointer',
+                                                fontSize: 'var(--font-size-sm)',
+                                                color: 'var(--color-error)',
+                                                fontWeight: 'var(--font-weight-semibold)',
+                                                transition: 'all var(--transition-base)'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.target.style.background = 'var(--color-error-bg)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.target.style.background = 'transparent';
+                                            }}
+                                        >
+                                            🚪 Logout
+                                        </button>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
                 </div>
-            </Header>
+            </header>
 
             <NotificationPanel
                 visible={showNotificationPanel}

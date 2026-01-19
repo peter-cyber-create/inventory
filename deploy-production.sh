@@ -122,8 +122,22 @@ if ! psql -U inventory_user -d inventory_db -c '\q' 2>/dev/null; then
     log "Creating database..."
     sudo -u postgres createdb inventory_db
     sudo -u postgres createuser inventory_user
-    sudo -u postgres psql -c "ALTER USER inventory_user PASSWORD 'toor';"
+    
+    # Security: Prompt for database password instead of using default
+    if [ -z "$DB_PASSWORD" ]; then
+        warning "Database password not set in environment. Prompting for secure password..."
+        read -sp "Enter secure password for database user 'inventory_user': " DB_PASSWORD
+        echo ""
+        if [ -z "$DB_PASSWORD" ]; then
+            error "Database password is required. Set DB_PASSWORD environment variable or enter it when prompted."
+        fi
+    fi
+    
+    sudo -u postgres psql -c "ALTER USER inventory_user WITH PASSWORD '$DB_PASSWORD';"
     sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE inventory_db TO inventory_user;"
+    log "Database created with secure password ✅"
+else
+    log "Database already exists, skipping creation"
 fi
 
 # Run database migrations

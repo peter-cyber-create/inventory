@@ -1,0 +1,230 @@
+/**
+ * Ministry of Health Uganda - Professional Form Styles
+ * Custom, hand-crafted styles for professional government forms
+ */
+
+/* Form Input Styles */
+.moh-input,
+.moh-select .ant-select-selector,
+.moh-textarea {
+  transition: all 0.2s ease !important;
+  border: 1px solid #E1E5E9 !important;
+}
+
+.moh-input:focus,
+.moh-select.ant-select-focused .ant-select-selector,
+.moh-textarea:focus {
+  border-color: #006747 !important;
+  box-shadow: 0 0 0 3px rgba(0, 103, 71, 0.1) !important;
+  outline: none !important;
+}
+
+.moh-input:hover,
+.moh-select:hover .ant-select-selector,
+.moh-textarea:hover {
+  border-color: #00A968 !important;
+}
+
+/* Button Styles */
+.moh-btn-primary {
+  transition: all 0.2s ease !important;
+}
+
+.moh-btn-primary:hover {
+  background: #004D35 !important;
+  border-color: #004D35 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 103, 71, 0.3) !important;
+}
+
+.moh-btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 103, 71, 0.2) !important;
+}
+
+.moh-btn-secondary {
+  transition: all 0.2s ease !important;
+}
+
+.moh-btn-secondary:hover {
+  background: #E8F5E8 !important;
+  border-color: #006747 !important;
+  color: #006747 !important;
+  transform: translateY(-1px);
+}
+
+.moh-btn-secondary:active {
+  transform: translateY(0);
+}
+
+/* Form Section Styles */
+.moh-form-section {
+  transition: box-shadow 0.2s ease;
+}
+
+.moh-form-section:hover {
+  box-shadow: 0 4px 12px rgba(0, 103, 71, 0.08);
+}
+
+/* Error States */
+.ant-form-item-has-error .moh-input,
+.ant-form-item-has-error .moh-select .ant-select-selector,
+.ant-form-item-has-error .moh-textarea {
+  border-color: #E53935 !important;
+}
+
+.ant-form-item-has-error .moh-input:focus,
+.ant-form-item-has-error .moh-select.ant-select-focused .ant-select-selector,
+.ant-form-item-has-error .moh-textarea:focus {
+  box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.1) !important;
+}
+
+/* Disabled States */
+.moh-input:disabled,
+.moh-select.ant-select-disabled .ant-select-selector,
+.moh-textarea:disabled {
+  background: #F5F7FA !important;
+  color: #8B9499 !important;
+  cursor: not-allowed !important;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .moh-form-section {
+    margin-bottom: 24px;
+  }
+  
+  .moh-form-section > div:first-child {
+    padding: 16px 20px;
+  }
+  
+  .moh-form-section > div:last-child {
+    padding: 20px;
+  }
+  
+  .moh-btn-primary,
+  .moh-btn-secondary {
+    width: 100%;
+    margin-bottom: 12px;
+  }
+}
+
+/* Loading States */
+.moh-input[disabled],
+.moh-select.ant-select-disabled {
+  opacity: 0.6;
+}
+
+/* Select Dropdown Styling */
+.ant-select-dropdown {
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 103, 71, 0.1) !important;
+}
+
+.ant-select-item-option-selected {
+  background: #E8F5E8 !important;
+  color: #006747 !important;
+}
+
+.ant-select-item-option:hover {
+  background: #F0F3F7 !important;
+}
+
+/* Date Picker Styling */
+.ant-picker {
+  height: 44px !important;
+  border-radius: 8px !important;
+  border: 1px solid #E1E5E9 !important;
+}
+
+.ant-picker:hover,
+.ant-picker-focused {
+  border-color: #006747 !important;
+  box-shadow: 0 0 0 3px rgba(0, 103, 71, 0.1) !important;
+}
+
+/* Upload Component Styling */
+.ant-upload {
+  width: 100%;
+}
+
+.ant-upload-btn {
+  border: 2px dashed #E1E5E9 !important;
+  border-radius: 8px !important;
+  background: #FAFBFC !important;
+  transition: all 0.2s ease !important;
+}
+
+.ant-upload-btn:hover {
+  border-color: #006747 !important;
+  background: #E8F5E8 !important;
+}
+
+/* Checkbox and Radio Styling */
+.ant-checkbox-checked .ant-checkbox-inner,
+.ant-radio-checked .ant-radio-inner {
+  background-color: #006747 !important;
+  border-color: #006747 !important;
+}
+
+.ant-checkbox-wrapper:hover .ant-checkbox-inner,
+.ant-radio-wrapper:hover .ant-radio-inner {
+  border-color: #006747 !important;
+}
+
+/* Form Item Label Styling */
+.ant-form-item-label > label {
+  font-weight: 600 !important;
+  color: #1A1A1A !important;
+  font-size: 14px !important;
+}
+
+.ant-form-item-label > label.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
+  color: #E53935 !important;
+}
+
+/* Help Text Styling */
+.ant-form-item-explain {
+  color: #5A6872 !important;
+  font-size: 13px !important;
+}
+
+.ant-form-item-explain-error {
+  color: #E53935 !important;
+}
+
+/* Professional Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.moh-form-section {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+/* Print Styles */
+@media print {
+  .moh-form-section {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #E1E5E9;
+  }
+  
+  .moh-btn-primary,
+  .moh-btn-secondary {
+    display: none;
+  }
+}
+
+
+
+
+
+

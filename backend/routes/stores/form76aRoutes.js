@@ -72,11 +72,16 @@ router.get('/', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error fetching requisitions:', error);
+    // Log errors securely - don't log full error objects in production
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error fetching requisitions:', error);
+    } else {
+      console.error('Error fetching requisitions:', error.message);
+    }
     res.status(500).json({
       status: 'error',
       message: 'Error fetching requisitions',
-      error: error.message
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
   }
 });
@@ -106,11 +111,16 @@ router.get('/:id', async (req, res) => {
       data: requisition
     });
   } catch (error) {
-    console.error('Error fetching requisition:', error);
+    // Log errors securely - don't log full error objects in production
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error fetching requisition:', error);
+    } else {
+      console.error('Error fetching requisition:', error.message);
+    }
     res.status(500).json({
       status: 'error',
       message: 'Error fetching requisition',
-      error: error.message
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
   }
 });

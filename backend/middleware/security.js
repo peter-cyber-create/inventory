@@ -145,10 +145,26 @@ const requestLogger = (req, res, next) => {
 
 // Error handling middleware
 const errorHandler = (err, req, res, next) => {
-    console.error('Error:', err);
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    
+    // Log errors securely - don't log sensitive data in production
+    if (isDevelopment) {
+        console.error('Error:', err);
+    } else {
+        // In production, log only safe error information
+        const safeError = {
+            name: err.name,
+            message: err.message,
+            status: err.status || 500,
+            path: req.path,
+            method: req.method,
+            timestamp: new Date().toISOString()
+        };
+        // Remove any sensitive fields that might be in error object
+        console.error('Error:', JSON.stringify(safeError));
+    }
     
     // Don't leak error details in production
-    const isDevelopment = process.env.NODE_ENV === 'development';
     
     if (err.name === 'ValidationError') {
         return res.status(400).json({

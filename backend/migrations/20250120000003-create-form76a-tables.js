@@ -2,6 +2,16 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
+    // Check if users table exists (required for foreign keys)
+    const usersExists = await queryInterface.sequelize.query(
+      "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'users');",
+      { type: Sequelize.QueryTypes.SELECT }
+    );
+    
+    if (!usersExists[0].exists) {
+      console.log('⚠️  users table does not exist yet. Skipping this migration.');
+      return;
+    }
     // Create requisitions table (Form 76A)
     await queryInterface.createTable('requisitions', {
       id: {

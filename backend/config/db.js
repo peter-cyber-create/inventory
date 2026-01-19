@@ -1,10 +1,23 @@
 const { Sequelize, DataTypes, QueryTypes } = require('sequelize');
-require('dotenv').config();
+const path = require('path');
+// Load environment variables from the correct location
+require('dotenv').config({ path: path.join(__dirname, '../../config/environments/backend.env') });
+
+// Validate required environment variables
+const requiredEnvVars = ['DB_NAME', 'DB_USER', 'DB_PASS'];
+const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingVars.length > 0) {
+  throw new Error(
+    `Missing required database environment variables: ${missingVars.join(', ')}. ` +
+    `Please set these in your .env file.`
+  );
+}
 
 const sequelize = new Sequelize(
-  process.env.DB_NAME || 'inventory_db',
-  process.env.DB_USER || 'inventory_user',
-  process.env.DB_PASS || 'toor',
+  process.env.DB_NAME,
+  process.env.DB_USER,
+  process.env.DB_PASS,
   {
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 5432,

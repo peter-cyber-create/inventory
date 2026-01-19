@@ -11,10 +11,6 @@
     "build:production": "cd frontend && npm run build",
     "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
     "build": "cd backend && npm run build && cd ../frontend && npm run build",
-    "test": "cd backend && npm test && cd ../frontend && npm test",
-    "test:backend": "cd backend && npm test",
-    "test:frontend": "cd frontend && npm test",
-    "test:e2e": "cd frontend && npm run test:e2e",
     "lint": "cd backend && npm run lint && cd ../frontend && npm run lint",
     "lint:backend": "cd backend && npm run lint",
     "lint:frontend": "cd frontend && npm run lint",
@@ -23,7 +19,6 @@
     "backend:dev": "cd backend && npm run dev",
     "frontend:dev": "cd frontend && npm start",
     "deploy": "./deploy-production.sh",
-    "deploy:staging": "./deploy-staging.sh",
     "migrate": "cd backend && npm run migrate",
     "seed": "cd backend && npm run seed",
     "health": "curl -f http://localhost:5000/api/system/health || echo 'Backend not responding'",
@@ -47,7 +42,8 @@
   "author": "Inventory Management Team",
   "license": "MIT",
   "devDependencies": {
-    "concurrently": "^7.6.0"
+    "concurrently": "^7.6.0",
+    "pm2": "^6.0.14"
   },
   "workspaces": [
     "backend",

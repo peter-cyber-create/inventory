@@ -34,13 +34,13 @@ const AppLayout = ({ children }) => {
       {/* Uganda Flag Colors Stripe - Full Width */}
       <div style={{
         width: '100vw',
-        height: '12px',
-        background: 'linear-gradient(to right, #000000 0%, #000000 33.33%, #FFD700 33.33%, #FFD700 66.66%, #FF0000 66.66%, #FF0000 100%)',
+        height: '8px',
+        background: 'linear-gradient(to right, #000000 0%, #000000 33.33%, #FFD600 33.33%, #FFD600 66.66%, #CE1126 66.66%, #CE1126 100%)',
         position: 'fixed',
         top: 0,
         left: 0,
         zIndex: 1000,
-        boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+        boxShadow: '0 1px 3px rgba(0, 103, 71, 0.1)'
       }}></div>
       
       <Layout style={{ minHeight: '100vh', marginTop: '12px' }}>

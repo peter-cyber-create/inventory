@@ -1,188 +1,385 @@
+/**
+ * Ministry of Health Uganda - ICT Assets Dashboard
+ * Functional, actionable dashboard - No decorative elements
+ */
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Statistic, Typography, Table, Tag, Button, Space, Progress } from 'antd';
-import { 
-    DesktopOutlined, 
-    DatabaseOutlined, 
-    WarningOutlined, 
-    CheckCircleOutlined,
-    PlusOutlined,
-    EyeOutlined,
-    EditOutlined
-} from '@ant-design/icons';
-import PageLayout from '../../components/Layout/PageLayout';
-import StandardTable from '../../components/Common/StandardTable';
+import { useHistory } from 'react-router-dom';
+import { Card, Statistic, Button, Row, Col, Alert } from 'antd';
+import { DesktopOutlined, CheckCircleOutlined, WarningOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import API from '../../helpers/api';
-
-const { Title: _Title, Text } = Typography;
+import PageLayout from '../../components/Layout/PageLayout';
+import InstitutionalTable from '../../components/Common/InstitutionalTable';
+import StatusBadge from '../../components/Common/StatusBadge';
+import { colors } from '../../design-system/colors';
+import '../../theme/moh-institutional-theme.css';
 
 const ICTDashboard = () => {
+    const history = useHistory();
     const [loading, setLoading] = useState(false);
     const [stats, setStats] = useState({
         totalAssets: 0,
         activeAssets: 0,
         maintenanceDue: 0,
-        totalValue: 0
+        disposedAssets: 0
     });
+    const [maintenanceDue, setMaintenanceDue] = useState([]);
     const [recentAssets, setRecentAssets] = useState([]);
+    const [pendingRequisitions, setPendingRequisitions] = useState([]);
 
     useEffect(() => {
-        fetchDashboardData();
+        loadDashboardData();
     }, []);
 
-    const fetchDashboardData = async () => {
+    const loadDashboardData = async () => {
         setLoading(true);
         try {
-            // Fetch assets data
+            // Load assets
             const assetsResponse = await API.get('/api/assets');
-            const assetsData = assetsResponse.data;
+            const assets = assetsResponse.data?.assets || [];
             
-            if (assetsData.status === 'success') {
-                const assets = assetsData.assets || [];
-                setStats({
-                    totalAssets: assets.length,
-                    activeAssets: assets.filter(asset => asset.status === 'Active').length,
-                    maintenanceDue: assets.filter(asset => asset.maintenance_due).length,
-                    totalValue: assets.reduce((sum, asset) => sum + (asset.value || 0), 0)
-                });
-                
-                // Set recent assets (last 5)
-                setRecentAssets(assets.slice(0, 5));
+            setStats({
+                totalAssets: assets.length,
+                activeAssets: assets.filter(a => a.status === 'Active' || a.status === 'active').length,
+                maintenanceDue: assets.filter(a => a.maintenance_due || a.next_maintenance_date).length,
+                disposedAssets: assets.filter(a => a.status === 'Disposed' || a.status === 'disposed').length
+            });
+
+            // Maintenance due items
+            const maintenanceItems = assets.filter(a => {
+                if (a.next_maintenance_date) {
+                    const dueDate = new Date(a.next_maintenance_date);
+                    return dueDate <= new Date();
+                }
+                return a.maintenance_due;
+            });
+            setMaintenanceDue(maintenanceItems.slice(0, 10));
+
+            // Recent assets
+            setRecentAssets(assets.slice(0, 10));
+
+            // Pending requisitions
+            try {
+                const reqResponse = await API.get('/api/requisition?status=pending');
+                setPendingRequisitions(reqResponse.data?.requisitions || []);
+            } catch (e) {
+                console.error('Error loading requisitions:', e);
             }
         } catch (error) {
-            console.error('Error fetching dashboard data:', error);
+            console.error('Error loading dashboard data:', error);
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
-    const handleViewAsset = (asset) => {
-        console.log('View asset:', asset);
-        // Navigate to asset details
-    };
-
-    const handleEditAsset = (asset) => {
-        console.log('Edit asset:', asset);
-        // Navigate to edit asset
-    };
-
-    const handleDeleteAsset = (asset) => {
-        console.log('Delete asset:', asset);
-        // Delete asset
-    };
+    const maintenanceColumns = [
+        {
+            key: 'serialNo',
+            label: 'Serial No.',
+            sortable: true
+        },
+        {
+            key: 'description',
+            label: 'Description',
+            sortable: true
+        },
+        {
+            key: 'next_maintenance_date',
+            label: 'Due Date',
+            render: (value) => value ? new Date(value).toLocaleDateString() : 'Overdue'
+        },
+        {
+            key: 'location',
+            label: 'Location',
+            sortable: true
+        },
+        {
+            key: 'actions',
+            label: 'Actions',
+            render: (_, row) => (
+                <Button
+                    type="link"
+                    size="small"
+                    onClick={() => history.push(`/ict/assets/${row.id}`)}
+                    style={{ color: colors.primary, padding: 0 }}
+                >
+                    View Asset
+                </Button>
+            )
+        }
+    ];
 
     const assetColumns = [
         {
-            title: 'Asset ID',
-            dataIndex: 'id',
-            key: 'id',
-            width: 80,
-        },
-        {
-            title: 'Description',
-            dataIndex: 'description',
-            key: 'description',
-        },
-        {
-            title: 'Serial No.',
-            dataIndex: 'serialNo',
             key: 'serialNo',
+            label: 'Serial No.',
+            sortable: true
         },
         {
-            title: 'Status',
-            dataIndex: 'status',
+            key: 'description',
+            label: 'Description',
+            sortable: true
+        },
+        {
+            key: 'category',
+            label: 'Category',
+            sortable: true
+        },
+        {
+            key: 'make',
+            label: 'Make',
+            sortable: true
+        },
+        {
+            key: 'model',
+            label: 'Model',
+            sortable: true
+        },
+        {
             key: 'status',
-            render: (status) => (
-                <Tag color={status === 'Active' ? 'green' : 'orange'}>
-                    {status || 'Unknown'}
-                </Tag>
-            ),
+            label: 'Status',
+            render: (value) => {
+                const statusMap = {
+                    'Active': 'success',
+                    'active': 'success',
+                    'Inactive': 'warning',
+                    'inactive': 'warning',
+                    'Disposed': 'error',
+                    'disposed': 'error'
+                };
+                return <StatusBadge type={statusMap[value] || 'neutral'}>{value || 'Unknown'}</StatusBadge>;
+            }
         },
         {
-            title: 'Location',
-            dataIndex: 'location',
-            key: 'location',
+            key: 'actions',
+            label: 'Actions',
+            render: (_, row) => (
+                <Button
+                    type="link"
+                    size="small"
+                    onClick={() => history.push(`/ict/assets/${row.id}`)}
+                    style={{ color: colors.primary, padding: 0 }}
+                >
+                    View
+                </Button>
+            )
+        }
+    ];
+
+    const requisitionColumns = [
+        {
+            key: 'requisition_number',
+            label: 'Requisition No.',
+            sortable: true
         },
+        {
+            key: 'date',
+            label: 'Date',
+            render: (value) => value ? new Date(value).toLocaleDateString() : '-'
+        },
+        {
+            key: 'department',
+            label: 'Department',
+            sortable: true
+        },
+        {
+            key: 'status',
+            label: 'Status',
+            render: (value) => <StatusBadge type="warning">{value || 'pending'}</StatusBadge>
+        },
+        {
+            key: 'actions',
+            label: 'Actions',
+            render: (_, row) => (
+                <Button
+                    type="link"
+                    size="small"
+                    onClick={() => history.push(`/ict/requisition/${row.id}`)}
+                    style={{ color: colors.primary, padding: 0 }}
+                >
+                    Review
+                </Button>
+            )
+        }
     ];
 
     return (
         <PageLayout
             title="ICT Assets Dashboard"
             subtitle="Manage and monitor IT assets and equipment"
+            extra={[
+                <Button
+                    key="view-all"
+                    type="primary"
+                    icon={<EyeOutlined />}
+                    onClick={() => history.push('/ict/assets')}
+                    style={{
+                        background: colors.primary,
+                        borderColor: colors.primary,
+                        borderRadius: '4px',
+                        fontWeight: 600
+                    }}
+                >
+                    View All Assets
+                </Button>
+            ]}
+            loading={loading}
         >
-            {/* Statistics Cards */}
+            {/* Summary Cards */}
             <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
                 <Col xs={24} sm={12} lg={6}>
-                    <Card>
+                    <Card className="institutional-card" style={{ borderLeft: `4px solid ${colors.info}` }}>
                         <Statistic
                             title="Total Assets"
                             value={stats.totalAssets}
                             prefix={<DesktopOutlined />}
-                            valueStyle={{ color: '#1890ff' }}
+                            valueStyle={{ color: colors.info }}
                         />
                     </Card>
                 </Col>
                 <Col xs={24} sm={12} lg={6}>
-                    <Card>
+                    <Card className="institutional-card" style={{ borderLeft: `4px solid ${colors.success}` }}>
                         <Statistic
                             title="Active Assets"
                             value={stats.activeAssets}
                             prefix={<CheckCircleOutlined />}
-                            valueStyle={{ color: '#52c41a' }}
+                            valueStyle={{ color: colors.success }}
                         />
                     </Card>
                 </Col>
                 <Col xs={24} sm={12} lg={6}>
-                    <Card>
+                    <Card className="institutional-card" style={{ borderLeft: `4px solid ${colors.warning}` }}>
                         <Statistic
                             title="Maintenance Due"
                             value={stats.maintenanceDue}
                             prefix={<WarningOutlined />}
-                            valueStyle={{ color: '#faad14' }}
+                            valueStyle={{ color: colors.warning }}
                         />
                     </Card>
                 </Col>
                 <Col xs={24} sm={12} lg={6}>
-                    <Card>
+                    <Card className="institutional-card" style={{ borderLeft: `4px solid ${colors.error}` }}>
                         <Statistic
-                            title="Total Value"
-                            value={stats.totalValue}
-                            prefix="UGX"
-                            precision={0}
-                            valueStyle={{ color: '#722ed1' }}
+                            title="Disposed Assets"
+                            value={stats.disposedAssets}
+                            prefix={<DeleteOutlined />}
+                            valueStyle={{ color: colors.error }}
                         />
                     </Card>
                 </Col>
             </Row>
 
-            {/* Recent Assets */}
-            <StandardTable
-                title="Recent Assets"
-                dataSource={recentAssets}
-                columns={assetColumns}
-                loading={loading}
-                onCreateClick={() => console.log('Create asset')}
-                onViewClick={handleViewAsset}
-                onEditClick={handleEditAsset}
-                onDeleteClick={handleDeleteAsset}
-                createButtonText="Add Asset"
-                rowKey="id"
-            />
+            {/* Maintenance Due Alert */}
+            {maintenanceDue.length > 0 && (
+                <Card 
+                    className="institutional-card"
+                    title={
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ color: colors.primary, fontSize: '16px', fontWeight: 600 }}>
+                                Maintenance Due
+                            </span>
+                            <Button
+                                type="link"
+                                size="small"
+                                onClick={() => history.push('/ict/maintanance')}
+                                style={{ color: colors.primary }}
+                            >
+                                View All
+                            </Button>
+                        </div>
+                    }
+                    style={{ 
+                        border: `1px solid ${colors.border}`,
+                        borderRadius: '8px',
+                        boxShadow: '0 1px 3px rgba(0, 103, 71, 0.08)',
+                        marginBottom: '24px'
+                    }}
+                >
+                    <Alert
+                        message={`${maintenanceDue.length} assets require maintenance attention.`}
+                        type="warning"
+                        showIcon
+                        style={{ marginBottom: '16px' }}
+                    />
+                    <InstitutionalTable
+                        data={maintenanceDue}
+                        columns={maintenanceColumns}
+                        loading={loading}
+                        sortable={true}
+                        pagination={false}
+                        emptyMessage="No maintenance due items"
+                    />
+                </Card>
+            )}
 
-            {/* Quick Actions */}
-            <Card title="Quick Actions" style={{ marginTop: '24px' }}>
-                <Space wrap>
-                    <Button type="primary" icon={<PlusOutlined />}>
-                        Add New Asset
-                    </Button>
-                    <Button icon={<EyeOutlined />}>
-                        View All Assets
-                    </Button>
-                    <Button icon={<EditOutlined />}>
-                        Bulk Update
-                    </Button>
-                    <Button>
-                        Generate Report
-                    </Button>
-                </Space>
+            {/* Pending Requisitions */}
+            {pendingRequisitions.length > 0 && (
+                <Card 
+                    className="institutional-card"
+                    title={
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ color: colors.primary, fontSize: '16px', fontWeight: 600 }}>
+                                Pending Requisitions
+                            </span>
+                            <Button
+                                type="link"
+                                size="small"
+                                onClick={() => history.push('/ict/requisition')}
+                                style={{ color: colors.primary }}
+                            >
+                                View All
+                            </Button>
+                        </div>
+                    }
+                    style={{ 
+                        border: `1px solid ${colors.border}`,
+                        borderRadius: '8px',
+                        boxShadow: '0 1px 3px rgba(0, 103, 71, 0.08)',
+                        marginBottom: '24px'
+                    }}
+                >
+                    <InstitutionalTable
+                        data={pendingRequisitions}
+                        columns={requisitionColumns}
+                        loading={loading}
+                        sortable={true}
+                        pagination={false}
+                        emptyMessage="No pending requisitions"
+                    />
+                </Card>
+            )}
+
+            {/* Recent Assets */}
+            <Card 
+                className="institutional-card"
+                title={
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ color: colors.primary, fontSize: '16px', fontWeight: 600 }}>
+                            Recent Assets
+                        </span>
+                        <Button
+                            type="link"
+                            size="small"
+                            onClick={() => history.push('/ict/assets')}
+                            style={{ color: colors.primary }}
+                        >
+                            View All
+                        </Button>
+                    </div>
+                }
+                style={{ 
+                    border: `1px solid ${colors.border}`,
+                    borderRadius: '8px',
+                    boxShadow: '0 1px 3px rgba(0, 103, 71, 0.08)'
+                }}
+            >
+                <InstitutionalTable
+                    data={recentAssets}
+                    columns={assetColumns}
+                    loading={loading}
+                    sortable={true}
+                    pagination={false}
+                    emptyMessage="No assets found"
+                />
             </Card>
         </PageLayout>
     );

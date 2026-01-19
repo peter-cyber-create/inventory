@@ -86,8 +86,8 @@ const UserModel = sequelize.define(
   },
   { 
     timestamps: true,
-    createdAt: 'createdat',
-    updatedAt: 'updatedat'
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
   }
 );
 

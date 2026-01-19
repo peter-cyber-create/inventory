@@ -4,9 +4,8 @@
     "password": "${DB_PASS}",
     "database": "${DB_NAME}",
     "host": "${DB_HOST}",
-    "port": "${DB_PORT}",
-    "dialect": "postgres",
-    "use_env_variable": "DATABASE_URL"
+    "port": 5432,
+    "dialect": "postgres"
   },
   "test": {
     "username": "${DB_USER}",

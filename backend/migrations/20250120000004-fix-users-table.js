@@ -2,6 +2,28 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
+    // Check if users table exists
+    const usersExists = await queryInterface.sequelize.query(
+      "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'users');",
+      { type: Sequelize.QueryTypes.SELECT }
+    );
+    
+    if (!usersExists[0].exists) {
+      console.log('⚠️  users table does not exist yet. Skipping this migration.');
+      return;
+    }
+
+    // Check if facilities table exists (required for foreign key)
+    const facilitiesExists = await queryInterface.sequelize.query(
+      "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'facilities');",
+      { type: Sequelize.QueryTypes.SELECT }
+    );
+    
+    if (!facilitiesExists[0].exists) {
+      console.log('⚠️  facilities table does not exist yet. Skipping this migration.');
+      return;
+    }
+
     // Drop and recreate users table with correct structure
     await queryInterface.dropTable('users');
     
@@ -74,8 +96,11 @@ module.exports = {
     }], { ignoreDuplicates: true });
 
     // Create test users
+    // ⚠️ SECURITY WARNING: Default password must be changed immediately after deployment
+    // This is a temporary default password for initial setup only
     const bcrypt = require('bcrypt');
-    const hashedPassword = await bcrypt.hash('admin123', 10);
+    const defaultPassword = process.env.DEFAULT_ADMIN_PASSWORD || 'admin123'; // CHANGE THIS IN PRODUCTION
+    const hashedPassword = await bcrypt.hash(defaultPassword, 12); // Increased rounds for security
     
     await queryInterface.bulkInsert('users', [
       {

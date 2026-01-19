@@ -1,587 +1,498 @@
+/**
+ * Ministry of Health Uganda - GRN (Goods Received Note) Page
+ * Official government format - Professional, institutional design
+ */
 import React, { useState, useEffect } from 'react';
-import {
-  Card,
-  Form,
-  Input,
-  Button,
-  Table,
-  Space,
-  Modal,
-  message,
-  Upload,
-  Select,
-  DatePicker,
-  Row,
-  Col,
-  Typography,
-  Divider,
-  Tag,
-  Popconfirm
-} from 'antd';
-import {
-  PlusOutlined,
-  DeleteOutlined,
-  UploadOutlined,
-  DownloadOutlined,
-  PrinterOutlined,
-  EyeOutlined,
-  EditOutlined
-} from '@ant-design/icons';
-import dayjs from 'dayjs';
+import { toast } from 'react-toastify';
 import { storesService } from '../../services/storesService';
-
-const { Title } = Typography;
-const { Option } = Select;
-const { TextArea } = Input;
+import InstitutionalTable from '../../components/Common/InstitutionalTable';
+import InstitutionalModal from '../../components/Common/InstitutionalModal';
+import StatusBadge from '../../components/Common/StatusBadge';
+import '../../theme/moh-institutional-theme.css';
 
 const GRN = () => {
-  const [form] = Form.useForm();
-  const [grns, setGrns] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [editingGRN, setEditingGRN] = useState(null);
-  const [items, setItems] = useState([]);
-  const [attachments, setAttachments] = useState([]);
-  const [pagination, setPagination] = useState({
-    current: 1,
-    pageSize: 10,
-    total: 0
-  });
-
-  // Load GRNs
-  const loadGRNs = async (page = 1) => {
-    setLoading(true);
-    try {
-      const response = await storesService.getGRNs({
-        page,
-        limit: pagination.pageSize
-      });
-      setGrns(response.data.data);
-      setPagination(prev => ({
-        ...prev,
-        current: page,
-        total: response.data.pagination.total
-      }));
-    } catch (error) {
-      message.error('Failed to load GRNs');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadGRNs();
-  }, []);
-
-  // Add item row
-  const addItem = () => {
-    const newItem = {
-      serial_no: items.length + 1,
-      description: '',
-      unit_of_measure: '',
-      quantity_ordered: 0,
-      quantity_delivered: 0,
-      quantity_accepted: 0,
-      unit_price: 0,
-      remarks: ''
-    };
-    setItems([...items, newItem]);
-  };
-
-  // Remove item row
-  const removeItem = (index) => {
-    const newItems = items.filter((_, i) => i !== index);
-    // Re-number serial numbers
-    const renumberedItems = newItems.map((item, i) => ({
-      ...item,
-      serial_no: i + 1
-    }));
-    setItems(renumberedItems);
-  };
-
-  // Update item
-  const updateItem = (index, field, value) => {
-    const newItems = [...items];
-    newItems[index] = { ...newItems[index], [field]: value };
-    
-    // Calculate total value if unit_price and quantity_accepted are provided
-    if (field === 'unit_price' || field === 'quantity_accepted') {
-      const unitPrice = parseFloat(newItems[index].unit_price) || 0;
-      const quantityAccepted = parseInt(newItems[index].quantity_accepted) || 0;
-      newItems[index].total_value = unitPrice * quantityAccepted;
-    }
-    
-    setItems(newItems);
-  };
-
-  // Handle form submission
-  const handleSubmit = async (values) => {
-    setLoading(true);
-    try {
-      const formData = new FormData();
-      
-      // Add GRN data
-      Object.keys(values).forEach(key => {
-        if (values[key] !== undefined && values[key] !== null) {
-          formData.append(key, values[key]);
-        }
-      });
-      
-      // Add items
-      formData.append('items', JSON.stringify(items));
-      
-      // Add attachments
-      attachments.forEach((file, index) => {
-        formData.append('attachments', file.originFileObj);
-        formData.append('document_types', JSON.stringify(['form5', 'technical_specs']));
-      });
-
-      if (editingGRN) {
-        await storesService.updateGRN(editingGRN.grn_id, formData);
-        message.success('GRN updated successfully');
-      } else {
-        await storesService.createGRN(formData);
-        message.success('GRN created successfully');
-      }
-
-      setModalVisible(false);
-      setEditingGRN(null);
-      setItems([]);
-      setAttachments([]);
-      form.resetFields();
-      loadGRNs();
-    } catch (error) {
-      message.error('Failed to save GRN');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Edit GRN
-  const editGRN = (grn) => {
-    setEditingGRN(grn);
-    form.setFieldsValue({
-      date_received: dayjs(grn.date_received),
-      delivery_note_no: grn.delivery_note_no,
-      tax_invoice_no: grn.tax_invoice_no,
-      lpo_no: grn.lpo_no,
-      contract_no: grn.contract_no,
-      supplier_name: grn.supplier_name,
-      supplier_contact: grn.supplier_contact,
-      delivery_location: grn.delivery_location,
-      remarks: grn.remarks
+    const [grns, setGrns] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [editingGRN, setEditingGRN] = useState(null);
+    const [formData, setFormData] = useState({
+        contract_no: '',
+        lpo_no: '',
+        delivery_note: '',
+        tax_invoice: '',
+        grn_no: '',
+        date: new Date().toISOString().split('T')[0],
+        supplier: '',
+        items: [{ description: '', unit: '', quantity_ordered: 0, quantity_delivered: 0, quantity_accepted: 0, unit_price: 0, remarks: '' }]
     });
-    setItems(grn.items || []);
-    setModalVisible(true);
-  };
 
-  // Delete GRN
-  const deleteGRN = async (id) => {
-    try {
-      await storesService.deleteGRN(id);
-      message.success('GRN deleted successfully');
-      loadGRNs();
-    } catch (error) {
-      message.error('Failed to delete GRN');
-    }
-  };
+    useEffect(() => {
+        loadGRNs();
+    }, []);
 
-  // Generate PDF
-  const generatePDF = async (id) => {
-    try {
-      const response = await storesService.generateGRNPDF(id);
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `GRN-${id}.pdf`;
-      link.click();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      message.error('Failed to generate PDF');
-    }
-  };
+    const loadGRNs = async () => {
+        setLoading(true);
+        try {
+            const response = await storesService.getGRNs();
+            setGrns(response.data?.data || []);
+        } catch (error) {
+            toast.error('Failed to load GRNs');
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  // Update status
-  const updateStatus = async (id, status) => {
-    try {
-      await storesService.updateGRNStatus(id, { status });
-      message.success('Status updated successfully');
-      loadGRNs();
-    } catch (error) {
-      message.error('Failed to update status');
-    }
-  };
+    const handleAddItem = () => {
+        setFormData(prev => ({
+            ...prev,
+            items: [...prev.items, { description: '', unit: '', quantity_ordered: 0, quantity_delivered: 0, quantity_accepted: 0, unit_price: 0, remarks: '' }]
+        }));
+    };
 
-  // Table columns
-  const columns = [
-    {
-      title: 'GRN No.',
-      dataIndex: 'grn_number',
-      key: 'grn_number',
-    },
-    {
-      title: 'Date Received',
-      dataIndex: 'date_received',
-      key: 'date_received',
-      render: (date) => dayjs(date).format('DD/MM/YYYY'),
-    },
-    {
-      title: 'Supplier',
-      dataIndex: 'supplier_name',
-      key: 'supplier_name',
-    },
-    {
-      title: 'LPO No.',
-      dataIndex: 'lpo_no',
-      key: 'lpo_no',
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status) => {
-        const colors = {
-          draft: 'default',
-          received: 'processing',
-          inspected: 'warning',
-          approved: 'success',
-          rejected: 'error'
-        };
-        return <Tag color={colors[status]}>{status.toUpperCase()}</Tag>;
-      },
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <Space>
-          <Button
-            type="link"
-            icon={<EyeOutlined />}
-            onClick={() => editGRN(record)}
-          >
-            View
-          </Button>
-          <Button
-            type="link"
-            icon={<EditOutlined />}
-            onClick={() => editGRN(record)}
-          >
-            Edit
-          </Button>
-          <Button
-            type="link"
-            icon={<PrinterOutlined />}
-            onClick={() => generatePDF(record.grn_id)}
-          >
-            PDF
-          </Button>
-          <Popconfirm
-            title="Are you sure you want to delete this GRN?"
-            onConfirm={() => deleteGRN(record.grn_id)}
-            okText="Yes"
-            cancelText="No"
-          >
-            <Button type="link" danger icon={<DeleteOutlined />}>
-              Delete
-            </Button>
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ];
+    const handleRemoveItem = (index) => {
+        setFormData(prev => ({
+            ...prev,
+            items: prev.items.filter((_, i) => i !== index)
+        }));
+    };
 
-  // Item table columns
-  const itemColumns = [
-    {
-      title: 'Serial No.',
-      dataIndex: 'serial_no',
-      key: 'serial_no',
-      width: 80,
-    },
-    {
-      title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
-      render: (text, record, index) => (
-        <Input
-          value={text}
-          onChange={(e) => updateItem(index, 'description', e.target.value)}
-          placeholder="Item description"
-        />
-      ),
-    },
-    {
-      title: 'Unit of Measure',
-      dataIndex: 'unit_of_measure',
-      key: 'unit_of_measure',
-      render: (text, record, index) => (
-        <Input
-          value={text}
-          onChange={(e) => updateItem(index, 'unit_of_measure', e.target.value)}
-          placeholder="Unit"
-        />
-      ),
-    },
-    {
-      title: 'Qty Ordered',
-      dataIndex: 'quantity_ordered',
-      key: 'quantity_ordered',
-      render: (text, record, index) => (
-        <Input
-          type="number"
-          value={text}
-          onChange={(e) => updateItem(index, 'quantity_ordered', parseInt(e.target.value) || 0)}
-          placeholder="0"
-        />
-      ),
-    },
-    {
-      title: 'Qty Delivered',
-      dataIndex: 'quantity_delivered',
-      key: 'quantity_delivered',
-      render: (text, record, index) => (
-        <Input
-          type="number"
-          value={text}
-          onChange={(e) => updateItem(index, 'quantity_delivered', parseInt(e.target.value) || 0)}
-          placeholder="0"
-        />
-      ),
-    },
-    {
-      title: 'Qty Accepted',
-      dataIndex: 'quantity_accepted',
-      key: 'quantity_accepted',
-      render: (text, record, index) => (
-        <Input
-          type="number"
-          value={text}
-          onChange={(e) => updateItem(index, 'quantity_accepted', parseInt(e.target.value) || 0)}
-          placeholder="0"
-        />
-      ),
-    },
-    {
-      title: 'Unit Price',
-      dataIndex: 'unit_price',
-      key: 'unit_price',
-      render: (text, record, index) => (
-        <Input
-          type="number"
-          step="0.01"
-          value={text}
-          onChange={(e) => updateItem(index, 'unit_price', parseFloat(e.target.value) || 0)}
-          placeholder="0.00"
-        />
-      ),
-    },
-    {
-      title: 'Total Value',
-      dataIndex: 'total_value',
-      key: 'total_value',
-      render: (text) => text ? `$${text.toFixed(2)}` : '$0.00',
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record, index) => (
-        <Button
-          type="link"
-          danger
-          icon={<DeleteOutlined />}
-          onClick={() => removeItem(index)}
-        >
-          Remove
-        </Button>
-      ),
-    },
-  ];
+    const handleItemChange = (index, field, value) => {
+        setFormData(prev => ({
+            ...prev,
+            items: prev.items.map((item, i) => 
+                i === index ? { ...item, [field]: value } : item
+            )
+        }));
+    };
 
-  return (
-    <div>
-      <Card>
-        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Title level={3}>Goods Received Notes (GRN)</Title>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              setEditingGRN(null);
-              setItems([]);
-              setAttachments([]);
-              form.resetFields();
-              setModalVisible(true);
-            }}
-          >
-            Create GRN
-          </Button>
-        </div>
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            if (editingGRN) {
+                await storesService.updateGRN(editingGRN.id, formData);
+                toast.success('GRN updated successfully');
+            } else {
+                await storesService.createGRN(formData);
+                toast.success('GRN created successfully');
+            }
+            setModalVisible(false);
+            setEditingGRN(null);
+            setFormData({
+                contract_no: '',
+                lpo_no: '',
+                delivery_note: '',
+                tax_invoice: '',
+                grn_no: '',
+                date: new Date().toISOString().split('T')[0],
+                supplier: '',
+                items: [{ description: '', unit: '', quantity_ordered: 0, quantity_delivered: 0, quantity_accepted: 0, unit_price: 0, remarks: '' }]
+            });
+            loadGRNs();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to save GRN');
+        }
+    };
 
-        <Table
-          columns={columns}
-          dataSource={grns}
-          loading={loading}
-          rowKey="grn_id"
-          pagination={{
-            ...pagination,
-            onChange: loadGRNs,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
-          }}
-        />
-      </Card>
+    const handleEdit = (grn) => {
+        setEditingGRN(grn);
+        setFormData({
+            contract_no: grn.contract_no || '',
+            lpo_no: grn.lpo_no || '',
+            delivery_note: grn.delivery_note || '',
+            tax_invoice: grn.tax_invoice || '',
+            grn_no: grn.grn_no || '',
+            date: grn.date || new Date().toISOString().split('T')[0],
+            supplier: grn.supplier || '',
+            items: grn.items || [{ description: '', unit: '', quantity_ordered: 0, quantity_delivered: 0, quantity_accepted: 0, unit_price: 0, remarks: '' }]
+        });
+        setModalVisible(true);
+    };
 
-      <Modal
-        title={editingGRN ? 'Edit GRN' : 'Create GRN'}
-        open={modalVisible}
-        onCancel={() => setModalVisible(false)}
-        width={1200}
-        footer={null}
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-          initialValues={{
-            date_received: dayjs(),
-          }}
-        >
-          <Title level={4}>GRN Details</Title>
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item
-                name="date_received"
-                label="Date Received"
-                rules={[{ required: true, message: 'Please select date received' }]}
-              >
-                <DatePicker style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                name="delivery_note_no"
-                label="Delivery Note No."
-              >
-                <Input placeholder="Delivery note number" />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                name="tax_invoice_no"
-                label="Tax Invoice No."
-              >
-                <Input placeholder="Tax invoice number" />
-              </Form.Item>
-            </Col>
-          </Row>
+    const columns = [
+        {
+            key: 'grn_no',
+            label: 'GRN Number',
+            sortable: true
+        },
+        {
+            key: 'date',
+            label: 'Date',
+            sortable: true,
+            render: (value) => new Date(value).toLocaleDateString()
+        },
+        {
+            key: 'contract_no',
+            label: 'Contract No.',
+            sortable: true
+        },
+        {
+            key: 'lpo_no',
+            label: 'LPO No.',
+            sortable: true
+        },
+        {
+            key: 'supplier',
+            label: 'Supplier',
+            sortable: true
+        },
+        {
+            key: 'status',
+            label: 'Status',
+            render: (value) => <StatusBadge type={value === 'approved' ? 'success' : value === 'pending' ? 'warning' : 'neutral'}>{value}</StatusBadge>
+        },
+        {
+            key: 'actions',
+            label: 'Actions',
+            render: (_, row) => (
+                <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                    <button
+                        type="button"
+                        className="btn btn-ghost btn-sm"
+                        onClick={() => handleEdit(row)}
+                    >
+                        Edit
+                    </button>
+                    <button
+                        type="button"
+                        className="btn btn-ghost btn-sm"
+                        onClick={() => window.print()}
+                    >
+                        Print
+                    </button>
+                </div>
+            )
+        }
+    ];
 
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item
-                name="lpo_no"
-                label="LPO No."
-              >
-                <Input placeholder="Local Purchase Order number" />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                name="contract_no"
-                label="Contract No."
-              >
-                <Input placeholder="Procurement reference number" />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                name="supplier_name"
-                label="Supplier Name"
-                rules={[{ required: true, message: 'Please enter supplier name' }]}
-              >
-                <Input placeholder="Supplier name" />
-              </Form.Item>
-            </Col>
-          </Row>
+    return (
+        <div>
+            {/* Uganda Flag Stripe */}
+            <div style={{
+                height: '6px',
+                background: 'linear-gradient(to right, var(--uganda-black) 0%, var(--uganda-black) 33.33%, var(--uganda-yellow) 33.33%, var(--uganda-yellow) 66.66%, var(--uganda-red) 66.66%, var(--uganda-red) 100%)',
+                marginBottom: 'var(--space-6)'
+            }} />
 
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="supplier_contact"
-                label="Supplier Contact"
-              >
-                <Input placeholder="Supplier contact information" />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="delivery_location"
-                label="Delivery Location"
-                rules={[{ required: true, message: 'Please enter delivery location' }]}
-              >
-                <Input placeholder="Store section / delivery location" />
-              </Form.Item>
-            </Col>
-          </Row>
+            {/* Page Header */}
+            <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 'var(--space-6)'
+            }}>
+                <div>
+                    <h1 style={{
+                        fontSize: 'var(--font-size-2xl)',
+                        fontWeight: 'var(--font-weight-bold)',
+                        color: 'var(--color-text-primary)',
+                        marginBottom: 'var(--space-2)'
+                    }}>
+                        Goods Received Note (GRN)
+                    </h1>
+                    <p style={{
+                        fontSize: 'var(--font-size-sm)',
+                        color: 'var(--color-text-secondary)',
+                        margin: 0
+                    }}>
+                        Official government format for recording received goods
+                    </p>
+                </div>
+                <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => {
+                        setEditingGRN(null);
+                        setFormData({
+                            contract_no: '',
+                            lpo_no: '',
+                            delivery_note: '',
+                            tax_invoice: '',
+                            grn_no: '',
+                            date: new Date().toISOString().split('T')[0],
+                            supplier: '',
+                            items: [{ description: '', unit: '', quantity_ordered: 0, quantity_delivered: 0, quantity_accepted: 0, unit_price: 0, remarks: '' }]
+                        });
+                        setModalVisible(true);
+                    }}
+                >
+                    + Create GRN
+                </button>
+            </div>
 
-          <Form.Item
-            name="remarks"
-            label="Remarks"
-          >
-            <TextArea rows={3} placeholder="Additional remarks" />
-          </Form.Item>
+            {/* GRN List Table */}
+            <InstitutionalTable
+                data={grns}
+                columns={columns}
+                loading={loading}
+                sortable={true}
+                filterable={true}
+                pagination={true}
+                pageSize={10}
+                emptyMessage="No GRNs found. Create your first GRN to get started."
+            />
 
-          <Divider />
-
-          <Title level={4}>Items</Title>
-          <div style={{ marginBottom: 16 }}>
-            <Button
-              type="dashed"
-              icon={<PlusOutlined />}
-              onClick={addItem}
-              style={{ width: '100%' }}
+            {/* GRN Form Modal */}
+            <InstitutionalModal
+                visible={modalVisible}
+                onClose={() => {
+                    setModalVisible(false);
+                    setEditingGRN(null);
+                }}
+                title={editingGRN ? 'Edit GRN' : 'Create New GRN'}
+                width={1000}
             >
-              Add Item
-            </Button>
-          </div>
+                <form onSubmit={handleSubmit}>
+                    {/* Official GRN Header Section */}
+                    <div className="card" style={{
+                        marginBottom: 'var(--space-6)',
+                        border: '2px solid var(--color-border-primary)'
+                    }}>
+                        <div style={{
+                            padding: 'var(--space-4)',
+                            background: 'var(--color-bg-secondary)',
+                            borderBottom: '1px solid var(--color-border-primary)'
+                        }}>
+                            <h3 style={{
+                                fontSize: 'var(--font-size-lg)',
+                                fontWeight: 'var(--font-weight-semibold)',
+                                color: 'var(--moh-primary)',
+                                margin: 0,
+                                textAlign: 'center'
+                            }}>
+                                THE REPUBLIC OF UGANDA<br />
+                                MINISTRY OF HEALTH<br />
+                                GOODS RECEIVED NOTE (GRN)
+                            </h3>
+                        </div>
 
-          <Table
-            columns={itemColumns}
-            dataSource={items}
-            pagination={false}
-            size="small"
-            rowKey={(record, index) => index}
-          />
+                        <div className="card-body">
+                            {/* Header Fields */}
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(2, 1fr)',
+                                gap: 'var(--space-4)',
+                                marginBottom: 'var(--space-5)'
+                            }}>
+                                <div className="form-group">
+                                    <label className="form-label required">Contract No.</label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        value={formData.contract_no}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, contract_no: e.target.value }))}
+                                        required
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label required">LPO No.</label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        value={formData.lpo_no}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, lpo_no: e.target.value }))}
+                                        required
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label required">Delivery Note No.</label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        value={formData.delivery_note}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, delivery_note: e.target.value }))}
+                                        required
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label required">Tax Invoice No.</label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        value={formData.tax_invoice}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, tax_invoice: e.target.value }))}
+                                        required
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">GRN No.</label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        value={formData.grn_no}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, grn_no: e.target.value }))}
+                                        placeholder="Auto-generated"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label required">Date</label>
+                                    <input
+                                        type="date"
+                                        className="form-control"
+                                        value={formData.date}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                                        required
+                                    />
+                                </div>
+                                <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                                    <label className="form-label">Supplier</label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        value={formData.supplier}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, supplier: e.target.value }))}
+                                    />
+                                </div>
+                            </div>
 
-          <Divider />
+                            {/* Items Table */}
+                            <div style={{ marginBottom: 'var(--space-5)' }}>
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    marginBottom: 'var(--space-3)'
+                                }}>
+                                    <h4 style={{
+                                        fontSize: 'var(--font-size-base)',
+                                        fontWeight: 'var(--font-weight-semibold)',
+                                        margin: 0
+                                    }}>
+                                        Items Received
+                                    </h4>
+                                    <button
+                                        type="button"
+                                        className="btn btn-secondary btn-sm"
+                                        onClick={handleAddItem}
+                                    >
+                                        + Add Item
+                                    </button>
+                                </div>
 
-          <Title level={4}>Supporting Documents</Title>
-          <Upload
-            multiple
-            fileList={attachments}
-            onChange={({ fileList }) => setAttachments(fileList)}
-            beforeUpload={() => false}
-            accept=".pdf,.doc,.docx,.xlsx,.xls,.png,.jpg,.jpeg"
-          >
-            <Button icon={<UploadOutlined />}>Upload Documents</Button>
-          </Upload>
+                                <div className="table-container">
+                                    <table className="table">
+                                        <thead>
+                                            <tr>
+                                                <th style={{ width: '40px' }}>No.</th>
+                                                <th>Description</th>
+                                                <th style={{ width: '100px' }}>Unit</th>
+                                                <th style={{ width: '100px' }}>Qty Ordered</th>
+                                                <th style={{ width: '100px' }}>Qty Delivered</th>
+                                                <th style={{ width: '100px' }}>Qty Accepted</th>
+                                                <th style={{ width: '120px' }}>Unit Price</th>
+                                                <th>Remarks</th>
+                                                <th style={{ width: '60px' }}>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {formData.items.map((item, index) => (
+                                                <tr key={index}>
+                                                    <td>{index + 1}</td>
+                                                    <td>
+                                                        <input
+                                                            type="text"
+                                                            className="form-control"
+                                                            value={item.description}
+                                                            onChange={(e) => handleItemChange(index, 'description', e.target.value)}
+                                                            style={{ minWidth: '200px' }}
+                                                        />
+                                                    </td>
+                                                    <td>
+                                                        <input
+                                                            type="text"
+                                                            className="form-control"
+                                                            value={item.unit}
+                                                            onChange={(e) => handleItemChange(index, 'unit', e.target.value)}
+                                                        />
+                                                    </td>
+                                                    <td>
+                                                        <input
+                                                            type="number"
+                                                            className="form-control"
+                                                            value={item.quantity_ordered}
+                                                            onChange={(e) => handleItemChange(index, 'quantity_ordered', parseFloat(e.target.value) || 0)}
+                                                        />
+                                                    </td>
+                                                    <td>
+                                                        <input
+                                                            type="number"
+                                                            className="form-control"
+                                                            value={item.quantity_delivered}
+                                                            onChange={(e) => handleItemChange(index, 'quantity_delivered', parseFloat(e.target.value) || 0)}
+                                                        />
+                                                    </td>
+                                                    <td>
+                                                        <input
+                                                            type="number"
+                                                            className="form-control"
+                                                            value={item.quantity_accepted}
+                                                            onChange={(e) => handleItemChange(index, 'quantity_accepted', parseFloat(e.target.value) || 0)}
+                                                        />
+                                                    </td>
+                                                    <td>
+                                                        <input
+                                                            type="number"
+                                                            className="form-control"
+                                                            value={item.unit_price}
+                                                            onChange={(e) => handleItemChange(index, 'unit_price', parseFloat(e.target.value) || 0)}
+                                                            step="0.01"
+                                                        />
+                                                    </td>
+                                                    <td>
+                                                        <input
+                                                            type="text"
+                                                            className="form-control"
+                                                            value={item.remarks}
+                                                            onChange={(e) => handleItemChange(index, 'remarks', e.target.value)}
+                                                        />
+                                                    </td>
+                                                    <td>
+                                                        {formData.items.length > 1 && (
+                                                            <button
+                                                                type="button"
+                                                                className="btn btn-ghost btn-sm"
+                                                                onClick={() => handleRemoveItem(index)}
+                                                                style={{ color: 'var(--color-error)' }}
+                                                            >
+                                                                ×
+                                                            </button>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-          <div style={{ marginTop: 24, textAlign: 'right' }}>
-            <Space>
-              <Button onClick={() => setModalVisible(false)}>
-                Cancel
-              </Button>
-              <Button type="primary" htmlType="submit" loading={loading}>
-                {editingGRN ? 'Update' : 'Create'} GRN
-              </Button>
-            </Space>
-          </div>
-        </Form>
-      </Modal>
-    </div>
-  );
+                    {/* Form Actions */}
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        gap: 'var(--space-3)'
+                    }}>
+                        <button
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={() => {
+                                setModalVisible(false);
+                                setEditingGRN(null);
+                            }}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            className="btn btn-primary"
+                        >
+                            {editingGRN ? 'Update GRN' : 'Create GRN'}
+                        </button>
+                    </div>
+                </form>
+            </InstitutionalModal>
+        </div>
+    );
 };
 
 export default GRN;
