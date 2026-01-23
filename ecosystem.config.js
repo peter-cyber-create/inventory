@@ -37,7 +37,7 @@ const resolvePath = (targetPath) => path.resolve(targetPath);
 const APP_DIR = resolvePath(process.env.APP_DIR || __dirname);
 const LOGS_DIR = resolvePath(process.env.LOG_DIR || path.join(APP_DIR, 'logs'));
 const BACKEND_PORT = process.env.BACKEND_PORT || process.env.PORT || 5000;
-const FRONTEND_PORT = process.env.FRONTEND_PORT || 3001;
+const FRONTEND_PORT = process.env.FRONTEND_PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'production';
 const SERVE_ARGS = ['serve', '-s', 'build', '-l', FRONTEND_PORT, '--single'].join(' ');
 
