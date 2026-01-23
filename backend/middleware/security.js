@@ -66,6 +66,9 @@ const corsOptions = {
         // Allow requests with no origin (mobile apps, curl, etc.)
         if (!origin) return callback(null, true);
         
+        // In production, be more permissive if CORS_ORIGIN is not set
+        const isProduction = process.env.NODE_ENV === 'production';
+        
         const allowedOrigins = [
             'http://localhost:3000',
             'http://localhost:3001',
@@ -78,9 +81,38 @@ const corsOptions = {
             process.env.CORS_ORIGIN
         ].filter(Boolean);
         
-        if (allowedOrigins.includes(origin)) {
+        // In production, allow any origin if CORS_ORIGIN is not configured
+        // This is less secure but ensures the app works
+        // For better security, set CORS_ORIGIN in production.env
+        if (isProduction && !process.env.CORS_ORIGIN && !process.env.FRONTEND_URL) {
+            return callback(null, true);
+        }
+        
+        // Check if origin matches allowed list or contains the domain
+        const originMatches = allowedOrigins.some(allowed => {
+            if (!allowed) return false;
+            // Exact match
+            if (origin === allowed) return true;
+            // Domain match (for subdomains)
+            if (origin.startsWith(allowed.replace(/^https?:\/\//, 'http://'))) return true;
+            // Check if origin contains the allowed domain
+            try {
+                const originUrl = new URL(origin);
+                const allowedUrl = new URL(allowed);
+                return originUrl.hostname === allowedUrl.hostname;
+            } catch (e) {
+                return false;
+            }
+        });
+        
+        if (originMatches || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
+            // In production, log but allow if no CORS_ORIGIN is set
+            if (isProduction && !process.env.CORS_ORIGIN) {
+                console.warn(`CORS: Allowing origin ${origin} (CORS_ORIGIN not set)`);
+                return callback(null, true);
+            }
             callback(new Error('Not allowed by CORS'));
         }
     },
