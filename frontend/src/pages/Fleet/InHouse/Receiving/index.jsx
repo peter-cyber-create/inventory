@@ -27,7 +27,7 @@ const Receiving = () => {
       setVehicles(res?.data.garage);
       setLoading(false);
     } catch (error) {
-      console.log("error', error);
+      console.log("error", error);
       setLoading(false);
     }
   };
