@@ -79,6 +79,18 @@ const Login = () => {
                 {/* Left Column - System Identity */}
                 <div className="enterprise-login-left">
                     <div className="enterprise-login-content">
+                        <div className="enterprise-logo-container">
+                            <img 
+                                src="/uganda-coat-of-arms.png" 
+                                alt="Uganda Coat of Arms" 
+                                className="enterprise-government-logo"
+                                onError={(e) => {
+                                    // Fallback to SVG if PNG fails
+                                    e.target.src = '/uganda-coat-of-arms.svg';
+                                }}
+                            />
+                        </div>
+                        
                         <div className="enterprise-system-badge">
                             <span className="enterprise-badge-text">INTERNAL SYSTEM</span>
                         </div>

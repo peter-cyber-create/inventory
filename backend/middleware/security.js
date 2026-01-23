@@ -66,7 +66,6 @@ const corsOptions = {
         // Allow requests with no origin (mobile apps, curl, etc.)
         if (!origin) return callback(null, true);
         
-        // In production, be more permissive if CORS_ORIGIN is not set
         const isProduction = process.env.NODE_ENV === 'production';
         
         const allowedOrigins = [
@@ -77,44 +76,76 @@ const corsOptions = {
             'http://172.27.0.10',
             'http://172.27.0.10:80',
             'http://172.27.0.10:3000',
+            'http://inventory.health.go.ug',
+            'https://inventory.health.go.ug',
             process.env.FRONTEND_URL,
             process.env.CORS_ORIGIN
         ].filter(Boolean);
         
-        // In production, allow any origin if CORS_ORIGIN is not configured
-        // This is less secure but ensures the app works
-        // For better security, set CORS_ORIGIN in production.env
-        if (isProduction && !process.env.CORS_ORIGIN && !process.env.FRONTEND_URL) {
-            return callback(null, true);
+        // Extract hostname from origin for comparison
+        let originHostname = '';
+        try {
+            const originUrl = new URL(origin);
+            originHostname = originUrl.hostname;
+        } catch (e) {
+            // Invalid URL, but we'll still check against allowed origins
         }
         
-        // Check if origin matches allowed list or contains the domain
+        // Check if origin matches allowed list
         const originMatches = allowedOrigins.some(allowed => {
             if (!allowed) return false;
+            
             // Exact match
             if (origin === allowed) return true;
-            // Domain match (for subdomains)
-            if (origin.startsWith(allowed.replace(/^https?:\/\//, 'http://'))) return true;
-            // Check if origin contains the allowed domain
+            
+            // Extract hostname from allowed origin
             try {
-                const originUrl = new URL(origin);
                 const allowedUrl = new URL(allowed);
-                return originUrl.hostname === allowedUrl.hostname;
+                // Hostname match (works for http/https variations)
+                if (originHostname && originHostname === allowedUrl.hostname) return true;
+                // Check if origin starts with allowed (for ports)
+                if (origin.startsWith(allowed.replace(/\/$/, ''))) return true;
             } catch (e) {
-                return false;
+                // If allowed is not a full URL, check if origin contains it
+                if (origin.includes(allowed)) return true;
             }
+            
+            return false;
         });
         
-        if (originMatches || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            // In production, log but allow if no CORS_ORIGIN is set
-            if (isProduction && !process.env.CORS_ORIGIN) {
-                console.warn(`CORS: Allowing origin ${origin} (CORS_ORIGIN not set)`);
+        // In production, be more permissive - allow if:
+        // 1. Matches allowed origins, OR
+        // 2. CORS_ORIGIN is not set (fallback for easier deployment), OR
+        // 3. Origin contains health.go.ug domain (for government servers)
+        if (isProduction) {
+            if (originMatches) {
                 return callback(null, true);
             }
-            callback(new Error('Not allowed by CORS'));
+            if (!process.env.CORS_ORIGIN && !process.env.FRONTEND_URL) {
+                console.warn(`CORS: Allowing origin ${origin} (CORS_ORIGIN not configured)`);
+                return callback(null, true);
+            }
+            if (originHostname && originHostname.includes('health.go.ug')) {
+                console.log(`CORS: Allowing government domain origin ${origin}`);
+                return callback(null, true);
+            }
         }
+        
+        // Development: allow localhost and exact matches
+        if (!isProduction) {
+            if (originMatches || origin.includes('localhost') || origin.includes('127.0.0.1')) {
+                return callback(null, true);
+            }
+        }
+        
+        // If we get here and it's production with CORS_ORIGIN set, be strict
+        if (isProduction && process.env.CORS_ORIGIN && !originMatches) {
+            console.warn(`CORS: Blocking origin ${origin} (not in allowed list)`);
+            return callback(new Error('Not allowed by CORS'));
+        }
+        
+        // Default: allow
+        callback(null, true);
     },
     credentials: true,
     optionsSuccessStatus: 200,
