@@ -119,9 +119,10 @@ Thumbs.db
 *.sqlite
 *.db
 
-# Uploads
-uploads/
+# Uploads (ignore root uploads directory, but allow route files)
+/uploads/
 !uploads/.gitkeep
+!backend/routes/uploads/
 
 # Backup files
 *.backup
