@@ -26,7 +26,7 @@ function VehicleJobCards({ vehicle }) {
       setJobCards(res?.data?.results);
       setLoading(false);
     } catch (error) {
-      console.log("error', error);
+      console.log("error", error);
       setLoading(false);
     }
   };

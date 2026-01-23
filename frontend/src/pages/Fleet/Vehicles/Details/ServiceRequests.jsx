@@ -20,7 +20,7 @@ function ServiceRequests({vehicle}) {
       setService(res.data.service);
       setLoading(false);
     } catch (error) {
-      console.log("error', error);
+      console.log("error", error);
       setLoading(false);
     }
   };
