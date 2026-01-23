@@ -65,7 +65,7 @@ const EditVechile = ({ id, close, refresh }) => {
       const res = await API.get('/api/v/type');
       setTypes(res?.data.types || []);
     } catch (error) {
-      toast.error("Failed to fetch types.');
+      toast.error("Failed to fetch types.");
     }
   };
 
