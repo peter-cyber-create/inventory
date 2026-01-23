@@ -13,12 +13,12 @@ const AddDriver = ({ close, refresh }) => {
         setLoading(true);
 
         try {
-            const response = await API.post("/v/driver", formData);
+            const response = await API.post('/api/v/driver', formData);
             console.log(response)
             setLoading(false);
             close();
             refresh();
-            toast.success(`Driver Has Been Added Successfully`);
+            toast.success('Driver Has Been Added Successfully');
         } catch (error) {
             console.log("error", error);
             setLoading(false);

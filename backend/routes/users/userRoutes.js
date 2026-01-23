@@ -12,7 +12,7 @@ const router = express.Router();
 const BCRYPT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS) || 12;
 
 // Create new user (admin endpoint)
-router.post("/", Auth, validatePasswordMiddleware, async (req, res) => {
+router.post("/", Auth, validatePasswordMiddleware, async (req, res, next) => {
     try {
         const { username, email, role, password, firstname, lastname, phone, designation, module, depart, health_email, department_id, is_active } = req.body;
 
@@ -76,14 +76,12 @@ router.post("/", Auth, validatePasswordMiddleware, async (req, res) => {
         });
 
     } catch (error) {
-        res.status(500).json({
-            status: "error",
-            message: error.message,
-        });
+        // Pass error to error handler middleware
+        next(error);
     }
 });
 
-router.post("/register", validatePasswordMiddleware, async (req, res) => {
+router.post("/register", validatePasswordMiddleware, async (req, res, next) => {
 
     try {
         const { username, email, role, password, firstname, lastname, phoneNo, facilityId, module, depart  } = req.body;
@@ -142,14 +140,12 @@ router.post("/register", validatePasswordMiddleware, async (req, res) => {
         }
 
     } catch (error) {
-        res.status(500).json({
-            status: "error",
-            message: error.message,
-        });
+        // Pass error to error handler middleware
+        next(error);
     }
 });
 
-router.post("/login", async (req, res) => {
+router.post("/login", async (req, res, next) => {
 
     try {
 
@@ -200,23 +196,27 @@ router.post("/login", async (req, res) => {
         }
 
     } catch (error) {
-        res.status(500).json({
-            status: "error",
-            message: error.message,
-        });
+        // Pass error to error handler middleware
+        next(error);
     }
 });
 
-router.get("/me", Auth, async (req, res) => {
-    const user = await UserModel.findByPk(req.user.id)
+router.get("/me", Auth, async (req, res, next) => {
     try {
+        const user = await UserModel.findByPk(req.user.id);
+        if (!user) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'User not found'
+            });
+        }
         res.status(200).json({ success: true, user });
     } catch (error) {
-        res.json(error.message);
+        next(error);
     }
 });
 
-router.get("/", async (req, res) => {
+router.get("/", async (req, res, next) => {
     try {
         const page = req.query.page || 1;
         const limit = req.query.limit || 30;
@@ -230,14 +230,12 @@ router.get("/", async (req, res) => {
             users,
         });
     } catch (error) {
-        res.status(500).json({
-            status: "error",
-            message: error.message,
-        });
+        // Pass error to error handler middleware
+        next(error);
     }
 });
 
-router.get("/finance", async (req, res) => {
+router.get("/finance", async (req, res, next) => {
     try {
         const page = req.query.page || 1;
         const limit = req.query.limit || 30;
@@ -251,14 +249,12 @@ router.get("/finance", async (req, res) => {
             users,
         });
     } catch (error) {
-        res.status(500).json({
-            status: "error",
-            message: error.message,
-        });
+        // Pass error to error handler middleware
+        next(error);
     }
 });
 
-router.get("/agents", async (req, res) => {
+router.get("/agents", async (req, res, next) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
@@ -281,14 +277,12 @@ router.get("/agents", async (req, res) => {
             currentPage: page,
         });
     } catch (error) {
-        res.status(500).json({
-            status: "error",
-            message: error.message,
-        });
+        // Pass error to error handler middleware
+        next(error);
     }
 });
 
-router.patch("/:id", Auth, async (req, res) => {
+router.patch("/:id", Auth, async (req, res, next) => {
     const password = req.body.password;
     const fields = Object.assign({}, req.body);
     delete fields.password;
@@ -350,14 +344,12 @@ router.patch("/:id", Auth, async (req, res) => {
             user,
         });
     } catch (error) {
-        res.status(500).json({
-            status: "error",
-            message: error.message,
-        });
+        // Pass error to error handler middleware
+        next(error);
     }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req, res, next) => {
     try {
         const note = await UserModel.findByPk(req.params.id);
 
@@ -375,14 +367,12 @@ router.get("/:id", async (req, res) => {
             },
         });
     } catch (error) {
-        res.status(500).json({
-            status: "error",
-            message: error.message,
-        });
+        // Pass error to error handler middleware
+        next(error);
     }
 });
 
-router.delete("/:id", Auth, async (req, res) => {
+router.delete("/:id", Auth, async (req, res, next) => {
     try {
         // Get user data before deletion for audit log
         const user = await UserModel.findByPk(req.params.id);
@@ -417,15 +407,13 @@ router.delete("/:id", Auth, async (req, res) => {
 
         res.status(204).json();
     } catch (error) {
-        res.status(500).json({
-            status: "error",
-            message: error.message,
-        });
+        // Pass error to error handler middleware
+        next(error);
     }
 });
 
 // Change password endpoint
-router.patch("/:id/password", Auth, validatePasswordMiddleware, async (req, res) => {
+router.patch("/:id/password", Auth, validatePasswordMiddleware, async (req, res, next) => {
     try {
         const { currentPassword, newPassword } = req.body;
         const userId = req.params.id;
@@ -487,10 +475,8 @@ router.patch("/:id/password", Auth, validatePasswordMiddleware, async (req, res)
             message: "Password changed successfully",
         });
     } catch (error) {
-        res.status(500).json({
-            status: "error",
-            message: error.message,
-        });
+        // Pass error to error handler middleware
+        next(error);
     }
 });
 

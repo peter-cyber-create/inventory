@@ -33,7 +33,7 @@ const Activity = () => {
     const loadFlagged = async () => {
         setLoading(true);
         try {
-            const res = await API.get(`/activity/duplicates`);
+            const res = await API.get(`/api/activity/duplicates`);
             setDuplicates(res?.data || []);
         } catch (error) {
             console.error("Error loading flagged participants", error);
@@ -134,12 +134,12 @@ const Activity = () => {
         };
 
         try {
-            await API.post("/activity", data, {
+            await API.post("/api/activity", data, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
             history.push('/activities/listing');
-            toast.success(`Activity and Participants List Added Successfully`);
+            toast.success('Activity and Participants List Added Successfully');
         } catch (error) {
             toast.error(error.response?.data?.message || "Error uploading Activity and Participants List");
         } finally {

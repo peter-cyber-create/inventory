@@ -14,11 +14,11 @@ function VehicleJobCards({ vehicle }) {
   const loadJobCards = async () => {
     setLoading(true);
     try {
-      const res = await API.get("/jobcards");
+      const res = await API.get('/api/jobcards');
 
       // const formattedJobs = res.data.job.map((job) => ({
       //   ...job,
-      //   createdAt: moment(job.createdAt).format("YYYY-MM-DD"),
+      //   createdAt: moment(job.createdAt).format("YYYY-MM-DD'),
       //   //jobCard: job.id.substring(0, 8),
       //   // status: <span class="badge bg-warning">{ticket.status}</span>
       // }));
@@ -26,7 +26,7 @@ function VehicleJobCards({ vehicle }) {
       setJobCards(res?.data?.results);
       setLoading(false);
     } catch (error) {
-      console.log("error", error);
+      console.log("error', error);
       setLoading(false);
     }
   };
@@ -34,9 +34,9 @@ function VehicleJobCards({ vehicle }) {
   const handleDelete = async (jobId) => {
     setLoading(true);
     try {
-      const res = await API.delete(`/jobcards/${jobId}`);
+      const res = await API.delete(`/api/jobcards/${jobId}`);
       loadJobCards();
-      toast.success(`Job Card Deleted Successful`);
+      toast.success('Job Card Deleted Successful');
     } catch (error) {
       console.log("error", error);
     }

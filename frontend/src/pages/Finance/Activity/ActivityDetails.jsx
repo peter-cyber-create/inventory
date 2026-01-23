@@ -74,7 +74,7 @@ const ActivityDetails = ({ match }) => {
 
         try {
             setIsUploading(true);
-            const response = await API.post('/activity/upload', formData, {
+            const response = await API.post('/api/activity/upload', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },

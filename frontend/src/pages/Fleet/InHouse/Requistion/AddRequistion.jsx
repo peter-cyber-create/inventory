@@ -41,10 +41,10 @@ const AddRequisition = () => {
       vehicleId: Number(formData.vehicleId),
     };
     try {
-      const response = await API.post("/v/service/request", formData);
+      const response = await API.post('/api/v/service/request', formData);
       setLoading(false);
       history.push("/fleet/requistion");
-      toast.success(`Service Requistion Has Been Added Successfully`);
+      toast.success('Service Requistion Has Been Added Successfully');
     } catch (error) {}
     console.log("Form submitted:", data);
   };
@@ -858,11 +858,11 @@ export default AddRequisition;
 // //     };
 
 // //     try {
-// const response = await API.post("/v/service/request", data);
+// const response = await API.post('/api/v/service/request', data);
 // setLoading(false);
 // close();
 // refresh();
-// toast.success(`Service Requistion Has Been Added Successfully`);
+// toast.success('Service Requistion Has Been Added Successfully');
 // //     } catch (error) {
 // //       console.log("error", error);
 // //       setLoading(false);

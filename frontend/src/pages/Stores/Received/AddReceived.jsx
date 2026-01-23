@@ -64,7 +64,7 @@ const AddReceived = ({ close, refresh }) => {
             setLoading(false);
             close();
             refresh();
-            toast.success(`Goods Received Has Been Added Successfully`);
+            toast.success('Goods Received Has Been Added Successfully');
         } catch (error) {
             console.log("error", error);
             setLoading(false);

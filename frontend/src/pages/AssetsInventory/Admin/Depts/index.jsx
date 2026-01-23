@@ -22,7 +22,7 @@ const Depts = () => {
         await API.delete(`/monitoring/template/config/delete/${id}`)
             .then(() => {
                 setLoading(false);
-                toast.success(`Monitoring Template Successfully Deleted`);
+                toast.success('Monitoring Template Successfully Deleted');
             })
             .catch((error) => {
                 setLoading(false);

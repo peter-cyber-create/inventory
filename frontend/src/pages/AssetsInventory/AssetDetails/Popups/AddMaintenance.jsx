@@ -13,11 +13,11 @@ const AddMaintenance = ({ close, id, maintenance }) => {
         setLoading(true);
 
         try {
-            const response = await API.post("/maintenance", formData);
+            const response = await API.post('/api/maintenance', formData);
             setLoading(false);
             close();
             maintenance();
-            toast.success(`Maintenance Details Successfully`);
+            toast.success('Maintenance Details Successfully');
         } catch (error) {
             console.log("error", error);
             setLoading(false);

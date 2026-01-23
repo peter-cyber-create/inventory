@@ -15,12 +15,12 @@ function ServiceRequests({vehicle}) {
   const loadRequistion = async () => {
     setLoading(true);
     try {
-      const res = await API.get("/v/service/request");
+      const res = await API.get('/api/v/service/request');
       console.log(res);
       setService(res.data.service);
       setLoading(false);
     } catch (error) {
-      console.log("error", error);
+      console.log("error', error);
       setLoading(false);
     }
   };
@@ -36,7 +36,7 @@ function ServiceRequests({vehicle}) {
       const res = await API.delete(`/v/service/${id}`);
       loadRequistion();
       setLoading(false);
-      toast.success(`Service Requistion Has Been Deleted Successfully`);
+      toast.success('Service Requistion Has Been Deleted Successfully');
     } catch (error) {
       console.log("error", error);
       setLoading(false);

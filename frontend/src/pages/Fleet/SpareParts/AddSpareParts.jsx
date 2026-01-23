@@ -44,11 +44,11 @@ const AddSpareParts = ({ close, refresh }) => {
     };
 
     try {
-      const response = await API.post("/v/sparepart", data);
+      const response = await API.post('/api/v/sparepart', data);
       setLoading(false);
       close();
       refresh();
-      toast.success(`Spare Part Has Been Added Successfully`);
+      toast.success('Spare Part Has Been Added Successfully');
     } catch (error) {
       console.log("error", error);
       setLoading(false);

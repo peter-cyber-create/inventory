@@ -22,7 +22,7 @@ const AssetsInventory = () => {
   const loadAssets = async () => {
     setLoading(true);
     try {
-      const res = await API.get('/asset');
+      const res = await API.get('/api/assets');
       setAssets(res.data.assets || []);
     } catch (error) {
       console.error('Error loading assets', error);

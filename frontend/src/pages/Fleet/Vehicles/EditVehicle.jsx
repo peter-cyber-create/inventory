@@ -62,16 +62,16 @@ const EditVechile = ({ id, close, refresh }) => {
 
   const loadTypes = async () => {
     try {
-      const res = await API.get("/v/type");
+      const res = await API.get('/api/v/type');
       setTypes(res?.data.types || []);
     } catch (error) {
-      toast.error("Failed to fetch types.");
+      toast.error("Failed to fetch types.');
     }
   };
 
   const loadMakes = async () => {
     try {
-      const res = await API.get("/v/make");
+      const res = await API.get('/api/v/make');
       setMakes(res?.data.makes || []);
     } catch (error) {
       toast.error("Failed to fetch makes.");

@@ -10,7 +10,7 @@ const ActivitiesByFunding = () => {
     const handleSearch = async () => {
         try {
             setLoading(true);
-            const response = await API.get('/reports/funding', {
+            const response = await API.get('/api/reports/funding', {
                 params: { funder: selectedFunder }
             });
             setActivities(response.data.activities);

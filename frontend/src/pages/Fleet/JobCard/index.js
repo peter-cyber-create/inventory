@@ -22,7 +22,7 @@ const JobCardPage = () => {
   const loadJobCards = async () => {
     setLoading(true);
     try {
-      const res = await API.get("/jobcards");
+      const res = await API.get(`/api/jobcards`);
 
       // const formattedJobs = res.data.job.map((job) => ({
       //   ...job,
@@ -45,7 +45,7 @@ const JobCardPage = () => {
       const res = await API.delete(`/jobcards/${jobId}`);
       loadJobCards();
       setShowModal(false);
-      toast.success(`Job Card Deleted Successful`);
+      toast.success('Job Card Deleted Successful');
     } catch (error) {
       console.log("error", error);
     }

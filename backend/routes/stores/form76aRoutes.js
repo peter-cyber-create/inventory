@@ -6,7 +6,7 @@ const RequisitionItem = require('../../models/stores/requisitionItemModel');
 const router = express.Router();
 
 // GET /api/stores/form76a - List all requisitions with pagination and filtering
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
   try {
     const { 
       page = 1, 
@@ -72,22 +72,12 @@ router.get('/', async (req, res) => {
       }
     });
   } catch (error) {
-    // Log errors securely - don't log full error objects in production
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error fetching requisitions:', error);
-    } else {
-      console.error('Error fetching requisitions:', error.message);
-    }
-    res.status(500).json({
-      status: 'error',
-      message: 'Error fetching requisitions',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-    });
+    next(error);
   }
 });
 
 // GET /api/stores/form76a/:id - Get single requisition
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -111,22 +101,12 @@ router.get('/:id', async (req, res) => {
       data: requisition
     });
   } catch (error) {
-    // Log errors securely - don't log full error objects in production
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error fetching requisition:', error);
-    } else {
-      console.error('Error fetching requisition:', error.message);
-    }
-    res.status(500).json({
-      status: 'error',
-      message: 'Error fetching requisition',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-    });
+    next(error);
   }
 });
 
 // POST /api/stores/form76a - Create new requisition
-router.post('/', async (req, res) => {
+router.post('/', async (req, res, next) => {
   const transaction = await sequelize.transaction();
   
   try {
@@ -209,17 +189,12 @@ router.post('/', async (req, res) => {
     });
   } catch (error) {
     await transaction.rollback();
-    console.error('Error creating requisition:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Error creating requisition',
-      error: error.message
-    });
+    next(error);
   }
 });
 
 // PUT /api/stores/form76a/:id - Update requisition
-router.put('/:id', async (req, res) => {
+router.put('/:id', async (req, res, next) => {
   const transaction = await sequelize.transaction();
   
   try {
@@ -297,17 +272,12 @@ router.put('/:id', async (req, res) => {
     });
   } catch (error) {
     await transaction.rollback();
-    console.error('Error updating requisition:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Error updating requisition',
-      error: error.message
-    });
+    next(error);
   }
 });
 
 // DELETE /api/stores/form76a/:id - Delete requisition
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req, res, next) => {
   const transaction = await sequelize.transaction();
   
   try {
@@ -341,17 +311,12 @@ router.delete('/:id', async (req, res) => {
     });
   } catch (error) {
     await transaction.rollback();
-    console.error('Error deleting requisition:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Error deleting requisition',
-      error: error.message
-    });
+    next(error);
   }
 });
 
 // PATCH /api/stores/form76a/:id/status - Update requisition status
-router.patch('/:id/status', async (req, res) => {
+router.patch('/:id/status', async (req, res, next) => {
   try {
     const { id } = req.params;
     const { status, remarks } = req.body;
@@ -408,12 +373,7 @@ router.patch('/:id/status', async (req, res) => {
       data: updatedRequisition
     });
   } catch (error) {
-    console.error('Error updating requisition status:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Error updating requisition status',
-      error: error.message
-    });
+    next(error);
   }
 });
 

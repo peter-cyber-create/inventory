@@ -33,7 +33,7 @@ const AddDivision = ({ close, refresh }) => {
             setLoading(false);
             close();
             refresh();
-            toast.success(`Division / Unit Added Successfully`);
+            toast.success('Division / Unit Added Successfully');
         } catch (error) {
             console.log("error", error);
             setLoading(false);

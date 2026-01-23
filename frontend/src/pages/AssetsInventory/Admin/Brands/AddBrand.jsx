@@ -33,7 +33,7 @@ const AddBrand = ({ close, refresh }) => {
             setLoading(false);
             close();
             refresh();
-            toast.success(`Asset Brand Has Been Added Successfully`);
+            toast.success('Asset Brand Has Been Added Successfully');
         } catch (error) {
             console.log("error", error);
             setLoading(false);

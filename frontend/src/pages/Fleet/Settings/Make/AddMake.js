@@ -13,12 +13,12 @@ const AddMake = ({ close, refresh }) => {
         setLoading(true);
 
         try {
-            const response = await API.post("/v/make", formData);
+            const response = await API.post('/api/v/make', formData);
             console.log(response)
             setLoading(false);
             close();
             refresh();
-            toast.success(`Vehicle Make Has Been Added Successfully`);
+            toast.success('Vehicle Make Has Been Added Successfully');
         } catch (error) {
             console.log("error", error);
             setLoading(false);

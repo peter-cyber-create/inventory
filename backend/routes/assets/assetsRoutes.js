@@ -8,7 +8,7 @@ const Type = require("../../models/categories/typeModel.js");
 
 const router = express.Router();
 
-router.post("/", async (req, res) => {
+router.post("/", async (req, res, next) => {
     try {
         // Basic input validation
         if (!req.body || Object.keys(req.body).length === 0) {
@@ -33,23 +33,11 @@ router.post("/", async (req, res) => {
             audit
         });
     } catch (error) {
-        // Handle validation errors
-        if (error.name === 'SequelizeValidationError') {
-            return res.status(400).json({
-                status: "error",
-                message: "Validation error",
-                errors: error.errors.map(err => err.message)
-            });
-        }
-        
-        res.status(500).json({
-            status: "error",
-            message: error.message,
-        });
+        next(error);
     }
 });
 
-router.get("/", async (req, res) => {
+router.get("/", async (req, res, next) => {
     try {
         const page = req.query.page || 1;
         const limit = req.query.limit || 30;
@@ -67,14 +55,11 @@ router.get("/", async (req, res) => {
             assets,
         });
     } catch (error) {
-        res.status(500).json({
-            status: "error",
-            message: error.message,
-        });
+        next(error);
     }
 });
 
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", async (req, res, next) => {
     try {
         // Validate ID parameter
         const id = parseInt(req.params.id);
@@ -155,10 +140,7 @@ router.get("/:id", async (req, res) => {
             asset,
         });
     } catch (error) {
-        res.status(500).json({
-            status: "error",
-            message: error.message,
-        });
+        next(error);
     }
 });
 
@@ -189,10 +171,7 @@ router.delete("/:id", async (req, res) => {
             message: "Asset deleted successfully"
         });
     } catch (error) {
-        res.status(500).json({
-            status: "error",
-            message: error.message,
-        });
+        next(error);
     }
 });
 

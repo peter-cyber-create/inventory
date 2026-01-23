@@ -40,12 +40,12 @@ function AddReceivedSpare({ sparePart, close, refresh }) {
     };
 
     try {
-      await API.post("/v/sparepartQty", data);
+      await API.post('/api/v/sparepartQty', data);
       setLoading(false);
 
       refresh();
       close();
-      toast.success(`Spare Part Qty Has Been Added Successfully`);
+      toast.success('Spare Part Qty Has Been Added Successfully');
     } catch (error) {
       console.error("Error adding spare part:", error);
       setLoading(false);

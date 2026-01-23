@@ -218,7 +218,7 @@ export default function EditJobCard({ match }) {
       const response = await API.patch(`/jobcards/${id}`, requestData);
       setLoading(false);
       history.push("/jobcard/view");
-      toast.success(`Job Card Has Been Updated Successfully`);
+      toast.success('Job Card Has Been Updated Successfully');
     } catch (error) {
       console.log("error", error);
       setLoading(false);

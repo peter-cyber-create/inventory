@@ -41,11 +41,11 @@ const AddRegister = ({ close, refresh }) => {
         setLoading(true);
 
         try {
-            const response = await API.post("/assets", formData);
+            const response = await API.post('/api/assetss', formData);
             setLoading(false);
             close();
             refresh();
-            toast.success(`Asset Added Successfully`);
+            toast.success('Asset Added Successfully');
         } catch (error) {
             console.log("error", error);
             setLoading(false);

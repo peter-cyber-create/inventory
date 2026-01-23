@@ -41,7 +41,7 @@ const AddServer = ({ close, refresh }) => {
             setLoading(false);
             close();
             refresh();
-            toast.success(`Host Server Has Been Added Successfully`);
+            toast.success('Host Server Has Been Added Successfully');
         } catch (error) {
             console.log("error", error);
             setLoading(false);

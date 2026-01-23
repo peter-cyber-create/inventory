@@ -33,7 +33,7 @@ const Login = () => {
         setLoading(true);
         
         try {
-            const res = await API.post(`/users/login`, { 
+            const res = await API.post(`/api/users/login`, { 
                 username: username.trim(), 
                 password 
             });

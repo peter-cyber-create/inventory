@@ -36,9 +36,25 @@ const connectDB = async () => {
   try {
     await sequelize.authenticate();
     console.log("✅ PostgreSQL Database Connection has been established successfully.");
+    return true;
   } catch (error) {
-    console.error("Unable to connect to the PostgreSQL database:", error.message);
+    console.error("❌ Unable to connect to the PostgreSQL database:", error.message);
+    // In production, we might want to retry or exit
+    if (process.env.NODE_ENV === 'production') {
+      console.error("⚠️ Database connection failed in production. Server will continue but database operations may fail.");
+    }
+    return false;
   }
 };
 
-module.exports = { connectDB, sequelize, Sequelize, DataTypes, QueryTypes };
+// Check database connection before operations
+const checkConnection = async () => {
+  try {
+    await sequelize.authenticate();
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
+
+module.exports = { connectDB, checkConnection, sequelize, Sequelize, DataTypes, QueryTypes };

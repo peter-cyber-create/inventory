@@ -121,7 +121,7 @@ const UpdateActivity = () => {
             });
 
             toast.success('Activity updated successfully');
-            history.push(`/activities/listing`);
+            history.push('/activities/listing');
         } catch (error) {
             toast.error('Failed to update activity');
             console.error(error);

@@ -62,7 +62,7 @@ const Maintenance = () => {
     const fetchMaintenance = async () => {
         setLoading(true);
         try {
-            const response = await API.get('/maintenance');
+            const response = await API.get('/api/maintenance');
             const maintenanceData = response.data.maintenance || [];
             setMaintenance(maintenanceData);
             calculateStats(maintenanceData);
@@ -76,7 +76,7 @@ const Maintenance = () => {
 
     const fetchAssets = async () => {
         try {
-            const response = await API.get('/asset');
+            const response = await API.get('/api/assets');
             setAssets(response.data.assets || []);
         } catch (error) {
             console.error('Error fetching assets:', error);
@@ -125,7 +125,7 @@ const Maintenance = () => {
                     'medium'
                 );
             } else {
-                await API.post('/maintenance', formData);
+                await API.post('/api/maintenance', formData);
                 message.success('Maintenance record created successfully');
                 notificationService.addAssetsNotification(
                     'Maintenance Scheduled',

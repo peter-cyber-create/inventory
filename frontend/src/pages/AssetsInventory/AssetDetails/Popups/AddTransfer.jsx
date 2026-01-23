@@ -26,7 +26,7 @@ const AddTransfer = ({ close, id, owner}) => {
             const response = await API.post("/transfers", data);
             setLoading(false);
             close();
-            toast.success(`Asset Ownership Changed Successfully`);
+            toast.success('Asset Ownership Changed Successfully');
         } catch (error) {
             console.log("error", error);
             setLoading(false);

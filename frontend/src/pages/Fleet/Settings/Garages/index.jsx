@@ -39,7 +39,7 @@ const Garages = () => {
       const res = await API.delete(`/v/garage/${id}`);
       loadGarages();
       setLoading(false);
-      toast.success(`Garage Has Been Deleted Successfully`);
+      toast.success('Garage Has Been Deleted Successfully');
     } catch (error) {
       console.log("error", error);
       setLoading(false);

@@ -22,12 +22,12 @@ const Receiving = () => {
   const loadRequistion = async () => {
     setLoading(true);
     try {
-      const res = await API.get("/v/receive");
+      const res = await API.get('/api/v/receive');
       console.log(res);
       setVehicles(res?.data.garage);
       setLoading(false);
     } catch (error) {
-      console.log("error", error);
+      console.log("error', error);
       setLoading(false);
     }
   };
@@ -42,7 +42,7 @@ const Receiving = () => {
       const res = await API.delete(`/v/receive/${id}`);
       loadRequistion();
       setLoading(false);
-      toast.success(`Service  Has Been Deleted Successfully`);
+      toast.success('Service  Has Been Deleted Successfully');
     } catch (error) {
       console.log("error", error);
       setLoading(false);

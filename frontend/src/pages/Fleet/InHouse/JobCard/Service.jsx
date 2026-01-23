@@ -27,7 +27,7 @@ const Service = ({ match }) => {
     const loadSpareParts = async () => {
         setLoading(true);
         try {
-            const res = await API.get('/v/sparepart');
+            const res = await API.get('/api/v/sparepart');
             setSpareParts(res?.data.sparepart || []);
         } catch (error) {
             console.log('Error loading spare parts:', error);
@@ -106,7 +106,7 @@ const Service = ({ match }) => {
         console.log("Data::", requestData)
 
         try {
-            await API.post('/v/jobcard', requestData);
+            await API.post('/api/v/jobcard', requestData);
             toast.success('Job Card has been added successfully');
             history.push('/fleet/receiving');
         } catch (error) {

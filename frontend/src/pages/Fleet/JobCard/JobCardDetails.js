@@ -22,7 +22,7 @@ const JobCardDetail = ({ match }) => {
   const loadJobCard = async () => {
     setLoading(true);
     try {
-      const res = await API.get(`/jobcards/${id}`);
+      const res = await API.get(`/api/jobcards/${id}`);
       setJobCard(res?.data.job);
       await loadJobCardSpare();
     } catch (error) {
@@ -34,7 +34,7 @@ const JobCardDetail = ({ match }) => {
 
   const loadJobCardSpare = async () => {
     try {
-      const res = await API.get(`/jobcard/spare/${id}`);
+      const res = await API.get(`/api/jobcard/spare/${id}`);
       setJobCardSpare(res?.data?.spareparts || []);
     } catch (error) {
       console.error("Error fetching items:", error);

@@ -18,7 +18,7 @@ const AddDept = ({ close, refresh }) => {
             setLoading(false);
             close();
             refresh();
-            toast.success(`MOH HQ Dept Added Successfully`);
+            toast.success('MOH HQ Dept Added Successfully');
         } catch (error) {
             console.log("error", error);
             setLoading(false);

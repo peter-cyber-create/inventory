@@ -17,7 +17,7 @@ const AddDisposal = ({ close, id, disposal }) => {
             setLoading(false);
             close();
             disposal();
-            toast.success(`Asset Successfully Disposed Off`);
+            toast.success('Asset Successfully Disposed Off');
         } catch (error) {
             console.log("error", error);
             setLoading(false);

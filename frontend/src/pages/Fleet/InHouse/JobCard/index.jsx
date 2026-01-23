@@ -14,7 +14,7 @@ const JobCard = () => {
     const loadJobCards = async () => {
         setLoading(true);
         try {
-            const res = await API.get("/v/jobcard");
+            const res = await API.get('/api/v/jobcard');
 
             const formattedJobs = res.data.job.map(job => ({
                 ...job,

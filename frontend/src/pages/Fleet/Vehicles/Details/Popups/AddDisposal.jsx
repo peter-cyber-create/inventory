@@ -24,11 +24,11 @@ const AddDisposal = ({ close, vehicle }) => {
       vehicleId: vehicle.id,
     };
     try {
-      const response = await API.post("/v/disposal", data);
+      const response = await API.post('/api/v/disposal', data);
       history.push(`/fleet/vehicle/${vehicle.id}`);
       setLoading(false);
 
-      toast.success(`Job Card Has Been Disporsed Successfully`);
+      toast.success('Job Card Has Been Disporsed Successfully');
     } catch (error) {
       console.log("error", error);
       setLoading(false);

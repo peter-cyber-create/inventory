@@ -47,7 +47,7 @@ const AddModel = ({ close, refresh }) => {
             setLoading(false);
             close();
             refresh();
-            toast.success(`Asset Model Has Been Added Successfully`);
+            toast.success('Asset Model Has Been Added Successfully');
         } catch (error) {
             console.log("error", error);
             setLoading(false);

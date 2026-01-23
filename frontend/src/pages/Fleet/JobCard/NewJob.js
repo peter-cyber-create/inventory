@@ -176,13 +176,13 @@ const NewJob = () => {
     };
     console.log("request Data====", requestData);
     try {
-      const response = await API.post("/jobcards", requestData);
+      const response = await API.post('/api/jobcards', requestData);
       requestData.spare.map((sp) =>
         updateSpareQty({ spareId: sp.value, qty: sp.qtyUsed })
       );
       setLoading(false);
       history.push("/fleet/jobcards");
-      toast.success(`Job Card Has Been Added Successfully`);
+      toast.success('Job Card Has Been Added Successfully');
     } catch (error) {
       console.log("error", error);
       setLoading(false);

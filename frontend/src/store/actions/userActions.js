@@ -14,7 +14,7 @@ import {
 export const loginUser = (username, password) => async (dispatch) => {
   try {
     dispatch({ type: LOGIN_REQUEST });
-    const { data } = await API.post("/users/login", { username, password });
+    const { data } = await API.post("/api/users/login", { username, password });
 
     if (data.status ==='success') {
       localStorage.setItem("token", data.accessToken);
@@ -43,7 +43,7 @@ export const loadUser = () => async (dispatch) => {
       },
     };
 
-    const { data } = await API.get("/users/me", config);
+    const { data } = await API.get("/api/users/me", config);
 
     dispatch({
       type: LOAD_USER_SUCCESS,

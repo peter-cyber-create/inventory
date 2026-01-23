@@ -18,7 +18,7 @@ const AddType = ({ close, refresh }) => {
             setLoading(false);
             close();
             refresh();
-            toast.success(`Vehicle Type Has Been Added Successfully`);
+            toast.success('Vehicle Type Has Been Added Successfully');
         } catch (error) {
             console.log("error", error);
             setLoading(false);

@@ -74,7 +74,7 @@ const EditAsset = ({ close, refresh, id }) => {
             setThematicAreaID("");
             close();
             refresh();
-            toast.success(`Law Successfully Added`);
+            toast.success('Law Successfully Added');
         } catch (error) {
             console.log("error", error);
             setLoading(false);

@@ -143,6 +143,21 @@ const requestLogger = (req, res, next) => {
     next();
 };
 
+// Database connection check middleware
+const checkDatabaseConnection = async (req, res, next) => {
+    const { checkConnection } = require('../config/db');
+    const isConnected = await checkConnection();
+    
+    if (!isConnected) {
+        return res.status(503).json({
+            status: 'error',
+            message: 'Database connection unavailable. Please try again later.'
+        });
+    }
+    
+    next();
+};
+
 // Error handling middleware
 const errorHandler = (err, req, res, next) => {
     const isDevelopment = process.env.NODE_ENV === 'development';
@@ -204,6 +219,29 @@ const errorHandler = (err, req, res, next) => {
         });
     }
     
+    // Handle database connection errors
+    if (err.name === 'SequelizeConnectionError' || err.name === 'SequelizeConnectionRefusedError') {
+        return res.status(503).json({
+            status: 'error',
+            message: 'Database connection unavailable. Please try again later.'
+        });
+    }
+    
+    if (err.name === 'SequelizeDatabaseError') {
+        return res.status(500).json({
+            status: 'error',
+            message: isDevelopment ? err.message : 'Database operation failed'
+        });
+    }
+    
+    // Handle timeout errors
+    if (err.name === 'SequelizeTimeoutError') {
+        return res.status(504).json({
+            status: 'error',
+            message: 'Database operation timed out. Please try again.'
+        });
+    }
+    
     // Default error
     res.status(err.status || 500).json({
         status: 'error',
@@ -220,5 +258,6 @@ module.exports = {
     corsOptions,
     validateInput,
     requestLogger,
+    checkDatabaseConnection,
     errorHandler
 };

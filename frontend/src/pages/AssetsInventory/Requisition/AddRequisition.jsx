@@ -31,7 +31,7 @@ const AddRequisition = ({
     try {
       const res = await API.post(`/requisition`, data);
       console.log(res);
-      toast.success(`Stores Requisition Placed Successful`);
+      toast.success('Stores Requisition Placed Successful');
       close();
       refresh();
       setLoading(false);

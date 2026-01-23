@@ -27,7 +27,7 @@ const DisplayRequests = ({ service, setService, Refresh }) => {
       const res = await API.delete(`/v/service/${id}`);
       // Refresh();
       setLoading(false);
-      toast.success(`Service Requistion Has Been Deleted Successfully`);
+      toast.success('Service Requistion Has Been Deleted Successfully');
     } catch (error) {
       console.log("error", error);
       setLoading(false);

@@ -44,7 +44,7 @@ const VirtualServers = () => {
         await API.delete(`/legal/${id}`)
             .then(() => {
                 setLoading(false);
-                toast.success(`Server Successfully Deleted`);
+                toast.success('Server Successfully Deleted');
             })
             .catch((error) => {
                 setLoading(false);

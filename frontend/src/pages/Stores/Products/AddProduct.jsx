@@ -19,7 +19,7 @@ const AddProduct = ({ close, refresh }) => {
             setLoading(false);
             close();
             refresh();
-            toast.success(`Product Has Been Added Successfully`);
+            toast.success('Product Has Been Added Successfully');
         } catch (error) {
             console.log("error", error);
             setLoading(false);

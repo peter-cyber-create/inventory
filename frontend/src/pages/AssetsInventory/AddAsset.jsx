@@ -49,12 +49,12 @@ const AddAsset = ({ close, refresh }) => {
         };
 
         try {
-            const response = await API.post("/asset", requestData);
+            const response = await API.post('/api/assets', requestData);
             console.log(response)
             setLoading(false);
             close();
             refresh();
-            toast.success(`ICT Asset Has Been Added Successfully`);
+            toast.success('ICT Asset Has Been Added Successfully');
             
             // Add notification for successful asset creation
             notificationService.addAssetsNotification(

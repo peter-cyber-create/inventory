@@ -13,12 +13,12 @@ const AddSpareCategory = ({ close, refresh }) => {
     setLoading(true);
 
     try {
-      const response = await API.post("/v/sparecategory", formData);
+      const response = await API.post('/api/v/sparecategory', formData);
       console.log(response)
       setLoading(false);
       close();
       refresh();
-      toast.success(`Spare Category Has Been Added Successfully`);
+      toast.success('Spare Category Has Been Added Successfully');
     } catch (error) {
       console.log("error", error);
       setLoading(false);

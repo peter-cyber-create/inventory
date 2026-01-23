@@ -32,7 +32,7 @@ const AssetDetails = ({ match }) => {
     const getAsset = async () => {
         setLoading(true);
         try {
-            const res = await API.get(`/assets/${id}`);
+            const res = await API.get(`/api/assets/${id}`);
             setLoading(false);
             setAsset(res.data.asset);
         } catch (error) {

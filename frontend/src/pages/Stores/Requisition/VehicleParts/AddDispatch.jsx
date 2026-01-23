@@ -43,7 +43,7 @@ const AddDispatch = ({ id, close, refresh }) => {
         try {
             const res = await API.post(`/store`, data);
             console.log(res)
-            toast.success(`Vehicle Part Dispatched Successfully`);
+            toast.success('Vehicle Part Dispatched Successfully');
             close();
             refresh();
             setLoading(false)

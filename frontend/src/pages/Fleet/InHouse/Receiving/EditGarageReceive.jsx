@@ -44,7 +44,7 @@ const EditGarageServicingForm = () => {
 
   const loadData = async () => {
     try {
-      const [vehiclesRes, formDataRes] = await Promise.all([API.get("/v/vehicle"), API.get(`/v/receive/${id}`)])
+      const [vehiclesRes, formDataRes] = await Promise.all([API.get('/api/v/vehicle'), API.get(`/api/v/receive/${id}`)])
       setVehicles(vehiclesRes.data.vehicle)
       setFormData(formDataRes.data.garage)
       fetchVehicleDetails(formDataRes.data.garage.vehicleId)

@@ -13,7 +13,7 @@ const ActivitiesByDate = () => {
     const handleSearch = async () => {
         try {
             setLoading(true);
-            const response = await API.get('/reports/date', {
+            const response = await API.get('/api/reports/date', {
                 params: filters
             });
             setActivities(response.data.activities);

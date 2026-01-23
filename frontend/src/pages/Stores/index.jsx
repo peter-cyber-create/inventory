@@ -25,7 +25,7 @@ const Stores = () => {
     const loadAssets = async () => {
         setLoading(true);
         try {
-            const res = await API.get("/asset");
+            const res = await API.get(`/api/assets`);
             console.log(res)
             setAssets(res.data.assets);
             setLoading(false);

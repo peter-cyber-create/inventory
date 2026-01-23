@@ -50,10 +50,10 @@ const GarageServicingForm = () => {
     e.preventDefault();
 
     try {
-      const response = await API.post("/v/receive", formData);
+      const response = await API.post('/api/v/receive', formData);
       setLoading(false);
 
-      toast.success(`Vehicle Successfully Received in Garage`);
+      toast.success('Vehicle Successfully Received in Garage');
       history.push("/fleet/receiving");
     } catch (error) {
       console.log("error", error);
@@ -531,11 +531,11 @@ export default GarageServicingForm;
 //     };
 
 // try {
-//   const response = await API.post("/v/receive", data);
+//   const response = await API.post('/api/v/receive', data);
 //   setLoading(false);
 //   close();
 //   refresh();
-//   toast.success(`Vehicle Successfully Received in Garage`);
+//   toast.success('Vehicle Successfully Received in Garage');
 // } catch (error) {
 //   console.log("error", error);
 //   setLoading(false);

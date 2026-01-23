@@ -40,7 +40,7 @@ const AssignUser = ({ close, id, refresh }) => {
         try {
             const res = await API.post(`/issue/ict`, data);
             console.log(res)
-            toast.success(`Asset Issued Successfully To User`);
+            toast.success('Asset Issued Successfully To User');
             close();
             refresh();
             setLoading(false)

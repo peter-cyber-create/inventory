@@ -26,7 +26,7 @@ const AddRequisition = ({ id, serialNo, model, setModel, setSerialNo, close, ref
         try {
             const res = await API.post(`/dispatch/stores`, data);
             console.log(res)
-            toast.success(`Asset Dispatched Successfully`);
+            toast.success('Asset Dispatched Successfully');
             close();
             refresh();
             setLoading(false)

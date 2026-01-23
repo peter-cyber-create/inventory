@@ -28,25 +28,60 @@ API.interceptors.request.use(
 API.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Handle network errors
+    // Handle network errors (no response from server)
     if (!error.response) {
-      error.message = "Network error. Please check your connection.";
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        error.message = "Request timeout. Please try again.";
+      } else if (error.message.includes('Network Error')) {
+        error.message = "Network error. Please check your connection and ensure the server is running.";
+      } else {
+        error.message = "Unable to connect to server. Please check your connection.";
+      }
       return Promise.reject(error);
     }
 
+    const status = error.response.status;
+    const data = error.response.data;
+
     // Handle 401 - Unauthorized
-    if (error.response.status === 401) {
+    if (status === 401) {
       // Clear auth data on unauthorized
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       localStorage.removeItem("userRole");
+      // Redirect to login if not already there
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
     }
 
-    // Extract error message
+    // Handle 503 - Service Unavailable (Database connection issues)
+    if (status === 503) {
+      error.message = data?.message || "Service temporarily unavailable. Please try again later.";
+      return Promise.reject(error);
+    }
+
+    // Handle 500 - Internal Server Error
+    if (status === 500) {
+      error.message = data?.message || "Internal server error. Please try again later.";
+      return Promise.reject(error);
+    }
+
+    // Handle 400 - Bad Request (Validation errors)
+    if (status === 400) {
+      if (data?.errors && Array.isArray(data.errors)) {
+        error.message = data.errors.join(', ');
+      } else {
+        error.message = data?.message || "Invalid request. Please check your input.";
+      }
+      return Promise.reject(error);
+    }
+
+    // Extract error message from response
     const errorMessage =
-      error.response.data?.message ||
-      error.response.data?.error ||
-      error.response.data ||
+      data?.message ||
+      data?.error ||
+      (typeof data === 'string' ? data : undefined) ||
       error.message ||
       "An error occurred";
 

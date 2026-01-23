@@ -30,8 +30,8 @@ const EditRequisition = () => {
     const fetchData = async () => {
       try {
         const [vehiclesRes, requisitionRes] = await Promise.all([
-          API.get("/v/vehicle"),
-          API.get(`/v/service/${id}`),
+          API.get('/api/v/vehicle'),
+          API.get(`/api/v/service/${id}`),
         ])
         setVehicles(vehiclesRes.data.vehicle)
         setFormData(requisitionRes.data.service)

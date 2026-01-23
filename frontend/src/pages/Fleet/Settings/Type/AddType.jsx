@@ -13,12 +13,12 @@ const AddType = ({ close, refresh }) => {
         setLoading(true);
 
         try {
-            const response = await API.post("/v/type", formData);
+            const response = await API.post('/api/v/type', formData);
             console.log(response)
             setLoading(false);
             close();
             refresh();
-            toast.success(`Vehicle Type Has Been Added Successfully`);
+            toast.success('Vehicle Type Has Been Added Successfully');
         } catch (error) {
             console.log("error", error);
             setLoading(false);

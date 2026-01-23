@@ -30,12 +30,12 @@ const AddUsers = ({ close, refresh }) => {
         }
 
         try {
-            const response = await API.post("/users/register", data);
+            const response = await API.post('/api/users/register', data);
             console.log(response)
             setLoading(false);
             close();
             refresh();
-            toast.success(`User Added Successfully`);
+            toast.success('User Added Successfully');
         } catch (error) {
             console.log("error", error);
             setLoading(false);

@@ -17,7 +17,7 @@ const PendingAccountability = () => {
 
     const fetchPendingActivities = async () => {
         try {
-            const response = await API.get('/reports/accountability');
+            const response = await API.get('/api/reports/accountability');
             setActivities(response.data.activities);
         } catch (error) {
             toast.error('Failed to fetch pending activities');

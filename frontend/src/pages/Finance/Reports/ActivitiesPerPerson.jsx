@@ -10,7 +10,7 @@ const ActivitiesPerPerson = () => {
     const handleSearch = async () => {
         try {
             setLoading(true);
-            const response = await API.get('/reports/person', {
+            const response = await API.get('/api/reports/person', {
                 params: { name: name }
             });
             setParticipants(response.data.participants);
