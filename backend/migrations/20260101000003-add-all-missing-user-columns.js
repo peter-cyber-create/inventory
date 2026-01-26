@@ -108,13 +108,34 @@ module.exports = {
       }
     ];
 
+    // Check if referenced tables exist
+    const facilitiesExists = await queryInterface.sequelize.query(
+      "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'facilities');",
+      { type: Sequelize.QueryTypes.SELECT }
+    );
+    const departmentsExists = await queryInterface.sequelize.query(
+      "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'departments');",
+      { type: Sequelize.QueryTypes.SELECT }
+    );
+
     console.log('Checking and adding missing columns to users table...\n');
 
     for (const column of columnsToAdd) {
       const exists = await columnExists('users', column.name);
       if (!exists) {
         try {
-          await queryInterface.addColumn('users', column.name, column.definition);
+          // Remove foreign key references if referenced tables don't exist
+          let columnDef = { ...column.definition };
+          if (column.name === 'facilityid' && !facilitiesExists[0].exists) {
+            console.log(`  ⚠️  facilities table does not exist, adding ${column.name} without foreign key constraint`);
+            delete columnDef.references;
+          }
+          if (column.name === 'department_id' && !departmentsExists[0].exists) {
+            console.log(`  ⚠️  departments table does not exist, adding ${column.name} without foreign key constraint`);
+            delete columnDef.references;
+          }
+          
+          await queryInterface.addColumn('users', column.name, columnDef);
           console.log(`  ✅ Added column: ${column.name}`);
         } catch (error) {
           if (error.message.includes('already exists') || error.message.includes('duplicate')) {
