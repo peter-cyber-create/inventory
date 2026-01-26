@@ -129,10 +129,32 @@ module.exports = {
           if (column.name === 'facilityid' && !facilitiesExists[0].exists) {
             console.log(`  ⚠️  facilities table does not exist, adding ${column.name} without foreign key constraint`);
             delete columnDef.references;
+            // Use raw SQL to add column without foreign key
+            await queryInterface.sequelize.query(
+              `ALTER TABLE "users" ADD COLUMN "${column.name}" INTEGER;`
+            );
+            if (columnDef.comment) {
+              await queryInterface.sequelize.query(
+                `COMMENT ON COLUMN "users"."${column.name}" IS '${columnDef.comment}';`
+              );
+            }
+            console.log(`  ✅ Added column: ${column.name} (without foreign key)`);
+            continue;
           }
           if (column.name === 'department_id' && !departmentsExists[0].exists) {
             console.log(`  ⚠️  departments table does not exist, adding ${column.name} without foreign key constraint`);
             delete columnDef.references;
+            // Use raw SQL to add column without foreign key
+            await queryInterface.sequelize.query(
+              `ALTER TABLE "users" ADD COLUMN "${column.name}" INTEGER;`
+            );
+            if (columnDef.comment) {
+              await queryInterface.sequelize.query(
+                `COMMENT ON COLUMN "users"."${column.name}" IS '${columnDef.comment}';`
+              );
+            }
+            console.log(`  ✅ Added column: ${column.name} (without foreign key)`);
+            continue;
           }
           
           await queryInterface.addColumn('users', column.name, columnDef);
