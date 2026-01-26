@@ -25,6 +25,11 @@ const Dashboard = () => {
     const loadDashboardData = async () => {
         setLoading(true);
         try {
+            // Set empty arrays as defaults to ensure UI renders even if APIs fail
+            setPendingApprovals([]);
+            setStockWarnings([]);
+            setOverdueItems([]);
+            setRecentActivity([]);
             // Load pending approvals (GRNs, Form 76A, etc.)
             try {
                 const grnResponse = await API.get('/api/stores/grn?status=pending');
@@ -259,8 +264,9 @@ const Dashboard = () => {
         }
     ];
 
+    // Always render the dashboard, even if data is empty
     return (
-        <div>
+        <div style={{ minHeight: '400px' }}>
             {/* Uganda Flag Stripe */}
             <div style={{
                 height: '6px',
@@ -534,10 +540,14 @@ const Dashboard = () => {
                 </div>
             )}
 
-            {/* Empty State */}
+            {/* Empty State - Always show if no data */}
             {!loading && pendingApprovals.length === 0 && stockWarnings.length === 0 && 
              overdueItems.length === 0 && recentActivity.length === 0 && (
-                <div className="card">
+                <div className="card" style={{
+                    border: '1px solid var(--color-border-primary)',
+                    borderRadius: 'var(--radius-lg)',
+                    background: 'var(--color-surface)'
+                }}>
                     <div className="card-body" style={{
                         padding: 'var(--space-8)',
                         textAlign: 'center',
@@ -545,7 +555,8 @@ const Dashboard = () => {
                     }}>
                         <div style={{
                             fontSize: 'var(--font-size-lg)',
-                            marginBottom: 'var(--space-2)'
+                            marginBottom: 'var(--space-2)',
+                            color: 'var(--color-text-secondary)'
                         }}>
                             No pending actions or alerts
                         </div>
@@ -554,6 +565,24 @@ const Dashboard = () => {
                         }}>
                             All systems are up to date. Check back later for new activity.
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Loading State */}
+            {loading && (
+                <div className="card" style={{
+                    border: '1px solid var(--color-border-primary)',
+                    borderRadius: 'var(--radius-lg)',
+                    background: 'var(--color-surface)',
+                    padding: 'var(--space-8)',
+                    textAlign: 'center'
+                }}>
+                    <div style={{
+                        fontSize: 'var(--font-size-base)',
+                        color: 'var(--color-text-secondary)'
+                    }}>
+                        Loading dashboard data...
                     </div>
                 </div>
             )}
