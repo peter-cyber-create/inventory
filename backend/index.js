@@ -76,6 +76,9 @@ const systemRoutes = require("./routes/system/systemRoutes.js");
 const app = express();
 dotenv.config();
 
+// Trust proxy (required when behind reverse proxy like Nginx)
+app.set('trust proxy', true);
+
 // Configure CORS to allow network access
 app.use(cors(corsOptions));
 app.use(securityHeaders);
