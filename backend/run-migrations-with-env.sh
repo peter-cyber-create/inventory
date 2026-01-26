@@ -28,7 +28,8 @@ envsubst < "$CONFIG_FILE" > "$TEMP_CONFIG"
 
 # Run migrations using the temporary config
 echo "Running Sequelize migrations..."
-SEQUELIZE_CONFIG_PATH="$TEMP_CONFIG" npx sequelize-cli db:migrate --env development --config "$TEMP_CONFIG"
+NODE_ENV="${NODE_ENV:-production}"
+SEQUELIZE_CONFIG_PATH="$TEMP_CONFIG" npx sequelize-cli db:migrate --env "$NODE_ENV" --config "$TEMP_CONFIG"
 
 # Clean up temporary config
 rm -f "$TEMP_CONFIG"
