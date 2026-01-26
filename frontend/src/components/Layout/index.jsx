@@ -13,13 +13,22 @@ const Layout = ({ children }) => {
     const [user, setUser] = useState(null);
 
     useEffect(() => {
-        const userData = localStorage.getItem('user');
-        if (userData) {
-            try {
-                setUser(JSON.parse(userData));
-            } catch (e) {
-                console.error('Error parsing user data:', e);
+        try {
+            const userData = localStorage.getItem('user');
+            if (userData) {
+                try {
+                    const parsedUser = JSON.parse(userData);
+                    if (parsedUser && typeof parsedUser === 'object') {
+                        setUser(parsedUser);
+                    }
+                } catch (e) {
+                    console.error('Error parsing user data:', e);
+                    // Clear invalid data
+                    localStorage.removeItem('user');
+                }
             }
+        } catch (e) {
+            console.error('Error accessing localStorage:', e);
         }
     }, []);
 

@@ -115,6 +115,10 @@ const AppHeader = () => {
                             height: '36px',
                             width: 'auto'
                         }}
+                        onError={(e) => {
+                            // Fallback if image fails to load
+                            e.target.style.display = 'none';
+                        }}
                     />
                     <div>
                         <div style={{

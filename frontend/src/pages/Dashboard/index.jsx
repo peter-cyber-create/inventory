@@ -34,13 +34,17 @@ const Dashboard = () => {
             try {
                 const grnResponse = await API.get('/api/stores/grn?status=pending');
                 const form76aResponse = await API.get('/api/stores/form76a?status=submitted');
+                const grnData = Array.isArray(grnResponse?.data?.data) ? grnResponse.data.data : [];
+                const form76aData = Array.isArray(form76aResponse?.data?.data?.requisitions) 
+                    ? form76aResponse.data.data.requisitions 
+                    : [];
                 const approvals = [
-                    ...(grnResponse.data?.data || []).map(item => ({
+                    ...grnData.map(item => ({
                         ...item,
                         type: 'GRN',
                         link: '/stores/grn'
                     })),
-                    ...(form76aResponse.data?.data?.requisitions || []).map(item => ({
+                    ...form76aData.map(item => ({
                         ...item,
                         type: 'Form 76A',
                         link: '/stores/form76a'
@@ -49,27 +53,36 @@ const Dashboard = () => {
                 setPendingApprovals(approvals.slice(0, 10));
             } catch (e) {
                 console.error('Error loading approvals:', e);
+                setPendingApprovals([]); // Ensure empty array on error
             }
 
             // Load stock warnings
             try {
                 const stockResponse = await API.get('/api/stores/ledger/low-stock');
-                setStockWarnings(stockResponse.data?.data || []);
+                const stockData = Array.isArray(stockResponse?.data?.data) ? stockResponse.data.data : [];
+                setStockWarnings(stockData);
             } catch (e) {
                 console.error('Error loading stock warnings:', e);
+                setStockWarnings([]); // Ensure empty array on error
             }
 
             // Load overdue items (maintenance, job cards, etc.)
             try {
                 const maintenanceResponse = await API.get('/api/maintenance?overdue=true');
                 const jobCardsResponse = await API.get('/api/v/jobcard?overdue=true');
+                const maintenanceData = Array.isArray(maintenanceResponse?.data?.data) 
+                    ? maintenanceResponse.data.data 
+                    : [];
+                const jobCardsData = Array.isArray(jobCardsResponse?.data?.data) 
+                    ? jobCardsResponse.data.data 
+                    : [];
                 const overdue = [
-                    ...(maintenanceResponse.data?.data || []).map(item => ({
+                    ...maintenanceData.map(item => ({
                         ...item,
                         type: 'Maintenance',
                         link: '/ict/maintanance'
                     })),
-                    ...(jobCardsResponse.data?.data || []).map(item => ({
+                    ...jobCardsData.map(item => ({
                         ...item,
                         type: 'Job Card',
                         link: '/fleet/jobcards'
@@ -78,14 +91,19 @@ const Dashboard = () => {
                 setOverdueItems(overdue.slice(0, 10));
             } catch (e) {
                 console.error('Error loading overdue items:', e);
+                setOverdueItems([]); // Ensure empty array on error
             }
 
             // Load recent activity
             try {
                 const activityResponse = await API.get('/api/stores/ledger?limit=10');
-                setRecentActivity(activityResponse.data?.data || []);
+                const activityData = Array.isArray(activityResponse?.data?.data) 
+                    ? activityResponse.data.data 
+                    : [];
+                setRecentActivity(activityData);
             } catch (e) {
                 console.error('Error loading recent activity:', e);
+                setRecentActivity([]); // Ensure empty array on error
             }
         } catch (error) {
             console.error('Error loading dashboard data:', error);

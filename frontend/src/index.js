@@ -4,6 +4,7 @@ import { Provider } from "react-redux";
 import { BrowserRouter } from "react-router-dom";
 import App from './Routes/App';
 import store from "./store";
+import ErrorBoundary from './components/ErrorBoundary';
 import './theme/moh-institutional-theme.css';
 import './theme/moh-global-theme.css';
 import './theme/moh-professional.css';
@@ -16,9 +17,11 @@ import './assets/fonts/Inter/Inter-Medium.ttf';
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  <Provider store={store}>
-    <BrowserRouter>
+  <ErrorBoundary>
+    <Provider store={store}>
+      <BrowserRouter>
         <App />
-    </BrowserRouter>
-  </Provider>
+      </BrowserRouter>
+    </Provider>
+  </ErrorBoundary>
 );

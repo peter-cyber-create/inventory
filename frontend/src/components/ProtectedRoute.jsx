@@ -1,32 +1,35 @@
 import React from 'react';
 import { Route, Redirect } from 'react-router-dom';
-import { notification } from 'antd';
+import { toast } from 'react-toastify';
 
-const ProtectedRoute = ({ component: Component, allowedRoles, ...rest }) => {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const userRole = user.role || localStorage.getItem('userRole');
+const ProtectedRoute = ({ component: Component, allowedRoles = [], ...rest }) => {
+  let user = {};
+  try {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      user = JSON.parse(userData);
+    }
+  } catch (e) {
+    console.error('Error parsing user data:', e);
+  }
+  
+  const userRole = user.role || localStorage.getItem('userRole') || '';
   const token = localStorage.getItem('token');
 
   const isAuthenticated = token && user.id;
-  const hasPermission = allowedRoles.includes(userRole) || userRole === 'admin';
+  const hasPermission = (allowedRoles && allowedRoles.length > 0 && allowedRoles.includes(userRole)) || userRole === 'admin';
 
   return (
     <Route
       {...rest}
       render={(props) => {
         if (!isAuthenticated) {
-          notification.error({
-            message: 'Authentication Required',
-            description: 'Please log in to access this page.',
-          });
+          toast.error('Authentication Required. Please log in to access this page.');
           return <Redirect to="/" />;
         }
 
         if (!hasPermission) {
-          notification.error({
-            message: 'Access Denied',
-            description: 'You do not have permission to access this module.',
-          });
+          toast.error('Access Denied. You do not have permission to access this module.');
           
           // Redirect to user's default dashboard
           const dashboardRoutes = {
@@ -34,7 +37,7 @@ const ProtectedRoute = ({ component: Component, allowedRoles, ...rest }) => {
             'garage': '/fleet/dashboard',
             'store': '/stores/dashboard',
             'finance': '/finance/dashboard',
-            'admin': '/ict/dashboard'
+            'admin': '/dashboard'
           };
           
           return <Redirect to={dashboardRoutes[userRole] || '/ict/dashboard'} />;
