@@ -70,6 +70,7 @@ const StandardForm = ({
                 label={label}
                 required={required}
                 span={span}
+                type={type}
             >
                 {fieldElement}
             </MOHFormField>

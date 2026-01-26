@@ -19,7 +19,9 @@ import {
   PlusOutlined, 
   DeleteOutlined,
   SaveOutlined,
-  CheckCircleOutlined 
+  CheckCircleOutlined,
+  EyeInvisibleOutlined,
+  EyeTwoTone
 } from '@ant-design/icons';
 
 const { TextArea } = Input;
@@ -114,8 +116,38 @@ export const MOHFormField = ({
   tooltip,
   children,
   span = 24,
+  type = 'text',
+  validationRules = [],
   ...props 
 }) => {
+  // Build validation rules
+  const rules = [];
+  
+  // Add required rule
+  if (required) {
+    rules.push({ required: true, message: `Please enter ${label.toLowerCase()}` });
+  }
+
+  // Add type-specific validation
+  if (type === 'email') {
+    rules.push({ 
+      type: 'email', 
+      message: 'Please enter a valid email address' 
+    });
+  }
+
+  if (type === 'number') {
+    rules.push({ 
+      type: 'number', 
+      message: 'Please enter a valid number' 
+    });
+  }
+
+  // Add custom validation rules
+  if (validationRules && validationRules.length > 0) {
+    rules.push(...validationRules);
+  }
+
   return (
     <Col xs={24} sm={24} md={span} lg={span}>
       <Form.Item
@@ -132,7 +164,7 @@ export const MOHFormField = ({
             )}
           </span>
         }
-        rules={required ? [{ required: true, message: `Please enter ${label.toLowerCase()}` }] : []}
+        rules={rules}
         tooltip={tooltip}
         {...props}
       >
@@ -143,15 +175,82 @@ export const MOHFormField = ({
 };
 
 /**
- * MOHInput - Styled input component
+ * MOHInput - Styled input component with full functionality
+ * Supports all input types including password with show/hide toggle
  */
 export const MOHInput = ({ 
   placeholder, 
   prefix, 
   suffix,
   type = 'text',
+  showPasswordToggle = true,
   ...props 
 }) => {
+  // For password inputs, use Input.Password with show/hide toggle
+  if (type === 'password') {
+    return (
+      <Input.Password
+        placeholder={placeholder}
+        prefix={prefix}
+        suffix={suffix}
+        iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+        style={{
+          height: '44px',
+          borderRadius: '8px',
+          border: '1px solid #E1E5E9',
+          fontSize: '16px',
+          transition: 'all 0.2s ease'
+        }}
+        className="moh-input moh-input-password"
+        {...props}
+      />
+    );
+  }
+
+  // For email inputs, add email validation
+  if (type === 'email') {
+    return (
+      <Input
+        type="email"
+        placeholder={placeholder}
+        prefix={prefix}
+        suffix={suffix}
+        style={{
+          height: '44px',
+          borderRadius: '8px',
+          border: '1px solid #E1E5E9',
+          fontSize: '16px',
+          transition: 'all 0.2s ease'
+        }}
+        className="moh-input moh-input-email"
+        autoComplete="email"
+        {...props}
+      />
+    );
+  }
+
+  // For number inputs
+  if (type === 'number') {
+    return (
+      <InputNumber
+        placeholder={placeholder}
+        prefix={prefix}
+        suffix={suffix}
+        style={{
+          width: '100%',
+          height: '44px',
+          borderRadius: '8px',
+          border: '1px solid #E1E5E9',
+          fontSize: '16px',
+          transition: 'all 0.2s ease'
+        }}
+        className="moh-input moh-input-number"
+        {...props}
+      />
+    );
+  }
+
+  // Default text input
   return (
     <Input
       type={type}
@@ -350,21 +449,48 @@ export const MOHFormActions = ({
 
 /**
  * MOHForm - Main form wrapper with professional styling
+ * Ensures all form inputs are fully functional with proper validation
  */
 export const MOHForm = ({ 
   children, 
   form,
   onFinish,
+  onFinishFailed,
   initialValues,
   layout = 'vertical',
+  validateMessages,
   ...props 
 }) => {
+  // Default validation messages
+  const defaultValidateMessages = {
+    required: '${label} is required',
+    types: {
+      email: '${label} is not a valid email',
+      number: '${label} is not a valid number',
+    },
+    number: {
+      range: '${label} must be between ${min} and ${max}',
+    },
+    ...validateMessages
+  };
+
+  // Default error handler
+  const handleFinishFailed = (errorInfo) => {
+    console.error('Form validation failed:', errorInfo);
+    if (onFinishFailed) {
+      onFinishFailed(errorInfo);
+    }
+  };
+
   return (
     <Form
       form={form}
       layout={layout}
       onFinish={onFinish}
+      onFinishFailed={handleFinishFailed}
       initialValues={initialValues}
+      validateMessages={defaultValidateMessages}
+      autoComplete="off"
       style={{
         background: '#FAFBFC',
         padding: '24px',
@@ -390,6 +516,8 @@ export default {
   MOHButton,
   MOHFormActions
 };
+
+
 
 
 

@@ -121,6 +121,7 @@ Thumbs.db
 
 # Uploads (ignore root uploads directory, but allow route files)
 /uploads/
+backend/uploads/
 !uploads/.gitkeep
 !backend/routes/uploads/
 

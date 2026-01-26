@@ -14,6 +14,7 @@ const Login = () => {
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [rememberSession, setRememberSession] = useState(false);
 
     const history = useHistory();
 
@@ -91,19 +92,15 @@ const Login = () => {
                             />
                         </div>
                         
-                        <div className="enterprise-system-badge">
-                            <span className="enterprise-badge-text">INTERNAL SYSTEM</span>
+                        <div className="enterprise-ministry-name">
+                            <h2 className="enterprise-ministry-title">Ministry of Health Uganda</h2>
                         </div>
                         
                         <h1 className="enterprise-system-title">
-                            Inventory Management
-                            <span className="enterprise-system-subtitle">System</span>
+                            Inventory Management System
                         </h1>
                         
                         <div className="enterprise-system-info">
-                            <p className="enterprise-info-line">
-                                Ministry of Health Uganda
-                            </p>
                             <p className="enterprise-info-line enterprise-info-secondary">
                                 Asset Tracking • Fleet Operations • Store Management
                             </p>
@@ -150,6 +147,7 @@ const Login = () => {
                                     onChange={(e) => setUserName(e.target.value)}
                                     disabled={loading}
                                     autoComplete="username"
+                                    required
                                     autoFocus
                                 />
                             </div>
@@ -168,6 +166,7 @@ const Login = () => {
                                         onChange={(e) => setPassword(e.target.value)}
                                         disabled={loading}
                                         autoComplete="current-password"
+                                        required
                                     />
                                     <button
                                         type="button"
@@ -186,6 +185,9 @@ const Login = () => {
                                     <input
                                         type="checkbox"
                                         className="enterprise-checkbox"
+                                        checked={rememberSession}
+                                        onChange={(e) => setRememberSession(e.target.checked)}
+                                        disabled={loading}
                                     />
                                     <span>Remember session</span>
                                 </label>

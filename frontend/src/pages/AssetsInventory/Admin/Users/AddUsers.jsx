@@ -1,126 +1,101 @@
 import React, { useState } from "react";
+import { Form, Row } from "antd";
 import { toast } from "react-toastify";
 import API from "../../../../helpers/api";
-import FNSpinner from "../../../../components/FNSpinner";
+import {
+    MOHForm,
+    MOHFormSection,
+    MOHFormField,
+    MOHInput,
+    MOHSelect,
+    MOHFormActions
+} from "../../../../design-system/MOHFormSystem";
+import "../../../../design-system/moh-forms.css";
 
 const AddUsers = ({ close, refresh }) => {
-
+    const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({
-        password: "", username: "", role: "",
-        firstname: "", lastname: "", phoneNo: "", facilityId: "", email: ""
-    });
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const roleOptions = [
+        { value: 'admin', label: 'Administrator' },
+        { value: 'it', label: 'IT Manager' },
+        { value: 'store', label: 'Store Manager' },
+        { value: 'garage', label: 'Fleet Manager' },
+        { value: 'finance', label: 'Finance Manager' },
+        { value: 'user', label: 'User' }
+    ];
+
+    const handleSubmit = async (values) => {
         setLoading(true);
 
         try {
-            const response = await API.post('/api/users/register', formData);
-            console.log(response)
+            const response = await API.post('/api/users/register', values);
+            console.log(response);
             setLoading(false);
+            form.resetFields();
             close();
             refresh();
             toast.success('User Added Successfully');
         } catch (error) {
             console.log("error", error);
             setLoading(false);
-            toast.error("Error while New User");
+            const errorMessage = error.response?.data?.message || "Error while adding new user";
+            toast.error(errorMessage);
         }
     };
 
     return (
-        <div class="card custom-card">
-            <div class="card-body">
-                <section id="kyc-verify-wizard-p-0" role="tabpanel" aria-labelledby="kyc-verify-wizard-h-0" class="body current" aria-hidden="false">
-                    <div class="row">
-                        <div class="col-lg-6">
-                            <div class="mb-3">
-                                <label for="kycselectcity-input" class="form-label">User Name</label>
-                                <input type="text" class="form-control" placeholder="Add User Name"
-                                    value={formData.username}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, username: e.target.value })
-                                    } />
-                            </div>
-                        </div>
-                        <div class="col-lg-6">
-                            <div class="mb-3">
-                                <label for="kycselectcity-input" class="form-label">Password</label>
-                                <input type="password" class="form-control" placeholder="Add First Name"
-                                    value={formData.password}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, password: e.target.value })
-                                    } />
-                            </div>
-                        </div>
-                        <div class="col-lg-6">
-                            <div class="mb-3">
-                                <label for="kycselectcity-input" class="form-label">First Name</label>
-                                <input type="text" class="form-control" placeholder="Add First Name"
-                                    value={formData.firstname}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, firstname: e.target.value })
-                                    } />
-                            </div>
-                        </div>
-                        <div class="col-lg-6">
-                            <div class="mb-3">
-                                <label for="kycselectcity-input" class="form-label">Last Name</label>
-                                <input type="text" class="form-control" placeholder="Add User Name"
-                                    value={formData.lastname}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, lastname: e.target.value })
-                                    } />
-                            </div>
-                        </div>
-                        <div class="col-lg-6">
-                            <div class="mb-3">
-                                <label for="kycselectcity-input" class="form-label">Role</label>
-                                <input type="text" class="form-control" placeholder="Add User Name"
-                                    value={formData.role}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, role: e.target.value })
-                                    } />
-                            </div>
-                        </div>
-                        <div class="col-lg-6">
-                            <div class="mb-3">
-                                <label for="kycselectcity-input" class="form-label">Facility</label>
-                                <input type="text" class="form-control" placeholder="Add First Name"
-                                    value={formData.facility}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, facility: e.target.value })
-                                    } />
-                            </div>
-                        </div>
-                        <div class="col-lg-6">
-                            <div class="mb-3">
-                                <label for="kycselectcity-input" class="form-label">Phone Number</label>
-                                <input type="text" class="form-control" placeholder="Add Phone Number"
-                                    value={formData.phoneNo}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, phoneNo: e.target.value })
-                                    } />
-                            </div>
-                        </div>
-                        <div class="col-lg-6">
-                            <div class="mb-3">
-                                <label for="kycselectcity-input" class="form-label">Email</label>
-                                <input type="text" class="form-control" placeholder="Add Email"
-                                    value={formData.email}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, email: e.target.value })
-                                    } />
-                            </div>
-                        </div>
-                    </div>
-                    <div className="actions clearfix">
-                        <button className="btn btn-primary waves-effect waves-light" onClick={handleSubmit} role="menuitem" style={{ cursor: 'pointer' }}>
-                            {loading ? <FNSpinner /> : "Add New User"}
-                        </button>
-                    </div>
-                </section>
+        <div className="card custom-card">
+            <div className="card-body">
+                <MOHForm
+                    form={form}
+                    onFinish={handleSubmit}
+                    layout="vertical"
+                >
+                    <MOHFormSection
+                        title="User Information"
+                        subtitle="Enter user details"
+                        required
+                    >
+                        <Row gutter={[16, 0]}>
+                            <MOHFormField name="username" label="User Name" required span={12} type="text">
+                                <MOHInput placeholder="Enter username" />
+                            </MOHFormField>
+                            <MOHFormField name="password" label="Password" required span={12} type="password">
+                                <MOHInput type="password" placeholder="Enter password" />
+                            </MOHFormField>
+                            <MOHFormField name="firstname" label="First Name" required span={12} type="text">
+                                <MOHInput placeholder="Enter first name" />
+                            </MOHFormField>
+                            <MOHFormField name="lastname" label="Last Name" required span={12} type="text">
+                                <MOHInput placeholder="Enter last name" />
+                            </MOHFormField>
+                            <MOHFormField name="role" label="Role" required span={12}>
+                                <MOHSelect 
+                                    placeholder="Select role"
+                                    options={roleOptions}
+                                />
+                            </MOHFormField>
+                            <MOHFormField name="facilityId" label="Facility ID" span={12} type="text">
+                                <MOHInput placeholder="Enter facility ID" />
+                            </MOHFormField>
+                            <MOHFormField name="phoneNo" label="Phone Number" required span={12} type="text">
+                                <MOHInput placeholder="Enter phone number" />
+                            </MOHFormField>
+                            <MOHFormField name="email" label="Email" required span={12} type="email">
+                                <MOHInput type="email" placeholder="Enter email address" />
+                            </MOHFormField>
+                        </Row>
+                    </MOHFormSection>
+                    
+                    <MOHFormActions
+                        onCancel={close}
+                        onSubmit={() => form.submit()}
+                        loading={loading}
+                        submitText="Add New User"
+                        cancelText="Cancel"
+                    />
+                </MOHForm>
             </div>
         </div>
     )
