@@ -3,9 +3,9 @@
  * Institutional layout with Header, Sidebar, and Content area
  */
 import React, { useState, useEffect } from "react";
-import Header from "./Header";
+import AppHeader from "./Header";
 import Footer from "./Footer";
-import Sidebar from "./Sidebar";
+import AppSidebar from "./Sidebar";
 import '../../theme/moh-institutional-theme.css';
 
 const Layout = ({ children }) => {
@@ -30,14 +30,14 @@ const Layout = ({ children }) => {
             minHeight: '100vh',
             background: 'var(--color-bg-primary)'
         }}>
-            <Header />
+            <AppHeader />
             
             <div style={{
                 display: 'flex',
                 flex: 1,
                 marginTop: 'var(--header-height)'
             }}>
-                <Sidebar collapsed={collapsed} user={user} />
+                <AppSidebar collapsed={collapsed} user={user} />
                 
                 <main style={{
                     flex: 1,
