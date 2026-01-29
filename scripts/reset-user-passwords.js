@@ -71,14 +71,14 @@ const DEFAULT_USERS = [
   }
 ];
 
-async function resetUserPasswords(newPassword = 'Admin@123456') {
+async function resetUserPasswords(newPassword = 'Admin@123') {
   try {
     console.log('🔐 Resetting user passwords...\n');
     console.log(`Using password: ${newPassword}\n`);
 
     // Validate password meets requirements
-    if (newPassword.length < 12) {
-      console.error('❌ Password must be at least 12 characters long');
+    if (newPassword.length < 8) {
+      console.error('❌ Password must be at least 8 characters long');
       process.exit(1);
     }
 
@@ -141,7 +141,7 @@ async function resetUserPasswords(newPassword = 'Admin@123456') {
 }
 
 // Get password from command line or use default
-const password = process.argv[2] || 'Admin@123456';
+const password = process.argv[2] || 'Admin@123';
 
 resetUserPasswords(password);
 

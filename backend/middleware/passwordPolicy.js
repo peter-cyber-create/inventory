@@ -7,7 +7,7 @@ const bcrypt = require('bcrypt');
 
 // Password requirements
 const PASSWORD_REQUIREMENTS = {
-  minLength: 12,
+  minLength: 8,
   requireUppercase: true,
   requireLowercase: true,
   requireNumbers: true,
@@ -123,7 +123,7 @@ const calculatePasswordStrength = (password) => {
   // Length scoring
   if (password.length >= 12) score += 20;
   else if (password.length >= 8) score += 10;
-  else feedback.push('Use at least 12 characters for better security');
+  else feedback.push('Use at least 8 characters for better security');
 
   if (password.length >= 16) score += 10;
   if (password.length >= 20) score += 5;
