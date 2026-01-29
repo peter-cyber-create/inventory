@@ -5,8 +5,13 @@
  * Verifies ALL required tables exist for the entire system to function
  */
 
-const { Sequelize } = require('sequelize');
 const path = require('path');
+
+// Add backend node_modules to NODE_PATH so we can require sequelize
+process.env.NODE_PATH = path.join(__dirname, '../backend/node_modules') + (process.env.NODE_PATH ? ':' + process.env.NODE_PATH : '');
+require('module')._initPaths();
+
+const { Sequelize } = require('sequelize');
 require('dotenv').config({ path: path.join(__dirname, '../config/environments/backend.env') });
 
 const sequelize = new Sequelize(
