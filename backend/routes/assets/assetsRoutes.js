@@ -60,7 +60,12 @@ router.post("/", async (req, res, next) => {
                         assetId: asset.id
                     });
                 } catch (error) {
-                    errors.push({ row, error: error.message });
+                    console.error('Error creating asset:', error);
+                    errors.push({ 
+                        row, 
+                        error: error.message,
+                        details: error.errors ? error.errors.map(e => e.message).join(', ') : undefined
+                    });
                 }
             }
 
@@ -108,6 +113,16 @@ router.post("/", async (req, res, next) => {
             audit
         });
     } catch (error) {
+        console.error('Asset creation error:', error);
+        // Return more detailed error in development
+        if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV !== 'production') {
+            return res.status(400).json({
+                status: "error",
+                message: error.message || "Failed to create asset",
+                details: error.errors ? error.errors.map(e => e.message) : undefined,
+                stack: error.stack
+            });
+        }
         next(error);
     }
 });
