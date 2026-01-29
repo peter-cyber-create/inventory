@@ -142,9 +142,15 @@ router.post("/", async (req, res, next) => {
                     errors: errors.length > 0 ? errors : undefined
                 });
             } else {
+                // Return first error message for user-friendly display
+                const firstError = errors.length > 0 ? errors[0] : null;
+                const errorMessage = firstError 
+                    ? (firstError.details || firstError.error || "Failed to create asset")
+                    : "Failed to create any assets";
+                
                 return res.status(400).json({
                     status: "error",
-                    message: "Failed to create any assets",
+                    message: errorMessage,
                     errors: errors
                 });
             }
