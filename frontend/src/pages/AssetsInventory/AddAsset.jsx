@@ -64,14 +64,21 @@ const AddAsset = ({ close, refresh }) => {
                 'medium'
             );
         } catch (error) {
-            console.log("error", error);
+            console.error("Asset creation error:", error);
             setLoading(false);
-            toast.error("Error while Adding ICT Asset");
+            
+            // Extract error message from response
+            const errorMessage = error.response?.data?.message 
+                || error.response?.data?.error 
+                || error.message 
+                || "Error while Adding ICT Asset";
+            
+            toast.error(errorMessage);
             
             // Add notification for failed asset creation
             notificationService.assets(
                 'Asset Addition Failed',
-                'There was an error while adding the ICT asset. Please try again.',
+                errorMessage,
                 'error',
                 'high'
             );
