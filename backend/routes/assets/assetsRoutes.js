@@ -5,6 +5,7 @@ const Brand = require("../../models/categories/brandModel.js");
 const Category = require("../../models/categories/categoryModel.js");
 const Model = require("../../models/categories/model.js");
 const Type = require("../../models/categories/typeModel.js");
+const Staff = require("../../models/categories/staffModel.js");
 
 const router = express.Router();
 
@@ -28,7 +29,6 @@ router.post("/", async (req, res, next) => {
             const [defaultCategory] = await Category.findAll({ limit: 1 });
             const [defaultBrand] = await Brand.findAll({ limit: 1 });
             const [defaultModel] = await Model.findAll({ limit: 1 });
-            const Staff = require("../../models/categories/staffModel.js");
             const [defaultStaff] = await Staff.findAll({ limit: 1 });
 
             for (const row of req.body.rows) {
