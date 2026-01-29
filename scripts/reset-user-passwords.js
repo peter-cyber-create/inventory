@@ -5,11 +5,31 @@
  * Resets passwords for default users to meet security requirements
  * 
  * Usage: node scripts/reset-user-passwords.js [password]
- * If no password provided, uses default: Admin@123456
+ * If no password provided, uses default: Admin@123
  */
 
-const bcrypt = require('bcrypt');
 const path = require('path');
+
+// Add backend node_modules to the path so we can require bcrypt
+const backendNodeModules = path.join(__dirname, '../backend/node_modules');
+require('module')._resolveFilename = ((originalResolveFilename) => {
+  return function(request, parent) {
+    try {
+      return originalResolveFilename(request, parent);
+    } catch (err) {
+      if (err.code === 'MODULE_NOT_FOUND') {
+        try {
+          return originalResolveFilename(request, { paths: [backendNodeModules, ...(parent?.paths || [])] });
+        } catch (e) {
+          throw err;
+        }
+      }
+      throw err;
+    }
+  };
+})(require('module')._resolveFilename);
+
+const bcrypt = require('bcrypt');
 require('dotenv').config({ path: path.join(__dirname, '../config/environments/backend.env') });
 
 const { sequelize } = require('../backend/config/db');
