@@ -6,6 +6,7 @@ const Category = require("../../models/categories/categoryModel.js");
 const Model = require("../../models/categories/model.js");
 const Type = require("../../models/categories/typeModel.js");
 const Staff = require("../../models/categories/staffModel.js");
+const { sequelize } = require("../../config/db.js");
 
 const router = express.Router();
 
@@ -24,12 +25,38 @@ router.post("/", async (req, res, next) => {
             const createdAssets = [];
             const errors = [];
 
-            // Get default IDs for fallback
-            const [defaultType] = await Type.findAll({ limit: 1 });
-            const [defaultCategory] = await Category.findAll({ limit: 1 });
-            const [defaultBrand] = await Brand.findAll({ limit: 1 });
-            const [defaultModel] = await Model.findAll({ limit: 1 });
-            const [defaultStaff] = await Staff.findAll({ limit: 1 });
+            // Get default IDs for fallback (handle errors gracefully)
+            let defaultType, defaultCategory, defaultBrand, defaultModel, defaultStaff;
+            
+            try {
+                const types = await Type.findAll({ limit: 1 });
+                defaultType = types[0] || null;
+            } catch (e) { defaultType = null; }
+            
+            try {
+                const categories = await Category.findAll({ limit: 1 });
+                defaultCategory = categories[0] || null;
+            } catch (e) { defaultCategory = null; }
+            
+            try {
+                const brands = await Brand.findAll({ limit: 1 });
+                defaultBrand = brands[0] || null;
+            } catch (e) { defaultBrand = null; }
+            
+            try {
+                const models = await Model.findAll({ limit: 1 });
+                defaultModel = models[0] || null;
+            } catch (e) { defaultModel = null; }
+            
+            try {
+                // Use raw query to avoid Sequelize pluralization issues
+                const { QueryTypes } = require('sequelize');
+                const staffResults = await sequelize.query('SELECT id FROM staff LIMIT 1', { type: QueryTypes.SELECT });
+                defaultStaff = staffResults && staffResults.length > 0 ? { id: staffResults[0].id } : null;
+            } catch (e) { 
+                console.warn('Could not fetch default staff:', e.message);
+                defaultStaff = null; 
+            }
 
             for (const row of req.body.rows) {
                 try {
@@ -42,11 +69,11 @@ router.post("/", async (req, res, next) => {
                         funder: row.funding || null,
                         status: 'InStores',
                         // Map category/model names to IDs, or use defaults
-                        categoryId: row.categoryId || defaultCategory?.id || null,
-                        modelId: row.modelId || defaultModel?.id || null,
-                        typeId: defaultType?.id || null,
-                        brandId: defaultBrand?.id || null,
-                        staffId: defaultStaff?.id || null
+                        categoryId: row.categoryId || (defaultCategory ? defaultCategory.id : null) || null,
+                        modelId: row.modelId || (defaultModel ? defaultModel.id : null) || null,
+                        typeId: (defaultType ? defaultType.id : null) || null,
+                        brandId: (defaultBrand ? defaultBrand.id : null) || null,
+                        staffId: (defaultStaff ? defaultStaff.id : null) || null
                     };
 
                     const asset = await Asset.create(assetData);
