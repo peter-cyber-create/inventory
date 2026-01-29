@@ -63,21 +63,49 @@ router.post("/", async (req, res, next) => {
 
             for (const row of req.body.rows) {
                 try {
-                    // Map form data to asset model format
+                    // Try to find model by name if modelId not provided
+                    let modelId = row.modelId;
+                    if (!modelId && row.model) {
+                        try {
+                            const foundModel = await Model.findOne({ where: { name: row.model }, limit: 1 });
+                            if (foundModel) modelId = foundModel.id;
+                        } catch (e) { /* ignore */ }
+                    }
+                    
+                    // Try to find category by name if categoryId not provided
+                    let categoryId = row.categoryId;
+                    if (!categoryId && row.category) {
+                        try {
+                            const foundCategory = await Category.findOne({ where: { name: row.category }, limit: 1 });
+                            if (foundCategory) categoryId = foundCategory.id;
+                        } catch (e) { /* ignore */ }
+                    }
+
+                    // Map form data to asset model format - ensure description is never empty
+                    const description = (row.asset || row.description || 'ICT Asset').trim();
+                    if (!description || description === '') {
+                        throw new Error('Asset description is required');
+                    }
+
                     const assetData = {
-                        description: row.asset || row.description || 'ICT Asset',
-                        serialNo: row.serialNo || null,
-                        engravedNo: row.engravedNo || null,
-                        funding: row.funding || null,
-                        funder: row.funding || null,
+                        description: description,
+                        serialNo: (row.serialNo || '').trim() || null,
+                        engravedNo: (row.engravedNo || '').trim() || null,
+                        funding: (row.funding || '').trim() || null,
+                        funder: (row.funding || '').trim() || null,
                         status: 'InStores',
-                        // Map category/model names to IDs, or use defaults
-                        categoryId: row.categoryId || (defaultCategory ? defaultCategory.id : null) || null,
-                        modelId: row.modelId || (defaultModel ? defaultModel.id : null) || null,
-                        typeId: (defaultType ? defaultType.id : null) || null,
-                        brandId: (defaultBrand ? defaultBrand.id : null) || null,
-                        staffId: (defaultStaff ? defaultStaff.id : null) || null
+                        // Use found IDs or defaults - ensure we always have values
+                        categoryId: categoryId || (defaultCategory ? defaultCategory.id : null),
+                        modelId: modelId || (defaultModel ? defaultModel.id : null),
+                        typeId: (defaultType ? defaultType.id : null),
+                        brandId: (defaultBrand ? defaultBrand.id : null),
+                        staffId: (defaultStaff ? defaultStaff.id : null)
                     };
+
+                    // Validate required fields before creating
+                    if (!assetData.description) {
+                        throw new Error('Asset description is required');
+                    }
 
                     console.log('📝 Creating asset with data:', JSON.stringify(assetData, null, 2));
                     const asset = await Asset.create(assetData);
