@@ -65,14 +65,19 @@ const AddAsset = ({ close, refresh }) => {
             );
         } catch (error) {
             console.error("Asset creation error:", error);
+            console.error("Error response:", error.response);
             setLoading(false);
             
-            // Extract error message from response
-            const errorMessage = error.response?.data?.message 
-                || error.response?.data?.error 
-                || error.message 
+            // API interceptor already sets error.message, but check all sources
+            const errorMessage = error.message 
+                || error.response?.data?.message 
+                || error.response?.data?.error
+                || (error.response?.data?.errors && Array.isArray(error.response.data.errors) 
+                    ? error.response.data.errors.map(e => e.error || e.message || JSON.stringify(e)).join(', ')
+                    : null)
                 || "Error while Adding ICT Asset";
             
+            console.error("Displaying error:", errorMessage);
             toast.error(errorMessage);
             
             // Add notification for failed asset creation
