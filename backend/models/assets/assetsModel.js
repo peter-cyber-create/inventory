@@ -82,7 +82,7 @@ const AssetModel = sequelize.define("assets", {
     },
     typeId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true, // Changed to true - database column is nullable
         references: {
             model: Type,
             key: 'id'
@@ -90,7 +90,7 @@ const AssetModel = sequelize.define("assets", {
     },
     categoryId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true, // Changed to true - database column is nullable
         references: {
             model: Category,
             key: 'id'
@@ -98,7 +98,7 @@ const AssetModel = sequelize.define("assets", {
     },
     brandId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true, // Changed to true - database column is nullable
         references: {
             model: Brand,
             key: 'id'
@@ -106,7 +106,7 @@ const AssetModel = sequelize.define("assets", {
     },
     modelId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true, // Changed to true - database column is nullable
         references: {
             model: Model,
             key: 'id'
@@ -114,7 +114,7 @@ const AssetModel = sequelize.define("assets", {
     },
     staffId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true, // Changed to true - database column is nullable
         references: {
             model: Staff,
             key: 'id'

@@ -33,29 +33,46 @@ router.post("/", async (req, res, next) => {
             
             try {
                 const types = await Type.findAll({ limit: 1 });
-                defaultType = types[0] || null;
-            } catch (e) { defaultType = null; }
+                defaultType = types && types.length > 0 ? types[0] : null;
+                console.log(`   Default Type: ${defaultType ? defaultType.id : 'NONE'}`);
+            } catch (e) { 
+                console.warn('Could not fetch default type:', e.message);
+                defaultType = null; 
+            }
             
             try {
                 const categories = await Category.findAll({ limit: 1 });
-                defaultCategory = categories[0] || null;
-            } catch (e) { defaultCategory = null; }
+                defaultCategory = categories && categories.length > 0 ? categories[0] : null;
+                console.log(`   Default Category: ${defaultCategory ? defaultCategory.id : 'NONE'}`);
+            } catch (e) { 
+                console.warn('Could not fetch default category:', e.message);
+                defaultCategory = null; 
+            }
             
             try {
                 const brands = await Brand.findAll({ limit: 1 });
-                defaultBrand = brands[0] || null;
-            } catch (e) { defaultBrand = null; }
+                defaultBrand = brands && brands.length > 0 ? brands[0] : null;
+                console.log(`   Default Brand: ${defaultBrand ? defaultBrand.id : 'NONE'}`);
+            } catch (e) { 
+                console.warn('Could not fetch default brand:', e.message);
+                defaultBrand = null; 
+            }
             
             try {
                 const models = await Model.findAll({ limit: 1 });
-                defaultModel = models[0] || null;
-            } catch (e) { defaultModel = null; }
+                defaultModel = models && models.length > 0 ? models[0] : null;
+                console.log(`   Default Model: ${defaultModel ? defaultModel.id : 'NONE'}`);
+            } catch (e) { 
+                console.warn('Could not fetch default model:', e.message);
+                defaultModel = null; 
+            }
             
             try {
                 // Use raw query to avoid Sequelize pluralization issues
                 const { QueryTypes } = require('sequelize');
                 const staffResults = await sequelize.query('SELECT id FROM staff LIMIT 1', { type: QueryTypes.SELECT });
                 defaultStaff = staffResults && staffResults.length > 0 ? { id: staffResults[0].id } : null;
+                console.log(`   Default Staff: ${defaultStaff ? defaultStaff.id : 'NONE'}`);
             } catch (e) { 
                 console.warn('Could not fetch default staff:', e.message);
                 defaultStaff = null; 
