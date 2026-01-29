@@ -43,10 +43,13 @@ const Requisition = () => {
     try {
       const res = await API.get(`/requisition/it/assets`);
       console.log(res);
-      setRequisitions(res?.data.assets);
+      // Ensure we always set an array, even if API fails
+      setRequisitions(res?.data?.assets || []);
       setLoading(false);
     } catch (error) {
       console.log("error", error);
+      // Set empty array on error to prevent undefined errors
+      setRequisitions([]);
       setLoading(false);
     }
   };
@@ -124,7 +127,7 @@ const Requisition = () => {
                           </div>
                         </div>
                       </div>
-                      {requistions.results === 0 ? (
+                      {!requistions || requistions.length === 0 ? (
                         <FNCard text="No Requisitions For Assets Yet! " />
                       ) : (
                         <FNTable
