@@ -128,13 +128,47 @@ async function fixSchema() {
       console.log('✅ maintenances table exists');
     }
 
+    // Create default depart and division if they don't exist
+    const [departCount] = await sequelize.query(`SELECT COUNT(*) as count FROM depart;`);
+    if (parseInt(departCount[0].count) === 0) {
+      console.log('\n📦 Creating default department...');
+      await sequelize.query(`
+        INSERT INTO depart (name, "createdAt", "updatedAt")
+        VALUES ('System Department', NOW(), NOW())
+        ON CONFLICT DO NOTHING;
+      `);
+      console.log('✅ Default department created');
+    }
+
+    const [divisionCount] = await sequelize.query(`SELECT COUNT(*) as count FROM division;`);
+    if (parseInt(divisionCount[0].count) === 0) {
+      console.log('\n📦 Creating default division...');
+      // Get first depart ID
+      const [depart] = await sequelize.query(`SELECT id FROM depart LIMIT 1;`);
+      if (depart.length > 0) {
+        await sequelize.query(`
+          INSERT INTO division (name, "deptId", "createdAt", "updatedAt")
+          VALUES ('System Division', ${depart[0].id}, NOW(), NOW())
+          ON CONFLICT DO NOTHING;
+        `);
+        console.log('✅ Default division created');
+      }
+    }
+
     // Create a default staff member if staff table is empty
     const [staffCount] = await sequelize.query(`SELECT COUNT(*) as count FROM staff;`);
     if (parseInt(staffCount[0].count) === 0) {
       console.log('\n📦 Creating default staff member...');
+      // Get first depart and division IDs, or use NULL
+      const [depart] = await sequelize.query(`SELECT id FROM depart LIMIT 1;`);
+      const [division] = await sequelize.query(`SELECT id FROM division LIMIT 1;`);
+      
+      const deptId = depart.length > 0 ? depart[0].id : 'NULL';
+      const divId = division.length > 0 ? division[0].id : 'NULL';
+      
       await sequelize.query(`
         INSERT INTO staff (name, email, title, "deptId", "divisionId", "createdAt", "updatedAt")
-        VALUES ('System Staff', 'staff@moh.go.ug', 'System User', 1, 1, NOW(), NOW())
+        VALUES ('System Staff', 'staff@moh.go.ug', 'System User', ${deptId}, ${divId}, NOW(), NOW())
         ON CONFLICT DO NOTHING;
       `);
       console.log('✅ Default staff created');
