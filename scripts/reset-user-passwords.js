@@ -10,24 +10,9 @@
 
 const path = require('path');
 
-// Add backend node_modules to the path so we can require bcrypt
-const backendNodeModules = path.join(__dirname, '../backend/node_modules');
-require('module')._resolveFilename = ((originalResolveFilename) => {
-  return function(request, parent) {
-    try {
-      return originalResolveFilename(request, parent);
-    } catch (err) {
-      if (err.code === 'MODULE_NOT_FOUND') {
-        try {
-          return originalResolveFilename(request, { paths: [backendNodeModules, ...(parent?.paths || [])] });
-        } catch (e) {
-          throw err;
-        }
-      }
-      throw err;
-    }
-  };
-})(require('module')._resolveFilename);
+// Add backend node_modules to NODE_PATH so we can require bcrypt
+process.env.NODE_PATH = path.join(__dirname, '../backend/node_modules') + (process.env.NODE_PATH ? ':' + process.env.NODE_PATH : '');
+require('module')._initPaths();
 
 const bcrypt = require('bcrypt');
 require('dotenv').config({ path: path.join(__dirname, '../config/environments/backend.env') });
