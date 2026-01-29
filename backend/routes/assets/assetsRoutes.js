@@ -18,14 +18,89 @@ router.post("/", async (req, res, next) => {
             });
         }
 
-        const asset = await Asset.create(req.body);
+        // Handle form data format: if rows array exists, process multiple assets
+        if (req.body.rows && Array.isArray(req.body.rows)) {
+            const createdAssets = [];
+            const errors = [];
+
+            // Get default IDs for fallback
+            const [defaultType] = await Type.findAll({ limit: 1 });
+            const [defaultCategory] = await Category.findAll({ limit: 1 });
+            const [defaultBrand] = await Brand.findAll({ limit: 1 });
+            const [defaultModel] = await Model.findAll({ limit: 1 });
+            const Staff = require("../../models/categories/staffModel.js");
+            const [defaultStaff] = await Staff.findAll({ limit: 1 });
+
+            for (const row of req.body.rows) {
+                try {
+                    // Map form data to asset model format
+                    const assetData = {
+                        description: row.asset || row.description || 'ICT Asset',
+                        serialNo: row.serialNo || null,
+                        engravedNo: row.engravedNo || null,
+                        funding: row.funding || null,
+                        funder: row.funding || null,
+                        status: 'InStores',
+                        // Map category/model names to IDs, or use defaults
+                        categoryId: row.categoryId || defaultCategory?.id || null,
+                        modelId: row.modelId || defaultModel?.id || null,
+                        typeId: defaultType?.id || null,
+                        brandId: defaultBrand?.id || null,
+                        staffId: defaultStaff?.id || null
+                    };
+
+                    const asset = await Asset.create(assetData);
+                    createdAssets.push(asset);
+
+                    // Create audit log
+                    await Audit.create({
+                        action: "Asset Creation",
+                        actionedBy: req.body.user || req.body.requestedBy || null,
+                        description: "Asset Created In Asset Register",
+                        assetId: asset.id
+                    });
+                } catch (error) {
+                    errors.push({ row, error: error.message });
+                }
+            }
+
+            if (createdAssets.length > 0) {
+                return res.status(201).json({
+                    status: "success",
+                    message: `Successfully created ${createdAssets.length} asset(s)`,
+                    assets: createdAssets,
+                    errors: errors.length > 0 ? errors : undefined
+                });
+            } else {
+                return res.status(400).json({
+                    status: "error",
+                    message: "Failed to create any assets",
+                    errors: errors
+                });
+            }
+        }
+
+        // Handle single asset creation (legacy format)
+        // Map form fields to model fields
+        const assetData = {
+            ...req.body,
+            description: req.body.description || req.body.asset || 'ICT Asset',
+            // Ensure foreign keys are set or use defaults
+            typeId: req.body.typeId || null,
+            categoryId: req.body.categoryId || null,
+            brandId: req.body.brandId || null,
+            modelId: req.body.modelId || null,
+            staffId: req.body.staffId || null
+        };
+
+        const asset = await Asset.create(assetData);
 
         const audit = await Audit.create({
             action: "Asset Creation",
-            actionedBy: req.body.requestedBy || null,
+            actionedBy: req.body.requestedBy || req.body.user || null,
             description: "Asset Created In Asset Register",
             assetId: asset.id
-        })
+        });
 
         res.status(201).json({
             status: "success",
