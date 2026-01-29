@@ -118,7 +118,7 @@ const Maintenance = () => {
             if (editMode) {
                 await API.put(`/maintenance/${currentRecord.id}`, formData);
                 message.success('Maintenance record updated successfully');
-                notificationService.addAssetsNotification(
+                notificationService.assets(
                     'Maintenance Updated',
                     `Maintenance record for ${values.taskName} has been updated`,
                     'success',
@@ -127,7 +127,7 @@ const Maintenance = () => {
             } else {
                 await API.post('/api/maintenance', formData);
                 message.success('Maintenance record created successfully');
-                notificationService.addAssetsNotification(
+                notificationService.assets(
                     'Maintenance Scheduled',
                     `New maintenance task "${values.taskName}" has been scheduled`,
                     'success',
@@ -140,7 +140,7 @@ const Maintenance = () => {
         } catch (error) {
             console.error('Error submitting maintenance:', error);
             message.error('Failed to save maintenance record');
-            notificationService.addAssetsNotification(
+            notificationService.assets(
                 'Maintenance Error',
                 'Failed to save maintenance record. Please try again.',
                 'error',
@@ -167,7 +167,7 @@ const Maintenance = () => {
         try {
             await API.delete(`/maintenance/${id}`);
             message.success('Maintenance record deleted successfully');
-            notificationService.addAssetsNotification(
+            notificationService.assets(
                 'Maintenance Deleted',
                 'Maintenance record has been removed from the system',
                 'info',

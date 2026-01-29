@@ -57,7 +57,7 @@ const AddAsset = ({ close, refresh }) => {
             toast.success('ICT Asset Has Been Added Successfully');
             
             // Add notification for successful asset creation
-            notificationService.addAssetsNotification(
+            notificationService.assets(
                 'Asset Added Successfully',
                 `New ICT asset has been assigned to ${formData.user}`,
                 'success',
@@ -69,7 +69,7 @@ const AddAsset = ({ close, refresh }) => {
             toast.error("Error while Adding ICT Asset");
             
             // Add notification for failed asset creation
-            notificationService.addAssetsNotification(
+            notificationService.assets(
                 'Asset Addition Failed',
                 'There was an error while adding the ICT asset. Please try again.',
                 'error',

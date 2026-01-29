@@ -42,7 +42,11 @@ const Staff = sequelize.define("staff",
             },
         },
     },
-    { timestamps: true }
+    { 
+        timestamps: true,
+        tableName: 'staff', // Explicitly set table name to prevent pluralization
+        freezeTableName: true // Prevent Sequelize from pluralizing
+    }
 );
 
 Staff.belongsTo(Departs, { foreignKey: "deptId" });
