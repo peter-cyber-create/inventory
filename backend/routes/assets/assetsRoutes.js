@@ -12,6 +12,8 @@ const router = express.Router();
 
 router.post("/", async (req, res, next) => {
     try {
+        console.log('📥 Asset creation request received:', JSON.stringify(req.body, null, 2));
+        
         // Basic input validation
         if (!req.body || Object.keys(req.body).length === 0) {
             return res.status(400).json({
@@ -22,6 +24,7 @@ router.post("/", async (req, res, next) => {
 
         // Handle form data format: if rows array exists, process multiple assets
         if (req.body.rows && Array.isArray(req.body.rows)) {
+            console.log(`📦 Processing ${req.body.rows.length} asset(s) from rows array`);
             const createdAssets = [];
             const errors = [];
 
@@ -76,7 +79,9 @@ router.post("/", async (req, res, next) => {
                         staffId: (defaultStaff ? defaultStaff.id : null) || null
                     };
 
+                    console.log('📝 Creating asset with data:', JSON.stringify(assetData, null, 2));
                     const asset = await Asset.create(assetData);
+                    console.log('✅ Asset created successfully:', asset.id);
                     createdAssets.push(asset);
 
                     // Create audit log
@@ -87,11 +92,16 @@ router.post("/", async (req, res, next) => {
                         assetId: asset.id
                     });
                 } catch (error) {
-                    console.error('Error creating asset:', error);
+                    console.error('❌ Error creating asset:', error);
+                    console.error('   Error name:', error.name);
+                    console.error('   Error message:', error.message);
+                    if (error.errors) {
+                        console.error('   Validation errors:', error.errors.map(e => `${e.path}: ${e.message}`));
+                    }
                     errors.push({ 
                         row, 
                         error: error.message,
-                        details: error.errors ? error.errors.map(e => e.message).join(', ') : undefined
+                        details: error.errors ? error.errors.map(e => `${e.path}: ${e.message}`).join(', ') : undefined
                     });
                 }
             }
