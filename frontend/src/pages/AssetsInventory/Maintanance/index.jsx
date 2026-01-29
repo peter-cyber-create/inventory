@@ -430,9 +430,14 @@ const Maintenance = () => {
                                 <Select
                                     placeholder="Select Asset"
                                     showSearch
-                                    filterOption={(input, option) =>
-                                        option.children.toLowerCase().includes(input.toLowerCase())
-                                    }
+                                    filterOption={(input, option) => {
+                                        // Safely handle non-string children to avoid runtime errors
+                                        const label =
+                                            typeof option?.children === 'string'
+                                                ? option.children
+                                                : String(option?.children ?? '');
+                                        return label.toLowerCase().includes(input.toLowerCase());
+                                    }}
                                 >
                                     {assets.map(asset => (
                                         <Option key={asset.id} value={asset.id}>
