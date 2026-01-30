@@ -108,8 +108,8 @@ const AddAsset = ({ close, refresh }) => {
 
     return (
         <div id="kyc-verify-wizard" role="application" className="wizard clearfix">
-            <div class="card">
-                <div class="card-body p-4">
+            <div className="card">
+                <div className="card-body p-4">
                     <div className="steps clearfix">
                         <ul role="tablist">
                             {tabData.map((tab) => (
