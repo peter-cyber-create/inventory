@@ -103,6 +103,15 @@ cd "$BACKEND_DIR"
 if [ -f "../config/environments/backend.env" ]; then
     export $(grep -v '^#' ../config/environments/backend.env | xargs)
     log "✅ Environment variables loaded"
+    
+    # Construct DATABASE_URL if individual DB variables are set but DATABASE_URL is not
+    if [ -z "$DATABASE_URL" ] && [ -n "$DB_USER" ] && [ -n "$DB_PASS" ] && [ -n "$DB_NAME" ]; then
+        DB_HOST="${DB_HOST:-localhost}"
+        DB_PORT="${DB_PORT:-5432}"
+        DATABASE_URL="postgres://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}"
+        export DATABASE_URL
+        log "✅ Constructed DATABASE_URL from individual variables"
+    fi
 fi
 
 # Run migrations
