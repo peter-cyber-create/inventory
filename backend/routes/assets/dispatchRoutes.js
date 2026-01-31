@@ -6,10 +6,12 @@ const Brand = require("../../models/categories/brandModel.js");
 const Category = require("../../models/categories/categoryModel.js");
 const Model = require("../../models/categories/model.js");
 const Type = require("../../models/categories/typeModel.js");
+const Auth = require("../../middleware/auth.js");
+const authorize = require("../../middleware/authorize.js");
 
 const router = express.Router();
 
-router.post("/stores", async (req, res) => {
+router.post("/stores", Auth, authorize('admin', 'it', 'store'), async (req, res) => {
 
     try {
         const requisition = await Dispatch.create(req.body);
@@ -40,7 +42,7 @@ router.post("/stores", async (req, res) => {
     }
 });
 
-router.get("/stores", async (req, res) => {
+router.get("/stores", Auth, authorize('admin', 'it', 'store'), async (req, res) => {
     try {
         const page = req.query.page || 1;
         const limit = req.query.limit || 30;
@@ -63,7 +65,7 @@ router.get("/stores", async (req, res) => {
     }
 });
 
-router.get("/assets", async (req, res) => {
+router.get("/assets", Auth, authorize('admin', 'it'), async (req, res) => {
     try {
         const page = req.query.page || 1;
         const limit = req.query.limit || 30;
@@ -98,7 +100,7 @@ router.get("/assets", async (req, res) => {
     }
 });
 
-router.get("/stores/:id", async (req, res) => {
+router.get("/stores/:id", Auth, authorize('admin', 'it', 'store'), async (req, res) => {
     try {
         const asset = await Dispatch.findByPk(req.params.id, { include: [{ model: Asset }] });
 

@@ -9,11 +9,12 @@ const Model = require("../../models/categories/model.js");
 const Staff = require("../../models/categories/staffModel.js");
 const Departs = require("../../models/categories/departments.js");
 const Division = require("../../models/categories/divisions.js");
-
+const Auth = require("../../middleware/auth.js");
+const authorize = require("../../middleware/authorize.js");
 
 const router = express.Router();
 
-router.post("/ict", async (req, res) => {
+router.post("/ict", Auth, authorize('admin', 'it'), async (req, res) => {
 
     try {
         const issue = await Issue.create(req.body);
@@ -52,7 +53,7 @@ router.post("/ict", async (req, res) => {
     }
 });
 
-router.get("/user/:id", async (req, res) => {
+router.get("/user/:id", Auth, authorize('admin', 'it'), async (req, res) => {
     try {
         const page = req.query.page || 1;
         const limit = req.query.limit || 50;
@@ -92,7 +93,7 @@ router.get("/user/:id", async (req, res) => {
     }
 });
 
-router.get("/users", async (req, res) => {
+router.get("/users", Auth, authorize('admin', 'it'), async (req, res) => {
     try {
         const page = req.query.page || 1;
         const limit = req.query.limit || 30;
@@ -116,7 +117,7 @@ router.get("/users", async (req, res) => {
     }
 });
 
-router.get("/inventory", async (req, res) => {
+router.get("/inventory", Auth, authorize('admin', 'it'), async (req, res) => {
     try {
         const page = req.query.page || 1;
         const limit = req.query.limit || 30;
