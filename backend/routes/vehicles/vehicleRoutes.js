@@ -2,10 +2,12 @@ const express = require("express");
 import { Op } from "sequelize";
 const Vehicle = require("../../models/vehicles/vehicleModel.js");
 const Audit = require("../../models/Logs/auditModel.js");
+const Auth = require("../../middleware/auth.js");
+const authorize = require("../../middleware/authorize.js");
 
 const router = express.Router();
 
-router.post("/", async (req, res) => {
+router.post("/", Auth, authorize('admin', 'garage'), async (req, res) => {
   try {
     const vehicle = await Vehicle.create(req.body);
 
@@ -22,7 +24,9 @@ router.post("/", async (req, res) => {
       audit,
     });
   } catch (error) {
-    console.log("Error====>", error);
+    if (process.env.NODE_ENV === 'development') {
+      console.log("Error====>", error);
+    }
     res.status(500).json({
       status: "error",
       message: error.message,
@@ -30,7 +34,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/", async (req, res) => {
+router.get("/", Auth, authorize('admin', 'garage'), async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
@@ -75,7 +79,7 @@ router.get("/", async (req, res) => {
     res.status(500).json({ status: "error", message: error.message });
   }
 });
-router.get("/all", async (req, res) => {
+router.get("/all", Auth, authorize('admin', 'garage'), async (req, res) => {
   try {
     const vehicles = await Vehicle.findAll();
 
@@ -92,7 +96,7 @@ router.get("/all", async (req, res) => {
 });
 
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", Auth, authorize('admin', 'garage'), async (req, res) => {
     try {
         const result = await Vehicle.update(
             { ...req.body },
@@ -124,7 +128,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", Auth, authorize('admin', 'garage'), async (req, res) => {
   try {
     const vehicle = await Vehicle.findByPk(req.params.id);
 
@@ -147,7 +151,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", Auth, authorize('admin'), async (req, res) => {
   try {
     const result = await Vehicle.destroy({
       where: { id: req.params.id },

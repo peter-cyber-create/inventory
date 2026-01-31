@@ -10,6 +10,9 @@ const GRNItem = require('../../models/stores/grnItemModel');
 const GRNAttachment = require('../../models/stores/grnAttachmentModel');
 const GRNSignature = require('../../models/stores/grnSignatureModel');
 
+const Auth = require('../../middleware/auth.js');
+const authorize = require('../../middleware/authorize.js');
+
 const router = express.Router();
 
 // Configure multer for file uploads
@@ -53,7 +56,7 @@ const generateGRNNumber = async () => {
 };
 
 // POST /api/grn - Create new GRN record
-router.post('/', upload.array('attachments', 10), async (req, res) => {
+router.post('/', Auth, authorize('admin', 'store'), upload.array('attachments', 10), async (req, res) => {
   const transaction = await GRN.sequelize.transaction();
   
   try {
@@ -143,7 +146,7 @@ router.post('/', upload.array('attachments', 10), async (req, res) => {
 });
 
 // Get all GRNs
-router.get('/', async (req, res) => {
+router.get('/', Auth, authorize('admin', 'store'), async (req, res) => {
   try {
     const { page = 1, limit = 10, status, supplier, date_from, date_to } = req.query;
     const offset = (page - 1) * limit;
@@ -196,7 +199,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get single GRN
-router.get('/:id', async (req, res) => {
+router.get('/:id', Auth, authorize('admin', 'store'), async (req, res) => {
   try {
     const grn = await GRN.findByPk(req.params.id, {
       include: [
@@ -239,7 +242,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Update GRN
-router.put('/:id', upload.array('attachments', 10), async (req, res) => {
+router.put('/:id', Auth, authorize('admin', 'store'), upload.array('attachments', 10), async (req, res) => {
   const transaction = await GRN.sequelize.transaction();
   
   try {
@@ -329,7 +332,7 @@ router.put('/:id', upload.array('attachments', 10), async (req, res) => {
 });
 
 // Update GRN status
-router.patch('/:id/status', async (req, res) => {
+router.patch('/:id/status', Auth, authorize('admin', 'store'), async (req, res) => {
   try {
     const grn = await GRN.findByPk(req.params.id);
     if (!grn) {
@@ -367,7 +370,7 @@ router.patch('/:id/status', async (req, res) => {
 });
 
 // Delete GRN
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', Auth, authorize('admin'), async (req, res) => {
   const transaction = await GRN.sequelize.transaction();
   
   try {
@@ -407,7 +410,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // POST /api/grn/:id/items - Add item(s) to GRN
-router.post('/:id/items', async (req, res) => {
+router.post('/:id/items', Auth, authorize('admin', 'store'), async (req, res) => {
   try {
     const grn = await GRN.findByPk(req.params.id);
     if (!grn) {
@@ -456,7 +459,7 @@ router.post('/:id/items', async (req, res) => {
 });
 
 // DELETE /api/grn/items/:item_id - Delete specific item
-router.delete('/items/:item_id', async (req, res) => {
+router.delete('/items/:item_id', Auth, authorize('admin', 'store'), async (req, res) => {
   try {
     const item = await GRNItem.findByPk(req.params.item_id);
     if (!item) {
@@ -484,7 +487,7 @@ router.delete('/items/:item_id', async (req, res) => {
 });
 
 // POST /api/grn/:id/attachments - Upload Form 5/spec files
-router.post('/:id/attachments', upload.array('attachments', 10), async (req, res) => {
+router.post('/:id/attachments', Auth, authorize('admin', 'store'), upload.array('attachments', 10), async (req, res) => {
   try {
     const grn = await GRN.findByPk(req.params.id);
     if (!grn) {

@@ -6,7 +6,8 @@ const fs = require('fs');
 const { sequelize } = require('../../config/db.js');
 const Activity = require("../../models/activity/activityModel.js");
 const Participant = require("../../models/activity/participantModel.js");
-const authenticate = require("../../middleware/auth.js");
+const Auth = require("../../middleware/auth.js");
+const authorize = require("../../middleware/authorize.js");
 
 const router = express.Router();
 
@@ -40,7 +41,7 @@ const upload = multer({
     }
 });
 
-router.get('/my', authenticate, async (req, res) => {
+router.get('/my', Auth, authorize('admin', 'finance'), async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 20;
@@ -58,7 +59,7 @@ router.get('/my', authenticate, async (req, res) => {
     }
 });
 
-router.post('/upload', upload.single('activityReport'), async (req, res) => {
+router.post('/upload', Auth, authorize('admin', 'finance'), upload.single('activityReport'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ message: 'No file uploaded' });
@@ -103,7 +104,7 @@ router.post('/upload', upload.single('activityReport'), async (req, res) => {
     }
 });
 
-router.post("/", authenticate, async (req, res) => {
+router.post("/", Auth, authorize('admin', 'finance'), async (req, res) => {
     const { activityName, dept, startDate, endDate, days, amt, funder, rows, requested_by, invoiceDate, vocherno } = req.body;
 
     // Validate request data
@@ -168,7 +169,7 @@ router.post("/", authenticate, async (req, res) => {
     }
 });
 
-router.get("/", async (req, res) => {
+router.get("/", Auth, authorize('admin', 'finance'), async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 20;
@@ -190,7 +191,7 @@ router.get("/", async (req, res) => {
     }
 });
 
-router.get("/duplicates", async (req, res) => {
+router.get("/duplicates", Auth, authorize('admin', 'finance'), async (req, res) => {
     try {
         const duplicatesQuery = `
             SELECT 
@@ -221,7 +222,7 @@ router.get("/duplicates", async (req, res) => {
     }
 });
 
-router.get("/days", async (req, res) => {
+router.get("/days", Auth, authorize('admin', 'finance'), async (req, res) => {
     try {
         const duplicatesQuery = `
             SELECT 
@@ -251,7 +252,7 @@ router.get("/days", async (req, res) => {
     }
 });
 
-router.get("/participant", async (req, res) => {
+router.get("/participant", Auth, authorize('admin', 'finance'), async (req, res) => {
     try {
         const query = `
             SELECT 
@@ -284,7 +285,7 @@ router.get("/participant", async (req, res) => {
     }
 });
 
-router.get("/amounts", async (req, res) => {
+router.get("/amounts", Auth, authorize('admin', 'finance'), async (req, res) => {
     try {
         const query = `
             SELECT 
@@ -314,7 +315,7 @@ router.get("/amounts", async (req, res) => {
     }
 });
 
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", Auth, authorize('admin', 'finance'), async (req, res) => {
     try {
         const { id } = req.params;
         const [updated] = await Activity.update(req.body, { where: { id } });

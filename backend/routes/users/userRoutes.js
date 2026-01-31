@@ -216,7 +216,7 @@ router.get("/me", Auth, async (req, res, next) => {
     }
 });
 
-router.get("/", async (req, res, next) => {
+router.get("/", Auth, authorize('admin'), async (req, res, next) => {
     try {
         const page = req.query.page || 1;
         const limit = req.query.limit || 30;

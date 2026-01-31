@@ -8,6 +8,7 @@ const Type = require("../../models/categories/typeModel.js");
 const Staff = require("../../models/categories/staffModel.js");
 const { sequelize } = require("../../config/db.js");
 const Auth = require("../../middleware/auth.js");
+const authorize = require("../../middleware/authorize.js");
 
 const router = express.Router();
 
@@ -29,7 +30,7 @@ const sanitizeInput = (input) => {
     return input;
 };
 
-router.post("/", Auth, async (req, res, next) => {
+router.post("/", Auth, authorize('admin', 'it'), async (req, res, next) => {
     try {
         // Log only in development
         if (process.env.NODE_ENV === 'development') {
@@ -52,6 +53,9 @@ router.post("/", Auth, async (req, res, next) => {
             if (process.env.NODE_ENV === 'development') {
                 console.log(`📦 Processing ${sanitizedBody.rows.length} asset(s) from rows array`);
             }
+            
+            // Start transaction for multi-row operations
+            const transaction = await sequelize.transaction();
             const createdAssets = [];
             const errors = [];
 
@@ -159,7 +163,7 @@ router.post("/", Auth, async (req, res, next) => {
                     if (process.env.NODE_ENV === 'development') {
                         console.log('📝 Creating asset with data:', JSON.stringify(assetData, null, 2));
                     }
-                    const asset = await Asset.create(assetData);
+                    const asset = await Asset.create(assetData, { transaction });
                     if (process.env.NODE_ENV === 'development') {
                         console.log('✅ Asset created successfully:', asset.id);
                     }
@@ -171,7 +175,7 @@ router.post("/", Auth, async (req, res, next) => {
                         actionedBy: req.user?.id || req.body.user || req.body.requestedBy || null,
                         description: "Asset Created In Asset Register",
                         assetId: asset.id
-                    });
+                    }, { transaction });
                 } catch (error) {
                     if (process.env.NODE_ENV === 'development') {
                         console.error('❌ Error creating asset:', error);
@@ -189,15 +193,26 @@ router.post("/", Auth, async (req, res, next) => {
                 }
             }
 
-            if (createdAssets.length > 0) {
+            // Commit or rollback transaction
+            if (createdAssets.length > 0 && errors.length === 0) {
+                // All assets created successfully - commit transaction
+                await transaction.commit();
                 return res.status(201).json({
                     status: "success",
                     message: `Successfully created ${createdAssets.length} asset(s)`,
-                    assets: createdAssets,
-                    errors: errors.length > 0 ? errors : undefined
+                    assets: createdAssets
+                });
+            } else if (createdAssets.length > 0 && errors.length > 0) {
+                // Partial success - rollback to maintain data integrity
+                await transaction.rollback();
+                return res.status(400).json({
+                    status: "error",
+                    message: "Some assets failed to create. All changes rolled back to maintain data integrity.",
+                    errors: errors
                 });
             } else {
-                // Return first error message for user-friendly display
+                // All failed - rollback transaction
+                await transaction.rollback();
                 const firstError = errors.length > 0 ? errors[0] : null;
                 const errorMessage = firstError 
                     ? (firstError.details || firstError.error || "Failed to create asset")
@@ -255,7 +270,7 @@ router.post("/", Auth, async (req, res, next) => {
     }
 });
 
-router.get("/", Auth, async (req, res, next) => {
+router.get("/", Auth, authorize('admin', 'it'), async (req, res, next) => {
     try {
         const page = req.query.page || 1;
         const limit = req.query.limit || 30;
@@ -277,7 +292,7 @@ router.get("/", Auth, async (req, res, next) => {
     }
 });
 
-router.patch("/:id", Auth, async (req, res, next) => {
+router.patch("/:id", Auth, authorize('admin', 'it'), async (req, res, next) => {
     try {
         // Validate ID parameter
         const id = parseInt(req.params.id);
@@ -332,7 +347,7 @@ router.patch("/:id", Auth, async (req, res, next) => {
     }
 });
 
-router.get("/:id", Auth, async (req, res, next) => {
+router.get("/:id", Auth, authorize('admin', 'it'), async (req, res, next) => {
     try {
         const id = parseInt(req.params.id);
         if (!id || isNaN(id)) {
@@ -362,7 +377,7 @@ router.get("/:id", Auth, async (req, res, next) => {
     }
 });
 
-router.delete("/:id", Auth, async (req, res, next) => {
+router.delete("/:id", Auth, authorize('admin'), async (req, res, next) => {
     try {
         const id = parseInt(req.params.id);
         if (!id || isNaN(id)) {
