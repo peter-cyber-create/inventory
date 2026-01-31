@@ -32,8 +32,32 @@ const AddAsset = ({ close, refresh }) => {
         setCurrentStep(prevStep => Math.max(prevStep - 1, 0));
     };
 
+    const validateForm = () => {
+        if (!formData.user || formData.user.trim() === '') {
+            toast.error('Assigned User is required');
+            return false;
+        }
+        if (rows.length === 0) {
+            toast.error('At least one asset must be added');
+            return false;
+        }
+        for (const row of rows) {
+            if (!row.asset || row.asset.trim() === '') {
+                toast.error('Asset description is required for all rows');
+                return false;
+            }
+        }
+        return true;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // Validate form before submission
+        if (!validateForm()) {
+            return;
+        }
+        
         setLoading(true);
 
         const requestData = {
@@ -50,7 +74,10 @@ const AddAsset = ({ close, refresh }) => {
 
         try {
             const response = await API.post('/api/assets', requestData);
-            console.log(response)
+            // Remove console.log in production
+            if (process.env.NODE_ENV === 'development') {
+                console.log('Asset creation response:', response);
+            }
             setLoading(false);
             close();
             refresh();
@@ -64,8 +91,11 @@ const AddAsset = ({ close, refresh }) => {
                 'medium'
             );
         } catch (error) {
-            console.error("Asset creation error:", error);
-            console.error("Error response:", error.response);
+            // Log errors only in development
+            if (process.env.NODE_ENV === 'development') {
+                console.error("Asset creation error:", error);
+                console.error("Error response:", error.response);
+            }
             setLoading(false);
             
             // API interceptor already sets error.message, but check all sources
@@ -77,7 +107,10 @@ const AddAsset = ({ close, refresh }) => {
                     : null)
                 || "Error while Adding ICT Asset";
             
-            console.error("Displaying error:", errorMessage);
+            // Log error only in development
+            if (process.env.NODE_ENV === 'development') {
+                console.error("Displaying error:", errorMessage);
+            }
             toast.error(errorMessage);
             
             // Add notification for failed asset creation

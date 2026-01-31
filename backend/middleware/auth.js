@@ -9,7 +9,10 @@ const Auth = async (req, res, next) => {
     }
 
     if (!token) {
-        return res.status(401).json({ message: "No Access Token Found" });
+        return res.status(401).json({ 
+            status: 'error',
+            message: "No Access Token Found" 
+        });
     }
 
     try {
@@ -17,13 +20,19 @@ const Auth = async (req, res, next) => {
         const user = await User.findByPk(decoded.id)
 
         if (!user) {
-            return res.status(404).json({ message: "No User Found with this Id" });
+            return res.status(404).json({ 
+                status: 'error',
+                message: "No User Found with this Id" 
+            });
         }
         req.user = user;
         next();
 
     } catch (error) {
-        return res.status(401).json({ message: "Not authorized to access this route" });
+        return res.status(401).json({ 
+            status: 'error',
+            message: "Not authorized to access this route" 
+        });
     }
 }
 

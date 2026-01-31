@@ -7,15 +7,40 @@ const Model = require("../../models/categories/model.js");
 const Type = require("../../models/categories/typeModel.js");
 const Staff = require("../../models/categories/staffModel.js");
 const { sequelize } = require("../../config/db.js");
+const Auth = require("../../middleware/auth.js");
 
 const router = express.Router();
 
-router.post("/", async (req, res, next) => {
+// Input sanitization helper
+const sanitizeInput = (input) => {
+    if (typeof input === 'string') {
+        return input.trim().replace(/[<>]/g, '');
+    }
+    if (Array.isArray(input)) {
+        return input.map(item => sanitizeInput(item));
+    }
+    if (input && typeof input === 'object') {
+        const sanitized = {};
+        for (const key in input) {
+            sanitized[key] = sanitizeInput(input[key]);
+        }
+        return sanitized;
+    }
+    return input;
+};
+
+router.post("/", Auth, async (req, res, next) => {
     try {
-        console.log('📥 Asset creation request received:', JSON.stringify(req.body, null, 2));
+        // Log only in development
+        if (process.env.NODE_ENV === 'development') {
+            console.log('📥 Asset creation request received:', JSON.stringify(req.body, null, 2));
+        }
+        
+        // Sanitize input
+        const sanitizedBody = sanitizeInput(req.body);
         
         // Basic input validation
-        if (!req.body || Object.keys(req.body).length === 0) {
+        if (!sanitizedBody || Object.keys(sanitizedBody).length === 0) {
             return res.status(400).json({
                 status: "error",
                 message: "Request body is required",
@@ -23,8 +48,10 @@ router.post("/", async (req, res, next) => {
         }
 
         // Handle form data format: if rows array exists, process multiple assets
-        if (req.body.rows && Array.isArray(req.body.rows)) {
-            console.log(`📦 Processing ${req.body.rows.length} asset(s) from rows array`);
+        if (sanitizedBody.rows && Array.isArray(sanitizedBody.rows)) {
+            if (process.env.NODE_ENV === 'development') {
+                console.log(`📦 Processing ${sanitizedBody.rows.length} asset(s) from rows array`);
+            }
             const createdAssets = [];
             const errors = [];
 
@@ -34,36 +61,40 @@ router.post("/", async (req, res, next) => {
             try {
                 const types = await Type.findAll({ limit: 1 });
                 defaultType = types && types.length > 0 ? types[0] : null;
-                console.log(`   Default Type: ${defaultType ? defaultType.id : 'NONE'}`);
             } catch (e) { 
-                console.warn('Could not fetch default type:', e.message);
+                if (process.env.NODE_ENV === 'development') {
+                    console.warn('Could not fetch default type:', e.message);
+                }
                 defaultType = null; 
             }
             
             try {
                 const categories = await Category.findAll({ limit: 1 });
                 defaultCategory = categories && categories.length > 0 ? categories[0] : null;
-                console.log(`   Default Category: ${defaultCategory ? defaultCategory.id : 'NONE'}`);
             } catch (e) { 
-                console.warn('Could not fetch default category:', e.message);
+                if (process.env.NODE_ENV === 'development') {
+                    console.warn('Could not fetch default category:', e.message);
+                }
                 defaultCategory = null; 
             }
             
             try {
                 const brands = await Brand.findAll({ limit: 1 });
                 defaultBrand = brands && brands.length > 0 ? brands[0] : null;
-                console.log(`   Default Brand: ${defaultBrand ? defaultBrand.id : 'NONE'}`);
             } catch (e) { 
-                console.warn('Could not fetch default brand:', e.message);
+                if (process.env.NODE_ENV === 'development') {
+                    console.warn('Could not fetch default brand:', e.message);
+                }
                 defaultBrand = null; 
             }
             
             try {
                 const models = await Model.findAll({ limit: 1 });
                 defaultModel = models && models.length > 0 ? models[0] : null;
-                console.log(`   Default Model: ${defaultModel ? defaultModel.id : 'NONE'}`);
             } catch (e) { 
-                console.warn('Could not fetch default model:', e.message);
+                if (process.env.NODE_ENV === 'development') {
+                    console.warn('Could not fetch default model:', e.message);
+                }
                 defaultModel = null; 
             }
             
@@ -72,13 +103,14 @@ router.post("/", async (req, res, next) => {
                 const { QueryTypes } = require('sequelize');
                 const staffResults = await sequelize.query('SELECT id FROM staff LIMIT 1', { type: QueryTypes.SELECT });
                 defaultStaff = staffResults && staffResults.length > 0 ? { id: staffResults[0].id } : null;
-                console.log(`   Default Staff: ${defaultStaff ? defaultStaff.id : 'NONE'}`);
             } catch (e) { 
-                console.warn('Could not fetch default staff:', e.message);
+                if (process.env.NODE_ENV === 'development') {
+                    console.warn('Could not fetch default staff:', e.message);
+                }
                 defaultStaff = null; 
             }
 
-            for (const row of req.body.rows) {
+            for (const row of sanitizedBody.rows) {
                 try {
                     // Try to find model by name if modelId not provided
                     let modelId = row.modelId;
@@ -124,24 +156,30 @@ router.post("/", async (req, res, next) => {
                         throw new Error('Asset description is required');
                     }
 
-                    console.log('📝 Creating asset with data:', JSON.stringify(assetData, null, 2));
+                    if (process.env.NODE_ENV === 'development') {
+                        console.log('📝 Creating asset with data:', JSON.stringify(assetData, null, 2));
+                    }
                     const asset = await Asset.create(assetData);
-                    console.log('✅ Asset created successfully:', asset.id);
+                    if (process.env.NODE_ENV === 'development') {
+                        console.log('✅ Asset created successfully:', asset.id);
+                    }
                     createdAssets.push(asset);
 
                     // Create audit log
                     await Audit.create({
                         action: "Asset Creation",
-                        actionedBy: req.body.user || req.body.requestedBy || null,
+                        actionedBy: req.user?.id || req.body.user || req.body.requestedBy || null,
                         description: "Asset Created In Asset Register",
                         assetId: asset.id
                     });
                 } catch (error) {
-                    console.error('❌ Error creating asset:', error);
-                    console.error('   Error name:', error.name);
-                    console.error('   Error message:', error.message);
-                    if (error.errors) {
-                        console.error('   Validation errors:', error.errors.map(e => `${e.path}: ${e.message}`));
+                    if (process.env.NODE_ENV === 'development') {
+                        console.error('❌ Error creating asset:', error);
+                        console.error('   Error name:', error.name);
+                        console.error('   Error message:', error.message);
+                        if (error.errors) {
+                            console.error('   Validation errors:', error.errors.map(e => `${e.path}: ${e.message}`));
+                        }
                     }
                     errors.push({ 
                         row, 
@@ -176,7 +214,7 @@ router.post("/", async (req, res, next) => {
         // Handle single asset creation (legacy format)
         // Map form fields to model fields
         const assetData = {
-            ...req.body,
+            ...sanitizedBody,
             description: req.body.description || req.body.asset || 'ICT Asset',
             // Ensure foreign keys are set or use defaults
             typeId: req.body.typeId || null,
@@ -190,7 +228,7 @@ router.post("/", async (req, res, next) => {
 
         const audit = await Audit.create({
             action: "Asset Creation",
-            actionedBy: req.body.requestedBy || req.body.user || null,
+            actionedBy: req.user?.id || req.body.requestedBy || req.body.user || null,
             description: "Asset Created In Asset Register",
             assetId: asset.id
         });
@@ -201,9 +239,11 @@ router.post("/", async (req, res, next) => {
             audit
         });
     } catch (error) {
-        console.error('Asset creation error:', error);
+        if (process.env.NODE_ENV === 'development') {
+            console.error('Asset creation error:', error);
+        }
         // Return more detailed error in development
-        if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV !== 'production') {
+        if (process.env.NODE_ENV === 'development') {
             return res.status(400).json({
                 status: "error",
                 message: error.message || "Failed to create asset",
@@ -215,7 +255,7 @@ router.post("/", async (req, res, next) => {
     }
 });
 
-router.get("/", async (req, res, next) => {
+router.get("/", Auth, async (req, res, next) => {
     try {
         const page = req.query.page || 1;
         const limit = req.query.limit || 30;
@@ -237,7 +277,7 @@ router.get("/", async (req, res, next) => {
     }
 });
 
-router.patch("/:id", async (req, res, next) => {
+router.patch("/:id", Auth, async (req, res, next) => {
     try {
         // Validate ID parameter
         const id = parseInt(req.params.id);
@@ -292,7 +332,7 @@ router.patch("/:id", async (req, res, next) => {
     }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", Auth, async (req, res, next) => {
     try {
         const id = parseInt(req.params.id);
         if (!id || isNaN(id)) {
@@ -322,7 +362,7 @@ router.get("/:id", async (req, res) => {
     }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", Auth, async (req, res, next) => {
     try {
         const id = parseInt(req.params.id);
         if (!id || isNaN(id)) {

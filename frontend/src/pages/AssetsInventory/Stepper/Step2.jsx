@@ -22,10 +22,10 @@ const Step2 = ({ rows, setRows }) => {
     };
 
     return (
-        <div class="table-responsive">
-            <button onClick={addRow} class="btn btn-primary mt-2 mb-2">Add Row</button>
-            <table class="table mb-0">
-                <thead class="table-light">
+        <div className="table-responsive">
+            <button onClick={addRow} className="btn btn-primary mt-2 mb-2">Add Row</button>
+            <table className="table mb-0">
+                <thead className="table-light">
                     <tr>
                         <th>ICT Device</th>
                         <th>Category</th>
@@ -46,8 +46,8 @@ const Step2 = ({ rows, setRows }) => {
                                 />
                             </td>
                             <td>
-                                <select class="form-select" value={row.model}
-                                    onChange={(e) => handleInputChange(row.id, 'model', e.target.value)}>
+                                <select className="form-select" value={row.category}
+                                    onChange={(e) => handleInputChange(row.id, 'category', e.target.value)}>
                                     <option value="">Select Category</option>
                                     <option value="Desktop">Desktop</option>
                                     <option value="Laptop">Laptop</option>
@@ -57,7 +57,7 @@ const Step2 = ({ rows, setRows }) => {
                                 </select>
                             </td>
                             <td>
-                                <select class="form-select" value={row.model}
+                                <select className="form-select" value={row.model}
                                     onChange={(e) => handleInputChange(row.id, 'model', e.target.value)}>
                                     <option value="">Select Model</option>
                                     <option value="Dell">Dell</option>
@@ -66,19 +66,19 @@ const Step2 = ({ rows, setRows }) => {
                                 </select>
                             </td>
                             <td>
-                                <input type="text" class="form-control" placeholder="Enter Serial no"
+                                <input type="text" className="form-control" placeholder="Enter Serial no"
                                     value={row.serialNo}
                                     onChange={(e) => handleInputChange(row.id, 'serialNo', e.target.value)}
                                 />
                             </td>
                             <td>
-                                <input type="text" class="form-control" placeholder="Enter Engraved No"
+                                <input type="text" className="form-control" placeholder="Enter Engraved No"
                                     value={row.engravedNo}
                                     onChange={(e) => handleInputChange(row.id, 'engravedNo', e.target.value)}
                                 />
                             </td>
                             <td>
-                                <select class="form-select" value={row.funding}
+                                <select className="form-select" value={row.funding}
                                     onChange={(e) => handleInputChange(row.id, 'funding', e.target.value)}>
                                     <option value="">Select Funding</option>
                                     <option value="GOU">GOU</option>
@@ -88,7 +88,7 @@ const Step2 = ({ rows, setRows }) => {
                                 </select>
                             </td>
                             <td>
-                                <button onClick={() => deleteRow(row.id)} type="button" class="btn btn-success mt-3 mt-lg-0">Delete</button>
+                                <button onClick={() => deleteRow(row.id)} type="button" className="btn btn-success mt-3 mt-lg-0">Delete</button>
                             </td>
                         </tr>
                     ))}

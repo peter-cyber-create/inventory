@@ -3,12 +3,12 @@ import React, { Fragment } from "react";
 const Step1 = ({ formData, setFormData }) => {
     return (
         <Fragment>
-            <section id="kyc-verify-wizard-p-2" role="tabpanel" aria-labelledby="kyc-verify-wizard-h-2" class="body" aria-hidden="true">
-                <div class="row">
-                    <div class="col-lg-6">
-                        <div class="mb-3">
-                            <label for="kycphoneno-input" class="form-label">Assigned User</label>
-                            <input type="text" class="form-control" placeholder="Enter User Name"
+            <section id="kyc-verify-wizard-p-2" role="tabpanel" aria-labelledby="kyc-verify-wizard-h-2" className="body" aria-hidden="true">
+                <div className="row">
+                    <div className="col-lg-6">
+                        <div className="mb-3">
+                            <label htmlFor="kycphoneno-input" className="form-label">Assigned User</label>
+                            <input type="text" className="form-control" placeholder="Enter User Name"
                                 value={formData.user}
                                 onChange={(e) =>
                                     setFormData({ ...formData, user: e.target.value })
@@ -16,9 +16,9 @@ const Step1 = ({ formData, setFormData }) => {
                         </div>
                     </div>
                     <div class="col-lg-6">
-                        <div class="mb-3">
-                            <label for="basicpill-servicetax-input">Purchase Date</label>
-                            <input type="date" class="form-control" placeholder="Enter User Email"
+                        <div className="mb-3">
+                            <label htmlFor="basicpill-servicetax-input">Purchase Date</label>
+                            <input type="date" className="form-control" placeholder="Enter User Email"
                                 value={formData.purchaseDate}
                                 onChange={(e) =>
                                     setFormData({ ...formData, purchaseDate: e.target.value })
@@ -26,21 +26,21 @@ const Step1 = ({ formData, setFormData }) => {
                         </div>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-lg-6">
-                        <div class="mb-3">
-                            <label for="kycbirthdate-input" class="form-label">Department / Office / Project</label>
-                            <input type="text" class="form-control" placeholder="Enter User Department"
+                <div className="row">
+                    <div className="col-lg-6">
+                        <div className="mb-3">
+                            <label htmlFor="kycbirthdate-input" className="form-label">Department / Office / Project</label>
+                            <input type="text" className="form-control" placeholder="Enter User Department"
                                 value={formData.department}
                                 onChange={(e) =>
                                     setFormData({ ...formData, department: e.target.value })
                                 } />
                         </div>
                     </div>
-                    <div class="col-lg-6">
-                        <div class="mb-3">
-                            <label for="basicpill-cstno-input">User Job Post</label>
-                            <input type="text" class="form-control" placeholder="Enter User Job Post"
+                    <div className="col-lg-6">
+                        <div className="mb-3">
+                            <label htmlFor="basicpill-cstno-input">User Job Post</label>
+                            <input type="text" className="form-control" placeholder="Enter User Job Post"
                                 value={formData.jobTitle}
                                 onChange={(e) =>
                                     setFormData({ ...formData, jobTitle: e.target.value })
@@ -48,21 +48,21 @@ const Step1 = ({ formData, setFormData }) => {
                         </div>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-lg-6">
-                        <div class="mb-3">
-                            <label for="basicpill-servicetax-input">User Email</label>
-                            <input type="text" class="form-control" placeholder="Enter User Email"
+                <div className="row">
+                    <div className="col-lg-6">
+                        <div className="mb-3">
+                            <label htmlFor="basicpill-servicetax-input">User Email</label>
+                            <input type="text" className="form-control" placeholder="Enter User Email"
                                 value={formData.email}
                                 onChange={(e) =>
                                     setFormData({ ...formData, email: e.target.value })
                                 } />
                         </div>
                     </div>
-                    <div class="col-lg-6">
-                        <div class="mb-3">
-                            <label for="basicpill-cstno-input">Phone Number</label>
-                            <input type="text" class="form-control" placeholder="Enter User Phone No"
+                    <div className="col-lg-6">
+                        <div className="mb-3">
+                            <label htmlFor="basicpill-cstno-input">Phone Number</label>
+                            <input type="text" className="form-control" placeholder="Enter User Phone No"
                                 value={formData.phoneNo}
                                 onChange={(e) =>
                                     setFormData({ ...formData, phoneNo: e.target.value })
