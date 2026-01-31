@@ -413,7 +413,10 @@ router.post("/", Auth, authorize('admin', 'it'), async (req, res, next) => {
    - ✅ System routes - FIXED (admin only, health endpoint public)
    - ✅ Upload routes - FIXED (admin, it)
    - ✅ Download routes - FIXED (admin, it)
-   - ⚠️ Remaining: Other stores routes (requisition, issuance), vehicle sub-routes (job cards, spare parts)
+   - ✅ Issuance routes - FIXED (admin, store)
+   - ✅ Requisition routes - FIXED (admin, store)
+   - ✅ Job card routes (both) - FIXED (admin, garage)
+   - ⚠️ Remaining: Vehicle sub-routes (spare parts, service requests, etc.), other category routes
 
 3. ⚠️ **MAJOR REMAINING**: Transaction management for multi-row operations
 

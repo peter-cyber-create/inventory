@@ -4,10 +4,12 @@ const JobCard = require("../../models/vehicles/jobCardModel.js");
 const PartsUsed = require("../../models/vehicles/partsUsed.js");
 const SpareParts = require("../../models/vehicles/vSpareParts.js");
 const Vehicle = require("../../models/vehicles/vehicleModel.js");
+const Auth = require("../../middleware/auth.js");
+const authorize = require("../../middleware/authorize.js");
 
 const router = express.Router();
 
-router.post("/", async (req, res) => {
+router.post("/", Auth, authorize('admin', 'garage'), async (req, res) => {
     const transaction = await sequelize.transaction();
 
     try {
@@ -18,7 +20,9 @@ router.post("/", async (req, res) => {
         const partsPromises = req.body.rows.map(async (row) => {
             const part = { ...row, jobCardId: newJobCard.id };
 
-            console.log("part:::: ===>", part)
+            if (process.env.NODE_ENV === 'development') {
+                console.log("part:::: ===>", part);
+            }
             
             // Create the PartsUsed record
             const partsUsed = await PartsUsed.create(part, { transaction });
@@ -59,7 +63,7 @@ router.post("/", async (req, res) => {
     }
 });
 
-router.get("/", async (req, res) => {
+router.get("/", Auth, authorize('admin', 'garage'), async (req, res) => {
     try {
         const page = req.query.page || 1;
         const limit = req.query.limit || 50;
@@ -83,7 +87,7 @@ router.get("/", async (req, res) => {
     }
 });
 
-router.get("/parts", async (req, res) => {
+router.get("/parts", Auth, authorize('admin', 'garage'), async (req, res) => {
     try {
         const page = req.query.page || 1;
         const limit = req.query.limit || 10;
@@ -106,7 +110,7 @@ router.get("/parts", async (req, res) => {
     }
 });
 
-router.get("/parts/:id", async (req, res) => {
+router.get("/parts/:id", Auth, authorize('admin', 'garage'), async (req, res) => {
     try {
         const page = req.query.page || 1;
         const limit = req.query.limit || 50;
@@ -130,7 +134,7 @@ router.get("/parts/:id", async (req, res) => {
     }
 });
 
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", Auth, authorize('admin', 'garage'), async (req, res) => {
     try {
         const result = await JobCard.update(
             { ...req.body, updatedAt: Date.now() },
@@ -164,7 +168,7 @@ router.patch("/:id", async (req, res) => {
     }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", Auth, authorize('admin', 'garage'), async (req, res) => {
     try {
         const job = await JobCard.findByPk(req.params.id);
 
@@ -187,7 +191,7 @@ router.get("/:id", async (req, res) => {
     }
 });
 
-router.get("/vehicle/:id", async (req, res) => {
+router.get("/vehicle/:id", Auth, authorize('admin', 'garage'), async (req, res) => {
     try {
         const job = await JobCard.findAll({ where: { vehicleId: req.params.id } });
 
@@ -210,7 +214,7 @@ router.get("/vehicle/:id", async (req, res) => {
     }
 });
 
-router.get("/history", async (req, res) => {
+router.get("/history", Auth, authorize('admin', 'garage'), async (req, res) => {
     try {
         const page = req.query.page || 1;
         const limit = req.query.limit || 10;

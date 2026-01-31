@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 const { Issuance, Requisition, RequisitionItem, Item, Location, StockLedger, StockBalance } = require('../../models/stores');
 const { Op } = require('sequelize');
+const Auth = require('../../middleware/auth.js');
+const authorize = require('../../middleware/authorize.js');
 
 // Create a new issuance
-router.post('/', async (req, res) => {
+router.post('/', Auth, authorize('admin', 'store'), async (req, res) => {
   const t = await Issuance.sequelize.transaction();
   try {
     const { 
@@ -120,7 +122,7 @@ router.post('/', async (req, res) => {
 });
 
 // Get all issuances
-router.get('/', async (req, res) => {
+router.get('/', Auth, authorize('admin', 'store'), async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
@@ -182,7 +184,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get single issuance by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', Auth, authorize('admin', 'store'), async (req, res) => {
   try {
     const issuance = await Issuance.findByPk(req.params.id, {
       include: [
@@ -226,7 +228,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Get issuances for a specific requisition
-router.get('/requisition/:requisition_id', async (req, res) => {
+router.get('/requisition/:requisition_id', Auth, authorize('admin', 'store'), async (req, res) => {
   try {
     const { requisition_id } = req.params;
 
@@ -259,7 +261,7 @@ router.get('/requisition/:requisition_id', async (req, res) => {
 });
 
 // Update issuance
-router.put('/:id', async (req, res) => {
+router.put('/:id', Auth, authorize('admin', 'store'), async (req, res) => {
   try {
     const { remarks, status } = req.body;
 
@@ -291,7 +293,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete issuance
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', Auth, authorize('admin'), async (req, res) => {
   const t = await Issuance.sequelize.transaction();
   try {
     const issuance = await Issuance.findByPk(req.params.id);

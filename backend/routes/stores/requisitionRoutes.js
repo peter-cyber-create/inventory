@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const Auth = require('../../middleware/auth.js');
+const authorize = require('../../middleware/authorize.js');
 
 // Import the Form 76A routes
 const form76aRoutes = require('./form76aRoutes');
@@ -11,7 +13,7 @@ router.use('/form76a', form76aRoutes);
 // For example, different types of requisitions, approvals, etc.
 
 // Get all requisition types
-router.get('/types', async (req, res) => {
+router.get('/types', Auth, authorize('admin', 'store'), async (req, res) => {
   try {
     const requisitionTypes = [
       {
@@ -49,7 +51,7 @@ router.get('/types', async (req, res) => {
 });
 
 // Get requisition statistics
-router.get('/stats', async (req, res) => {
+router.get('/stats', Auth, authorize('admin', 'store'), async (req, res) => {
   try {
     const { Requisition } = require('../../models/stores');
     

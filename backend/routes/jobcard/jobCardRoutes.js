@@ -3,6 +3,8 @@ const JobCardModel = require("../../models/jobcards/jobCardModel.js");
 const JobCardSpare = require("../../models/jobCardSpare/JobCardSpare.js");
 const VehicleModel = require("../../models/vehicles/vehicleModel.js");
 import { sequelize } from "../../config/db.js";
+const Auth = require("../../middleware/auth.js");
+const authorize = require("../../middleware/authorize.js");
 // import JobCard from "../../models/jobcards/jobCard.js";
 // import Customer from "../../models/customers/customers.js";
 // import Vehicle from "../../models/vehicles/vehicleModel.js";
@@ -10,7 +12,7 @@ import { sequelize } from "../../config/db.js";
 
 const router = express.Router();
 
-router.post("/", async (req, res) => {
+router.post("/", Auth, authorize('admin', 'garage'), async (req, res) => {
   const transaction = await sequelize.transaction();
   try {
     const jobCard = await JobCardModel.create(
@@ -21,7 +23,9 @@ router.post("/", async (req, res) => {
 
     const jocardSpare = await Promise.all(
       req.body.spare.map(async (row) => {
-        console.log("row", row);
+        if (process.env.NODE_ENV === 'development') {
+            console.log("row", row);
+        }
         return await JobCardSpare.create(
           {
             ...row,
@@ -49,7 +53,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/", async (req, res) => {
+router.get("/", Auth, authorize('admin', 'garage'), async (req, res) => {
   try {
     const page = req.query.page || 1;
     const limit = req.query.limit || 10;
@@ -71,7 +75,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", Auth, authorize('admin', 'garage'), async (req, res) => {
   try {
     const job = await JobCardModel.findByPk(req.params.id, {
       include: [{ model: VehicleModel }],
@@ -96,7 +100,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", Auth, authorize('admin', 'garage'), async (req, res) => {
   const transaction = await sequelize.transaction();
   try {
     // Update JobCard
@@ -156,7 +160,7 @@ router.patch("/:id", async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", Auth, authorize('admin'), async (req, res) => {
   const transaction = await sequelize.transaction();
   const { id } = req.params;
   try {

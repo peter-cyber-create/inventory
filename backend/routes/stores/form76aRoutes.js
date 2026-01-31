@@ -79,7 +79,7 @@ router.get('/', Auth, authorize('admin', 'store'), async (req, res, next) => {
 });
 
 // GET /api/stores/form76a/:id - Get single requisition
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', Auth, authorize('admin', 'store'), async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -108,7 +108,7 @@ router.get('/:id', async (req, res, next) => {
 });
 
 // POST /api/stores/form76a - Create new requisition
-router.post('/', async (req, res, next) => {
+router.post('/', Auth, authorize('admin', 'store'), async (req, res, next) => {
   const transaction = await sequelize.transaction();
   
   try {
@@ -196,7 +196,7 @@ router.post('/', async (req, res, next) => {
 });
 
 // PUT /api/stores/form76a/:id - Update requisition
-router.put('/:id', async (req, res, next) => {
+router.put('/:id', Auth, authorize('admin', 'store'), async (req, res, next) => {
   const transaction = await sequelize.transaction();
   
   try {
@@ -279,7 +279,7 @@ router.put('/:id', async (req, res, next) => {
 });
 
 // DELETE /api/stores/form76a/:id - Delete requisition
-router.delete('/:id', async (req, res, next) => {
+router.delete('/:id', Auth, authorize('admin'), async (req, res, next) => {
   const transaction = await sequelize.transaction();
   
   try {
@@ -318,7 +318,7 @@ router.delete('/:id', async (req, res, next) => {
 });
 
 // PATCH /api/stores/form76a/:id/status - Update requisition status
-router.patch('/:id/status', async (req, res, next) => {
+router.patch('/:id/status', Auth, authorize('admin', 'store'), async (req, res, next) => {
   try {
     const { id } = req.params;
     const { status, remarks } = req.body;
