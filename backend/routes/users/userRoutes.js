@@ -2,6 +2,7 @@ const express = require("express");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const Auth = require("../../middleware/auth.js");
+const authorize = require("../../middleware/authorize.js");
 const UserModel = require("../../models/users/userModel.js");
 const { validatePassword, validatePasswordMiddleware } = require("../../middleware/passwordPolicy.js");
 const { logAuthEvent, logDataModification, AUDIT_ACTIONS } = require("../../middleware/auditLogger.js");
