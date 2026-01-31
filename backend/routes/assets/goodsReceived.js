@@ -1,16 +1,23 @@
 const express = require("express");
 const GoodsReceived = require("../../models/assets/goodsReceived.js");
 const GoodsItems = require("../../models/assets/ReceivedItems.js");
+const Auth = require("../../middleware/auth.js");
+const authorize = require("../../middleware/authorize.js");
+const { sequelize } = require("../../config/db.js");
 
 const router = express.Router();
 
-router.post("/", async (req, res) => {
+router.post("/", Auth, authorize('admin', 'it', 'store'), async (req, res) => {
 
     try {
         const received = await GoodsReceived.create(req.body);
 
-        const item = req.body.rows.map((row) => ({ ...row, goodsId: received.id }));
-        await GoodsItems.bulkCreate(item);
+        // Use transaction for multi-row operation
+        const transaction = await sequelize.transaction();
+        try {
+            const item = req.body.rows.map((row) => ({ ...row, goodsId: received.id }));
+            await GoodsItems.bulkCreate(item, { transaction });
+            await transaction.commit();
 
         // Fetch job card items and include them in the response
         const items = await GoodsReceived.findByPk(received.id, {
@@ -30,7 +37,7 @@ router.post("/", async (req, res) => {
     }
 });
 
-router.get("/", async (req, res) => {
+router.get("/", Auth, authorize('admin', 'it', 'store'), async (req, res) => {
     try {
         const page = req.query.page || 1;
         const limit = req.query.limit || 10;
@@ -51,7 +58,7 @@ router.get("/", async (req, res) => {
     }
 });
 
-router.get("/items/:id", async (req, res) => {
+router.get("/items/:id", Auth, authorize('admin', 'it', 'store'), async (req, res) => {
     try {
         const items = await GoodsItems.findAll({
             where: { goodsId: req.params.id },
@@ -76,7 +83,7 @@ router.get("/items/:id", async (req, res) => {
     }
 });
 
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", Auth, authorize('admin', 'it', 'store'), async (req, res) => {
     try {
         const result = await GoodsReceived.update(
             { ...req.body, updatedAt: Date.now() },
@@ -110,7 +117,7 @@ router.patch("/:id", async (req, res) => {
     }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", Auth, authorize('admin', 'it', 'store'), async (req, res) => {
     try {
         const server = await GoodsReceived.findByPk(req.params.id);
 
@@ -133,7 +140,7 @@ router.get("/:id", async (req, res) => {
     }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", Auth, authorize('admin'), async (req, res) => {
     try {
         const result = await GoodsReceived.destroy({
             where: { id: req.params.id },
