@@ -35,8 +35,8 @@ backend/
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (v14 or higher)
-- MySQL/MariaDB or PostgreSQL
+- Node.js (v18 or higher)
+- PostgreSQL 12+
 - npm or yarn
 
 ### Installation
@@ -46,15 +46,16 @@ npm install
 ```
 
 ### Environment Setup
-Create a `.env` file in the backend directory:
+Create `config/environments/backend.env` file:
 ```env
 DB_HOST=localhost
-DB_PORT=3306
+DB_PORT=5432
 DB_NAME=inventory_db
-DB_USER=your_username
-DB_PASS=your_password
-JWT_SECRET=your_jwt_secret
-FRONTEND_URL=http://localhost:3000
+DB_USER=inventory_user
+DB_PASS=your_secure_password
+SECRETKEY=your_jwt_secret_min_64_chars
+NODE_ENV=production
+CORS_ORIGIN=http://localhost:3000
 PORT=5000
 ```
 
@@ -107,7 +108,7 @@ pm2 start index.js --name "inventory-api"
 ## 🔧 Configuration
 
 ### Database Configuration
-The application supports both MySQL/MariaDB and PostgreSQL. Configure your database connection in the `config/db.js` file.
+The application uses PostgreSQL. Configure your database connection in `config/environments/backend.env` and `config/config.json`.
 
 ### Middleware
 - **Authentication**: JWT-based authentication

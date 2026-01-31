@@ -104,17 +104,20 @@ inventory/
 
 ## 📚 Documentation
 
-For complete project documentation, see **[PROJECT_DOCUMENTATION.md](./PROJECT_DOCUMENTATION.md)**
+### Main Documentation
+- **[PROJECT_DOCUMENTATION.md](./PROJECT_DOCUMENTATION.md)** - Complete project documentation including:
+  - Architecture overview
+  - API documentation
+  - Module details and features
+  - Database schema
+  - Security guidelines
+  - Development guide
+  - Troubleshooting
 
-The comprehensive documentation includes:
-- Complete architecture overview
-- API documentation
-- Module details and features
-- Database schema
-- Security guidelines
-- Deployment instructions
-- Development guide
-- Troubleshooting
+### Deployment & Operations
+- **[DEPLOY_TO_SERVER.md](./DEPLOY_TO_SERVER.md)** - Server deployment guide
+- **[SESSION_TIMEOUT_CONFIG.md](./SESSION_TIMEOUT_CONFIG.md)** - Session timeout configuration
+- **[PRODUCTION_READINESS_REPORT.md](./PRODUCTION_READINESS_REPORT.md)** - Production readiness checklist
 
 ## 🛠️ Available Scripts
 
@@ -133,6 +136,15 @@ The comprehensive documentation includes:
 - **Backend**: Node.js, Express.js, Sequelize ORM
 - **Database**: PostgreSQL 12+
 - **Process Management**: PM2
+
+## 🔒 Security Features
+
+- JWT token authentication (24-hour session timeout)
+- Password hashing with bcrypt
+- Role-based access control
+- Input validation and sanitization
+- CORS and security headers
+- Audit logging for all operations
 
 ## 📄 License
 
