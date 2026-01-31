@@ -3,10 +3,12 @@ const XLSX = require("xlsx");
 const Model = require("../../models/categories/model.js");
 const Brand = require("../../models/categories/brandModel.js");
 const Category = require("../../models/categories/categoryModel.js");
+const Auth = require("../../middleware/auth.js");
+const authorize = require("../../middleware/authorize.js");
 
 const router = express.Router();
 
-router.get("/models", async (req, res) => {
+router.get("/models", Auth, authorize('admin', 'it'), async (req, res) => {
     try {
 
         const models = await Model.findAll({
@@ -37,7 +39,9 @@ router.get("/models", async (req, res) => {
         res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         res.status(200).send(excelBuffer);
     } catch (error) {
-        console.error("Error downloading models:", error);
+        if (process.env.NODE_ENV === 'development') {
+            console.error("Error downloading models:", error);
+        }
         res.status(500).json({
             status: "error",
             message: "Failed to download models",

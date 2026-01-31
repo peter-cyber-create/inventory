@@ -4,12 +4,14 @@ const fs = require("fs");
 const multer = require("multer");
 const XLSX = require("xlsx");
 const Model = require("../../models/categories/model.js");
+const Auth = require("../../middleware/auth.js");
+const authorize = require("../../middleware/authorize.js");
 
 const router = express.Router();
 
 const upload = multer({ dest: "uploads/" });
 
-router.post("/models", upload.single("file"), async (req, res) => {
+router.post("/models", Auth, authorize('admin', 'it'), upload.single("file"), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).send("No file uploaded");
@@ -23,8 +25,10 @@ router.post("/models", upload.single("file"), async (req, res) => {
             const { name, description, categoryId, brandId } = row;
 
             if (!name || !description || !categoryId || !brandId) {
+            if (process.env.NODE_ENV === 'development') {
                 console.warn("Missing required fields in row:", row);
-                continue; 
+            }
+            continue;
             }
 
             await Model.create({
@@ -40,8 +44,13 @@ router.post("/models", upload.single("file"), async (req, res) => {
 
         res.status(200).send("File uploaded and data inserted into the database");
     } catch (error) {
-        console.error(error);
-        res.status(500).send("Error processing the file");
+        if (process.env.NODE_ENV === 'development') {
+            console.error(error);
+        }
+        res.status(500).json({
+            status: 'error',
+            message: "Error processing the file"
+        });
     }
 });
 

@@ -3,10 +3,12 @@ const { sequelize } = require('../../config/db');
 const { Op } = require('sequelize');
 const Requisition = require('../../models/stores/requisitionModel');
 const RequisitionItem = require('../../models/stores/requisitionItemModel');
+const Auth = require('../../middleware/auth.js');
+const authorize = require('../../middleware/authorize.js');
 const router = express.Router();
 
 // GET /api/stores/form76a - List all requisitions with pagination and filtering
-router.get('/', async (req, res, next) => {
+router.get('/', Auth, authorize('admin', 'store'), async (req, res, next) => {
   try {
     const { 
       page = 1, 

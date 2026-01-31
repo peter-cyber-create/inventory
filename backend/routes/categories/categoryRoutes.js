@@ -1,10 +1,12 @@
 const express = require("express");
 const Category = require("../../models/categories/categoryModel.js");
 const Type = require("../../models/categories/typeModel.js");
+const Auth = require("../../middleware/auth.js");
+const authorize = require("../../middleware/authorize.js");
 
 const router = express.Router();
 
-router.post("/", async (req, res) => {
+router.post("/", Auth, authorize('admin', 'it'), async (req, res) => {
 
     try {
         const category = await Category.create(req.body);
@@ -21,7 +23,7 @@ router.post("/", async (req, res) => {
     }
 });
 
-router.get("/", async (req, res) => {
+router.get("/", Auth, authorize('admin', 'it'), async (req, res) => {
     try {
         const page = req.query.page || 1;
         const limit = req.query.limit || 30;
@@ -42,7 +44,7 @@ router.get("/", async (req, res) => {
     }
 });
 
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", Auth, authorize('admin', 'it'), async (req, res) => {
     try {
         const result = await Category.update(
             { ...req.body, updatedAt: Date.now() },
@@ -74,7 +76,7 @@ router.patch("/:id", async (req, res) => {
     }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", Auth, authorize('admin', 'it'), async (req, res) => {
     try {
         const category = await Category.findByPk(req.params.id);
 
@@ -97,7 +99,7 @@ router.get("/:id", async (req, res) => {
     }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", Auth, authorize('admin'), async (req, res) => {
     try {
         const result = await Category.destroy({
             where: { id: req.params.id },

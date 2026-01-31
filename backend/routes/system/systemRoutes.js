@@ -4,6 +4,8 @@ const path = require('path');
 const fs = require('fs');
 const { Op } = require('sequelize');
 const { sequelize } = require('../../config/db');
+const Auth = require('../../middleware/auth.js');
+const authorize = require('../../middleware/authorize.js');
 
 const router = express.Router();
 
@@ -41,7 +43,7 @@ const upload = multer({
 });
 
 // File upload endpoint
-router.post('/upload', upload.single('file'), async (req, res) => {
+router.post('/upload', Auth, authorize('admin'), upload.single('file'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({
@@ -69,7 +71,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
 });
 
 // Multiple file upload endpoint
-router.post('/upload-multiple', upload.array('files', 10), async (req, res) => {
+router.post('/upload-multiple', Auth, authorize('admin'), upload.array('files', 10), async (req, res) => {
     try {
         if (!req.files || req.files.length === 0) {
             return res.status(400).json({
@@ -99,7 +101,7 @@ router.post('/upload-multiple', upload.array('files', 10), async (req, res) => {
 });
 
 // File download endpoint
-router.get('/download/:filename', async (req, res) => {
+router.get('/download/:filename', Auth, authorize('admin'), async (req, res) => {
     try {
         const filename = req.params.filename;
         const filePath = path.join('uploads', filename);
@@ -121,7 +123,7 @@ router.get('/download/:filename', async (req, res) => {
 });
 
 // Get file list endpoint
-router.get('/files', async (req, res) => {
+router.get('/files', Auth, authorize('admin'), async (req, res) => {
     try {
         const uploadDir = 'uploads/';
         if (!fs.existsSync(uploadDir)) {
@@ -155,7 +157,7 @@ router.get('/files', async (req, res) => {
 });
 
 // Delete file endpoint
-router.delete('/files/:filename', async (req, res) => {
+router.delete('/files/:filename', Auth, authorize('admin'), async (req, res) => {
     try {
         const filename = req.params.filename;
         const filePath = path.join('uploads', filename);
@@ -204,7 +206,7 @@ router.get('/health', async (req, res) => {
 });
 
 // System statistics endpoint
-router.get('/stats', async (req, res) => {
+router.get('/stats', Auth, authorize('admin'), async (req, res) => {
     try {
         const stats = await sequelize.query(`
             SELECT 

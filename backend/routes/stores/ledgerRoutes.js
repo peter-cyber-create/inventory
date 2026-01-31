@@ -1,9 +1,11 @@
 const express = require('express');
 const { sequelize } = require('../../config/db');
+const Auth = require('../../middleware/auth.js');
+const authorize = require('../../middleware/authorize.js');
 const router = express.Router();
 
 // Get ledger entries with filters
-router.get('/', async (req, res) => {
+router.get('/', Auth, authorize('admin', 'store'), async (req, res) => {
   try {
     const { page = 1, limit = 50 } = req.query;
     const offset = (page - 1) * limit;
@@ -52,7 +54,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get stock balances
-router.get('/balance', async (req, res) => {
+router.get('/balance', Auth, authorize('admin', 'store'), async (req, res) => {
   try {
     const query = `
       SELECT 
@@ -87,7 +89,7 @@ router.get('/balance', async (req, res) => {
 });
 
 // Get low stock items
-router.get('/low-stock', async (req, res) => {
+router.get('/low-stock', Auth, authorize('admin', 'store'), async (req, res) => {
   try {
     // Validate and sanitize threshold input
     const threshold = Math.max(parseInt(req.query.threshold) || 10, 0);
@@ -128,7 +130,7 @@ router.get('/low-stock', async (req, res) => {
 });
 
 // Add new ledger entry
-router.post('/', async (req, res) => {
+router.post('/', Auth, authorize('admin', 'store'), async (req, res) => {
   try {
     const {
       transaction_date,
