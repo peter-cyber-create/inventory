@@ -2,10 +2,12 @@ const express = require("express");
 const Audit = require("../../models/Logs/auditModel.js");
 const Asset = require("../../models/assets/assetsModel.js");
 const Disposal = require("../../models/assets/DisposalModel.js");
+const Auth = require("../../middleware/auth.js");
+const authorize = require("../../middleware/authorize.js");
 
 const router = express.Router();
 
-router.post("/", async (req, res) => {
+router.post("/", Auth, authorize('admin', 'it'), async (req, res) => {
   try {
     const disposal = await Disposal.create(req.body);
 
@@ -21,7 +23,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/", async (req, res) => {
+router.get("/", Auth, authorize('admin', 'it'), async (req, res) => {
   try {
     const page = req.query.page || 1;
     const limit = req.query.limit || 10;
@@ -42,7 +44,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", Auth, authorize('admin', 'it'), async (req, res) => {
   try {
     const result = await Disposal.update(
       { ...req.body, updatedAt: Date.now() },
@@ -73,7 +75,7 @@ router.patch("/:id", async (req, res) => {
     });
   }
 });
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", Auth, authorize('admin', 'it'), async (req, res) => {
   try {
     const result = await Disposal.update(
       { ...req.body, updatedAt: Date.now() },
@@ -104,7 +106,7 @@ router.patch("/:id", async (req, res) => {
     });
   }
 });
-router.get("/:id", async (req, res) => {
+router.get("/:id", Auth, authorize('admin', 'it'), async (req, res) => {
   const {id }=req.params
   try {
     const disposal = await Disposal.findOne({
@@ -130,7 +132,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.get("/asset/:id", async (req, res) => {
+router.get("/asset/:id", Auth, authorize('admin', 'it'), async (req, res) => {
   try {
     const disposal = await Disposal.findAll({
       where: {
@@ -157,7 +159,7 @@ router.get("/asset/:id", async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", Auth, authorize('admin'), async (req, res) => {
   try {
     const result = await Disposal.destroy({
       where: { id: req.params.id },

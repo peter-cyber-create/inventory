@@ -6,10 +6,12 @@ const Brand = require("../../models/categories/brandModel.js");
 const Category = require("../../models/categories/categoryModel.js");
 const Model = require("../../models/categories/model.js");
 const Type = require("../../models/categories/typeModel.js");
+const Auth = require("../../middleware/auth.js");
+const authorize = require("../../middleware/authorize.js");
 
 const router = express.Router();
 
-router.post("/", async (req, res) => {
+router.post("/", Auth, authorize('admin', 'it', 'store'), async (req, res) => {
 
     try {
         const requisition = await Requisition.create(req.body);
@@ -40,7 +42,7 @@ router.post("/", async (req, res) => {
     }
 });
 
-router.get("/it/assets", async (req, res) => {
+router.get("/it/assets", Auth, authorize('admin', 'it'), async (req, res) => {
     try {
         const page = req.query.page || 1;
         const limit = req.query.limit || 30;
@@ -75,7 +77,7 @@ router.get("/it/assets", async (req, res) => {
     }
 });
 
-router.get("/stores", async (req, res) => {
+router.get("/stores", Auth, authorize('admin', 'it', 'store'), async (req, res) => {
     try {
         const page = req.query.page || 1;
         const limit = req.query.limit || 30;
@@ -107,7 +109,7 @@ router.get("/stores", async (req, res) => {
     }
 });
 
-router.get("/asset/:id", async (req, res) => {
+router.get("/asset/:id", Auth, authorize('admin', 'it', 'store'), async (req, res) => {
     try {
         const asset = await Asset.findByPk(req.params.id, { include: [{ model: Model }] });
 

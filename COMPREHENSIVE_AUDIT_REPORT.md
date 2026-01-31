@@ -419,7 +419,10 @@ router.post("/", Auth, authorize('admin', 'it'), async (req, res, next) => {
    - ✅ Dispatch routes - FIXED (admin, it, store)
    - ✅ Issue routes - FIXED (admin, it)
    - ✅ Maintenance routes - FIXED (admin, it)
-   - ⚠️ Remaining: Disposal, transfer, asset requisition routes; vehicle sub-routes; other category routes
+   - ✅ Disposal routes - FIXED (admin, it)
+   - ✅ Transfer routes - FIXED (admin, it)
+   - ✅ Asset requisition routes - FIXED (admin, it, store)
+   - ⚠️ Remaining: Goods received routes; vehicle sub-routes (spare parts, service requests); other category routes
 
 3. ⚠️ **MAJOR REMAINING**: Transaction management for multi-row operations
 

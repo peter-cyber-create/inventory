@@ -2,10 +2,12 @@ const express = require("express");
 const Audit = require("../../models/Logs/auditModel.js");
 const Issue = require("../../models/assets/issueModel.js");
 const Transfer = require("../../models/assets/tranferModel.js");
+const Auth = require("../../middleware/auth.js");
+const authorize = require("../../middleware/authorize.js");
 
 const router = express.Router();
 
-router.post("/", async (req, res) => {
+router.post("/", Auth, authorize('admin', 'it'), async (req, res) => {
 
     try {
         const tranfer = await Transfer.create(req.body);
@@ -39,7 +41,7 @@ router.post("/", async (req, res) => {
     }
 });
 
-router.get("/", async (req, res) => {
+router.get("/", Auth, authorize('admin', 'it'), async (req, res) => {
     try {
         const page = req.query.page || 1;
         const limit = req.query.limit || 10;
@@ -60,7 +62,7 @@ router.get("/", async (req, res) => {
     }
 });
 
-router.patch("/:transferId", async (req, res) => {
+router.patch("/:transferId", Auth, authorize('admin', 'it'), async (req, res) => {
     try {
         const result = await Transfer.update(
             { ...req.body, updatedAt: Date.now() },
@@ -92,7 +94,7 @@ router.patch("/:transferId", async (req, res) => {
     }
 });
 
-router.get("/:transferId", async (req, res) => {
+router.get("/:transferId", Auth, authorize('admin', 'it'), async (req, res) => {
     try {
         const tranfer = await Transfer.findByPk(req.params.transferId);
 
@@ -115,7 +117,7 @@ router.get("/:transferId", async (req, res) => {
     }
 });
 
-router.get("/asset/:id", async (req, res) => {
+router.get("/asset/:id", Auth, authorize('admin', 'it'), async (req, res) => {
     try {
         const transfer = await Transfer.findAll({
             where: {
@@ -142,7 +144,7 @@ router.get("/asset/:id", async (req, res) => {
     }
 });
 
-router.delete("/:transferId", async (req, res) => {
+router.delete("/:transferId", Auth, authorize('admin'), async (req, res) => {
     try {
         const result = await Transfer.destroy({
             where: { id: req.params.transferId },
