@@ -2,13 +2,20 @@ const express = require("express");
 const Model = require("../../models/categories/model.js");
 const Brand = require("../../models/categories/brandModel.js");
 const Category = require("../../models/categories/categoryModel.js");
+const Auth = require("../../middleware/auth.js");
+const authorize = require("../../middleware/authorize.js");
+const xss = require('xss');
 
 const router = express.Router();
 
-router.post("/", async (req, res) => {
+router.post("/", Auth, authorize('admin', 'it'), async (req, res) => {
 
     try {
-        const model = await Model.create(req.body);
+        const sanitizedBody = {};
+        for (const key in req.body) {
+            sanitizedBody[key] = typeof req.body[key] === 'string' ? xss(req.body[key]) : req.body[key];
+        }
+        const model = await Model.create(sanitizedBody);
 
         res.status(201).json({
             status: "success",
@@ -22,7 +29,7 @@ router.post("/", async (req, res) => {
     }
 });
 
-router.get("/", async (req, res) => {
+router.get("/", Auth, authorize('admin', 'it'), async (req, res) => {
     try {
         const page = req.query.page || 1;
         const limit = req.query.limit || 200;
@@ -43,10 +50,14 @@ router.get("/", async (req, res) => {
     }
 });
 
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", Auth, authorize('admin', 'it'), async (req, res) => {
     try {
+        const sanitizedBody = {};
+        for (const key in req.body) {
+            sanitizedBody[key] = typeof req.body[key] === 'string' ? xss(req.body[key]) : req.body[key];
+        }
         const result = await Model.update(
-            { ...req.body, updatedAt: Date.now() },
+            { ...sanitizedBody, updatedAt: Date.now() },
             {
                 where: {
                     id: req.params.id,
@@ -75,7 +86,7 @@ router.patch("/:id", async (req, res) => {
     }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", Auth, authorize('admin', 'it'), async (req, res) => {
     try {
         const model = await Model.findByPk(req.params.id);
 
@@ -98,7 +109,7 @@ router.get("/:id", async (req, res) => {
     }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", Auth, authorize('admin'), async (req, res) => {
     try {
         const result = await Model.destroy({
             where: { id: req.params.id },

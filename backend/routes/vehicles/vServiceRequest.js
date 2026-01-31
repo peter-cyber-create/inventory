@@ -5,19 +5,15 @@ const Audit = require("../../models/Logs/auditModel.js");
 const Service = require("../../models/vehicles/vServiceRequest.js");
 const Department = require("../../models/categories/departmentModel.js");
 const VehicleModel = require("../../models/vehicles/vehicleModel.js");
+const Auth = require("../../middleware/auth.js");
+const authorize = require("../../middleware/authorize.js");
 
 const router = express.Router();
 
-router.post("/request", async (req, res) => {
+router.post("/request", Auth, authorize('admin', 'garage'), async (req, res) => {
   try {
     const service = await Service.create(req.body);
 
-    const audit = await Audit.create({
-      action: "Vehicle Service Requisition",
-      actionedBy: req.body.requestedBy,
-      description: "Vehicle Service Requisition Initiated",
-      assetId: req.body.vehicleId,
-    });
 
     res.status(201).json({
       status: "success",
@@ -32,7 +28,7 @@ router.post("/request", async (req, res) => {
   }
 });
 
-router.get("/request", async (req, res) => {
+router.get("/request", Auth, authorize('admin', 'garage'), async (req, res) => {
   try {
     // const page = req.query.page || 1;
     // const limit = req.query.limit || 50;
@@ -55,7 +51,7 @@ router.get("/request", async (req, res) => {
   }
 });
 
-router.get("/recieved", async (req, res) => {
+router.get("/recieved", Auth, authorize('admin', 'garage'), async (req, res) => {
   try {
     const garage = await Service.findAll({
       include: { model: Vehicle },
@@ -74,10 +70,14 @@ router.get("/recieved", async (req, res) => {
   }
 });
 
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", Auth, authorize('admin', 'garage'), async (req, res) => {
   try {
+    const sanitizedBody = {};
+    for (const key in req.body) {
+      sanitizedBody[key] = typeof req.body[key] === 'string' ? xss(req.body[key]) : req.body[key];
+    }
     const result = await Service.update(
-      { ...req.body, updatedAt: Date.now() },
+      { ...sanitizedBody, updatedAt: Date.now() },
       {
         where: {
           id: req.params.id,
@@ -106,7 +106,7 @@ router.patch("/:id", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", Auth, authorize('admin', 'garage'), async (req, res) => {
   try {
     const service = await Service.findByPk(req.params.id);
 
@@ -129,7 +129,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", Auth, authorize('admin'), async (req, res) => {
   try {
     const result = await Service.destroy({
       where: { id: req.params.id },

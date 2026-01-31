@@ -1,12 +1,19 @@
 const express = require("express");
 const Type = require("../../models/vehicles/vType.js");
+const Auth = require("../../middleware/auth.js");
+const authorize = require("../../middleware/authorize.js");
+const xss = require('xss');
 
 const router = express.Router();
 
-router.post("/", async (req, res) => {
+router.post("/", Auth, authorize('admin', 'garage'), async (req, res) => {
 
     try {
-        const type = await Type.create(req.body);
+        const sanitizedBody = {};
+        for (const key in req.body) {
+            sanitizedBody[key] = typeof req.body[key] === 'string' ? xss(req.body[key]) : req.body[key];
+        }
+        const type = await Type.create(sanitizedBody);
 
         res.status(201).json({
             status: "success",
@@ -20,7 +27,7 @@ router.post("/", async (req, res) => {
     }
 });
 
-router.get("/", async (req, res) => {
+router.get("/", Auth, authorize('admin', 'garage'), async (req, res) => {
     try {
         const page = req.query.page || 1;
         const limit = req.query.limit || 30;
@@ -41,10 +48,14 @@ router.get("/", async (req, res) => {
     }
 });
 
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", Auth, authorize('admin', 'garage'), async (req, res) => {
     try {
+        const sanitizedBody = {};
+        for (const key in req.body) {
+            sanitizedBody[key] = typeof req.body[key] === 'string' ? xss(req.body[key]) : req.body[key];
+        }
         const result = await Type.update(
-            { ...req.body, updatedAt: Date.now() },
+            { ...sanitizedBody, updatedAt: Date.now() },
             {
                 where: {
                     id: req.params.id,
@@ -73,7 +84,7 @@ router.patch("/:id", async (req, res) => {
     }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", Auth, authorize('admin', 'garage'), async (req, res) => {
     try {
         const type = await Type.findByPk(req.params.id);
 
@@ -96,7 +107,7 @@ router.get("/:id", async (req, res) => {
     }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", Auth, authorize('admin'), async (req, res) => {
     try {
         const result = await Type.destroy({
             where: { id: req.params.id },
