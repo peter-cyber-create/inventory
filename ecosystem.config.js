@@ -45,10 +45,10 @@ module.exports = {
   apps: [
     {
       name: 'moh-ims-backend',
-      script: 'index.js',
+      script: './backend/index.js',
       interpreter: 'npx',
       interpreter_args: 'babel-node',
-      cwd: path.join(APP_DIR, 'backend'),
+      cwd: APP_DIR,
       instances: process.env.BACKEND_INSTANCES || 1,
       exec_mode: process.env.BACKEND_EXEC_MODE || 'fork',
       env: {
