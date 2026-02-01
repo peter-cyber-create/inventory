@@ -1,4 +1,4 @@
-const sequelize, DataTypes = require('../../config/db.js');
+const { sequelize, DataTypes } = require('../../config/db.js');
 
 const AssignDriver = sequelize.define("assigndriver", {
     id: {

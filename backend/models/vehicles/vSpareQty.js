@@ -1,4 +1,4 @@
-const sequelize, DataTypes = require('../../config/db.js');
+const { sequelize, DataTypes } = require('../../config/db.js');
 const VSpareParts = require("./vSpareParts.js");
 
 const VSparePartsQty = sequelize.define(
