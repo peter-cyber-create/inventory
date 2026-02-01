@@ -3,15 +3,15 @@ const path = require('path');
 // Load environment variables from the correct location
 require('dotenv').config({ path: path.join(__dirname, '../../config/environments/backend.env') });
 
-// Validate required environment variables
+// Validate required environment variables (non-blocking in production)
 const requiredEnvVars = ['DB_NAME', 'DB_USER', 'DB_PASS'];
 const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
 if (missingVars.length > 0) {
-  throw new Error(
-    `Missing required database environment variables: ${missingVars.join(', ')}. ` +
-    `Please set these in your .env file.`
-  );
+  console.warn(`⚠️ Missing required database environment variables: ${missingVars.join(', ')}`);
+  console.warn(`⚠️ Server will start but database operations will fail until configured.`);
+  // Don't throw error - allow server to start even without DB config
+  // This prevents 502 errors when DB config is missing
 }
 
 const sequelize = new Sequelize(
