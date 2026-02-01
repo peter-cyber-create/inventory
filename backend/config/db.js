@@ -14,10 +14,11 @@ if (missingVars.length > 0) {
   // This prevents 502 errors when DB config is missing
 }
 
+// Initialize Sequelize with defaults if env vars are missing (prevents crash)
 const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASS,
+  process.env.DB_NAME || 'inventory_db',
+  process.env.DB_USER || 'postgres',
+  process.env.DB_PASS || '',
   {
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 5432,
