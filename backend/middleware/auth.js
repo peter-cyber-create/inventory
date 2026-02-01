@@ -16,7 +16,8 @@ const Auth = async (req, res, next) => {
     }
 
     try {
-        const decoded = jwt.verify(token, process.env.SECRETKEY)
+        const secretKey = process.env.SECRETKEY || process.env.JWT_SECRET || 'default-secret-key-change-in-production';
+        const decoded = jwt.verify(token, secretKey)
         const user = await User.findByPk(decoded.id)
 
         if (!user) {

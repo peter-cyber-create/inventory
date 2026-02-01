@@ -123,7 +123,8 @@ router.post("/register", validatePasswordMiddleware, async (req, res, next) => {
         );
 
         if (user) {
-            let token = jwt.sign({ id: user.id }, process.env.SECRETKEY, {
+            const secretKey = process.env.SECRETKEY || process.env.JWT_SECRET || 'default-secret-key-change-in-production';
+            let token = jwt.sign({ id: user.id }, secretKey, {
                 expiresIn: 1 * 24 * 60 * 60 * 1000,
             });
 
@@ -171,7 +172,8 @@ router.post("/login", async (req, res, next) => {
                     });
                 }
 
-                let token = jwt.sign({ id: user.id }, process.env.SECRETKEY, { expiresIn: 86400 }); // 24 hours
+                const secretKey = process.env.SECRETKEY || process.env.JWT_SECRET || 'default-secret-key-change-in-production';
+                let token = jwt.sign({ id: user.id }, secretKey, { expiresIn: 86400 }); // 24 hours
                 
                 // Audit log successful login
                 await logAuthEvent(AUDIT_ACTIONS.LOGIN_SUCCESS, req, username, true);
