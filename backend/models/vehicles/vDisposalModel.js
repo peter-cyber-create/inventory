@@ -1,4 +1,4 @@
-import { sequelize, DataTypes } from "../../config/db.js";
+const sequelize, DataTypes = require('../../config/db.js');
 const VehicleModel = require("./vehicleModel.js");
 
 const VDisposalModel = sequelize.define(

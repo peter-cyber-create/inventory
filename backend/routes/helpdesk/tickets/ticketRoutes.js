@@ -1,6 +1,6 @@
 const express = require("express");
 const multer = require("multer");
-import xlsx from 'xlsx'
+const xlsx = require('xlsx');
 const User = require("../../../models/users/userModel.js");
 const transporter = require("../../../config/email.js");
 const TicketModel = require("../../../models/helpdesk/tickets/ticketModel.js");

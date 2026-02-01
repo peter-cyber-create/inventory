@@ -1,5 +1,5 @@
 const express = require("express");
-import { Op } from "sequelize";
+const Op = require('sequelize');
 const Vehicle = require("../../models/vehicles/vehicleModel.js");
 const Audit = require("../../models/Logs/auditModel.js");
 const Auth = require("../../middleware/auth.js");

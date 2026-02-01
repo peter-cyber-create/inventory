@@ -1,7 +1,7 @@
 const express = require("express");
 const VSparePartsQty = require("../../models/vehicles/vSpareQty.js");
 const VSpareParts = require("../../models/vehicles/vSpareParts.js");
-import { sequelize } from "../../config/db.js";
+const sequelize = require('../../config/db.js');
 
 const router = express.Router();
 

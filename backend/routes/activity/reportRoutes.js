@@ -1,5 +1,5 @@
 const express = require('express');
-import { Op } from 'sequelize';
+const Op = require('sequelize');
 const Activity = require("../../models/activity/activityModel.js");
 const Participant = require("../../models/activity/participantModel.js");
 const User = require('../../models/users/userModel.js');

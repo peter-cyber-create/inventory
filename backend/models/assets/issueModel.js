@@ -1,6 +1,6 @@
-import { sequelize, DataTypes } from '../../config/db.js';
+const sequelize, DataTypes = require('../../config/db.js');
 const Asset = require('./assetsModel.js');
-import Staff from '../categories/staffModel.js'
+const Staff = require('../categories/staffModel.js');
 
 const Issue = sequelize.define("issue", {
     id: {

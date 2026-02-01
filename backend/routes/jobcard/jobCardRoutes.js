@@ -2,7 +2,7 @@ const express = require("express");
 const JobCardModel = require("../../models/jobcards/jobCardModel.js");
 const JobCardSpare = require("../../models/jobCardSpare/JobCardSpare.js");
 const VehicleModel = require("../../models/vehicles/vehicleModel.js");
-import { sequelize } from "../../config/db.js";
+const sequelize = require('../../config/db.js');
 const Auth = require("../../middleware/auth.js");
 const authorize = require("../../middleware/authorize.js");
 // import JobCard from "../../models/jobcards/jobCard.js";
