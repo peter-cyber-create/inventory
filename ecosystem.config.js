@@ -47,6 +47,7 @@ module.exports = {
       name: 'moh-ims-backend',
       script: './backend/pm2-start.sh',
       cwd: APP_DIR,
+      interpreter: 'bash',
       instances: process.env.BACKEND_INSTANCES || 1,
       exec_mode: process.env.BACKEND_EXEC_MODE || 'fork',
       env: {
