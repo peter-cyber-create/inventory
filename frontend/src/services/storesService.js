@@ -2,16 +2,16 @@ import api from '../helpers/api';
 
 export const storesService = {
   // Dashboard
-  getDashboard: () => api.get('/api/api/stores/dashboard'),
+  getDashboard: () => api.get('/api/stores/dashboard'),
 
   // Items
-  getItems: (params) => api.get('/api/api/stores/items', { params }),
-  getItem: (id) => api.get(`/api/api/stores/items/${id}`),
-  createItem: (data) => api.post('/api/api/stores/items', data),
-  updateItem: (id, data) => api.put(`/api/api/stores/items/${id}`, data),
-  deleteItem: (id) => api.delete(`/api/api/stores/items/${id}`),
-  getItemCategories: () => api.get('/api/api/stores/items/categories/list'),
-  getLowStockItems: () => api.get('/api/api/stores/items/reports/low-stock'),
+  getItems: (params) => api.get('/api/stores/items', { params }),
+  getItem: (id) => api.get(`/api/stores/items/${id}`),
+  createItem: (data) => api.post('/api/stores/items', data),
+  updateItem: (id, data) => api.put(`/api/stores/items/${id}`, data),
+  deleteItem: (id) => api.delete(`/api/stores/items/${id}`),
+  getItemCategories: () => api.get('/api/stores/items/categories/list'),
+  getLowStockItems: (params) => api.get('/api/stores/ledger/low-stock', { params }),
 
   // Suppliers
   getSuppliers: (params) => api.get('/api/stores/suppliers', { params }),

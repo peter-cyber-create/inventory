@@ -57,14 +57,20 @@ const Ledger = () => {
       };
 
       const response = await storesService.getStockLedger(params);
-      setLedgerEntries(response.data.data);
+      // Handle different response structures
+      const data = response.data?.data || response.data?.ledger || response.data || [];
+      const total = response.data?.pagination?.total || response.data?.total || data.length;
+      
+      setLedgerEntries(Array.isArray(data) ? data : []);
       setPagination(prev => ({
         ...prev,
         current: page,
-        total: response.data.pagination.total
+        total: total
       }));
     } catch (error) {
-      message.error('Failed to load ledger entries');
+      console.error('Error loading ledger entries:', error);
+      message.error(error.response?.data?.message || 'Failed to load ledger entries');
+      setLedgerEntries([]);
     } finally {
       setLoading(false);
     }
@@ -74,9 +80,12 @@ const Ledger = () => {
   const loadStockBalances = async () => {
     try {
       const response = await storesService.getStockBalances();
-      setStockBalances(response.data.data);
+      const data = response.data?.data || response.data?.balances || response.data || [];
+      setStockBalances(Array.isArray(data) ? data : []);
     } catch (error) {
-      message.error('Failed to load stock balances');
+      console.error('Error loading stock balances:', error);
+      message.error(error.response?.data?.message || 'Failed to load stock balances');
+      setStockBalances([]);
     }
   };
 
@@ -84,9 +93,12 @@ const Ledger = () => {
   const loadLowStockItems = async () => {
     try {
       const response = await storesService.getLowStockItems({ threshold: 10 });
-      setLowStockItems(response.data.data);
+      const data = response.data?.data || response.data?.items || response.data || [];
+      setLowStockItems(Array.isArray(data) ? data : []);
     } catch (error) {
-      message.error('Failed to load low stock items');
+      console.error('Error loading low stock items:', error);
+      message.error(error.response?.data?.message || 'Failed to load low stock items');
+      setLowStockItems([]);
     }
   };
 
