@@ -33,6 +33,18 @@
   <!-- metismenu and simplebar removed - not found in assets, causing JS errors -->
   <!-- <script src="%PUBLIC_URL%/assets/libs/metismenu/metisMenu.min.js"></script> -->
   <!-- <script src="%PUBLIC_URL%/assets/libs/simplebar/simplebar.min.js"></script> -->
+  <!-- Safe wrapper for metisMenu to prevent errors -->
+  <script>
+    // Provide a stub metisMenu function if it doesn't exist
+    (function($) {
+      if (typeof $.fn.metisMenu === 'undefined') {
+        $.fn.metisMenu = function() {
+          // No-op: metisMenu functionality not needed for React app
+          return this;
+        };
+      }
+    })(jQuery);
+  </script>
   <script src="%PUBLIC_URL%/assets/js/app.js"></script>
 </body>
 </body>
