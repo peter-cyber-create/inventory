@@ -57,6 +57,7 @@ const Ledger = () => {
       };
 
       const response = await storesService.getStockLedger(params);
+      console.log('Ledger API Response:', response);
       // Handle different response structures
       const data = response.data?.data || response.data?.ledger || response.data || [];
       const total = response.data?.pagination?.total || response.data?.total || data.length;
