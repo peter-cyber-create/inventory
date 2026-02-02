@@ -33,7 +33,7 @@
   <!-- metismenu and simplebar removed - not found in assets, causing JS errors -->
   <!-- <script src="%PUBLIC_URL%/assets/libs/metismenu/metisMenu.min.js"></script> -->
   <!-- <script src="%PUBLIC_URL%/assets/libs/simplebar/simplebar.min.js"></script> -->
-  <!-- Safe wrapper for metisMenu to prevent errors -->
+  <!-- Safe wrapper for metisMenu and Waves to prevent errors -->
   <script>
     // Provide a stub metisMenu function if it doesn't exist
     (function($) {
@@ -44,6 +44,18 @@
         };
       }
     })(jQuery);
+    
+    // Provide a stub Waves object if it doesn't exist
+    if (typeof Waves === 'undefined') {
+      window.Waves = {
+        init: function() {
+          // No-op: Waves ripple effect not needed for React app
+          return this;
+        },
+        attach: function() { return this; },
+        ripple: function() { return this; }
+      };
+    }
   </script>
   <script src="%PUBLIC_URL%/assets/js/app.js"></script>
 </body>
