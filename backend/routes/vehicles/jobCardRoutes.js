@@ -1,5 +1,5 @@
 const express = require("express");
-const sequelize, QueryTypes = require('../../config/db.js');
+const { sequelize, QueryTypes } = require('../../config/db.js');
 const JobCard = require("../../models/vehicles/jobCardModel.js");
 const PartsUsed = require("../../models/vehicles/partsUsed.js");
 const SpareParts = require("../../models/vehicles/vSpareParts.js");
