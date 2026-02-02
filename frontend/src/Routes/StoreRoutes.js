@@ -24,20 +24,20 @@ const StoreRoutes = () => {
       {/* Main 5 Stores Modules */}
       <ProtectedRoute exact path="/stores" component={StoresDashboard} allowedRoles={['store', 'admin']} />
       <ProtectedRoute exact path="/stores/dashboard" component={StoresDashboard} allowedRoles={['store', 'admin']} />
-      <Route exact path="/stores/grn" component={GRN} />
-      <Route exact path="/stores/ledger" component={Ledger} />
-      <Route exact path="/stores/requisitions-issuance" component={Form76A} />
-      <Route exact path="/stores/form76a" component={Form76A} />
-      <Route exact path="/stores/reports" component={Reports} />
+      <ProtectedRoute exact path="/stores/grn" component={GRN} allowedRoles={['store', 'admin']} />
+      <ProtectedRoute exact path="/stores/ledger" component={Ledger} allowedRoles={['store', 'admin']} />
+      <ProtectedRoute exact path="/stores/requisitions-issuance" component={Form76A} allowedRoles={['store', 'admin']} />
+      <ProtectedRoute exact path="/stores/form76a" component={Form76A} allowedRoles={['store', 'admin']} />
+      <ProtectedRoute exact path="/stores/reports" component={Reports} allowedRoles={['store', 'admin']} />
       
       {/* Legacy routes for backward compatibility */}
-      <Route exact path="/stores/items" component={ItemsManagement} />
-      <Route exact path="/stores/suppliers" component={SuppliersManagement} />
-      <Route exact path="/stores/locations" component={LocationsManagement} />
-      <Route exact path="/stores/receiving" component={ReceivingGoods} />
-      <Route exact path="/stores/balance" component={StockBalance} />
-      <Route exact path="/stores/returns" component={Returns} />
-      <Route exact path="/stores/adjustments" component={Adjustments} />
+      <ProtectedRoute exact path="/stores/items" component={ItemsManagement} allowedRoles={['store', 'admin']} />
+      <ProtectedRoute exact path="/stores/suppliers" component={SuppliersManagement} allowedRoles={['store', 'admin']} />
+      <ProtectedRoute exact path="/stores/locations" component={LocationsManagement} allowedRoles={['store', 'admin']} />
+      <ProtectedRoute exact path="/stores/receiving" component={ReceivingGoods} allowedRoles={['store', 'admin']} />
+      <ProtectedRoute exact path="/stores/balance" component={StockBalance} allowedRoles={['store', 'admin']} />
+      <ProtectedRoute exact path="/stores/returns" component={Returns} allowedRoles={['store', 'admin']} />
+      <ProtectedRoute exact path="/stores/adjustments" component={Adjustments} allowedRoles={['store', 'admin']} />
     </>
   );
 };
