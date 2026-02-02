@@ -57,7 +57,9 @@ const Form76A = () => {
                 }));
             }
         } catch (error) {
-            toast.error('Failed to fetch Form 76A list');
+            console.error('Error fetching Form 76A:', error);
+            toast.error(error.response?.data?.message || 'Failed to fetch Form 76A list');
+            setForm76aList([]); // Ensure empty array on error
         } finally {
             setLoading(false);
         }

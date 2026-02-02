@@ -36,7 +36,9 @@ const GRN = () => {
             const response = await storesService.getGRNs();
             setGrns(response.data?.data || []);
         } catch (error) {
-            toast.error('Failed to load GRNs');
+            console.error('Error loading GRNs:', error);
+            toast.error(error.response?.data?.message || 'Failed to load GRNs');
+            setGrns([]); // Ensure empty array on error
         } finally {
             setLoading(false);
         }

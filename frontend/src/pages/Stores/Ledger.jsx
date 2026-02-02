@@ -311,8 +311,9 @@ const Ledger = () => {
     },
   ];
 
+  // Always render the component, even if data is empty
   return (
-    <div>
+    <div style={{ padding: '24px', minHeight: '100vh' }}>
       <Card>
         <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Title level={3}>Stores Ledger</Title>
