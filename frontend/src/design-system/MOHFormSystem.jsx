@@ -462,13 +462,19 @@ export const MOHForm = ({
   ...props 
 }) => {
   // Default validation messages
+  // Note: ${label}, ${min}, ${max} are Ant Design template variables, not JS template literals
+  // eslint-disable-next-line no-template-curly-in-string
   const defaultValidateMessages = {
+    // eslint-disable-next-line no-template-curly-in-string
     required: '${label} is required',
     types: {
+      // eslint-disable-next-line no-template-curly-in-string
       email: '${label} is not a valid email',
+      // eslint-disable-next-line no-template-curly-in-string
       number: '${label} is not a valid number',
     },
     number: {
+      // eslint-disable-next-line no-template-curly-in-string
       range: '${label} must be between ${min} and ${max}',
     },
     ...validateMessages
@@ -506,7 +512,7 @@ export const MOHForm = ({
 };
 
 // Export all components
-export default {
+const MOHFormSystem = {
   MOHForm,
   MOHFormSection,
   MOHFormField,
@@ -516,6 +522,8 @@ export default {
   MOHButton,
   MOHFormActions
 };
+
+export default MOHFormSystem;
 
 
 
