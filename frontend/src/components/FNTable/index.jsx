@@ -3,8 +3,8 @@ import React from "react";
 import { Table, Checkbox, Button, Spin, Empty } from "antd";
 
 const FNTable = ({
-  columns,
-  data,
+  columns = [],
+  data = [],
   actions,
   title,
   selectable,
@@ -13,6 +13,10 @@ const FNTable = ({
   loading,
   emptyText,
 }) => {
+  // Defensively normalize: ensure data is always an array
+  const safeData = Array.isArray(data) ? data : [];
+  const safeColumns = Array.isArray(columns) ? columns : [];
+
   // Convert columns to Ant Design format
   const antdColumns = [
     ...(selectable
@@ -32,7 +36,7 @@ const FNTable = ({
           },
         ]
       : []),
-    ...columns.map((col) => ({
+    ...safeColumns.map((col) => ({
       title: col.label,
       dataIndex: col.key,
       key: col.key,
@@ -78,8 +82,8 @@ const FNTable = ({
       {title && <h3 style={{ marginBottom: 16 }}>{title}</h3>}
       <Table
         columns={antdColumns}
-        dataSource={data}
-        rowKey={(row, idx) => row.id || idx}
+        dataSource={safeData}
+        rowKey={(row, idx) => row?.id || idx}
         loading={loading ? { indicator: <Spin /> } : false}
         locale={{
           emptyText: emptyText || <Empty description="No data available" />,
