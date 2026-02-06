@@ -13,13 +13,13 @@ const validateServerPayload = (body) => {
         "brand",
         "IP",
         "purchaseDate",
-        "warrantly",
         "expiryDate",
         "memory",
         "processor",
         "hypervisor",
         "hardDisk"
     ];
+    // warrantly is optional
 
     const missing = requiredFields.filter((field) => !body[field] || String(body[field]).trim() === "");
     return missing;

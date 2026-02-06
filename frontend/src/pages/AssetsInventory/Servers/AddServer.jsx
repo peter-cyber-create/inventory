@@ -32,13 +32,13 @@ const AddServer = ({ close, refresh }) => {
             { key: 'brand', label: 'Brand' },
             { key: 'IP', label: 'IP Address' },
             { key: 'purchaseDate', label: 'Purchase Date' },
-            { key: 'warrantly', label: 'Warranty' },
             { key: 'expiryDate', label: 'Expiry Date' },
             { key: 'memory', label: 'Memory' },
             { key: 'processor', label: 'Processor' },
             { key: 'hypervisor', label: 'Hypervisor' },
             { key: 'hardDisk', label: 'Hard Disk' },
         ];
+        // warrantly is optional
 
         for (const field of requiredFields) {
             if (!formData[field.key] || String(formData[field.key]).trim() === "") {

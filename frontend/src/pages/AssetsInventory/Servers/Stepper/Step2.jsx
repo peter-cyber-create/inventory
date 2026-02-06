@@ -62,8 +62,20 @@ const Step2 = ({ formData, setFormData }) => {
                         </div>
                         <div class="col-lg-6">
                             <div class="mb-3">
+                                <label for="basicpill-warranty-input">Warranty Period</label>
+                                <input type="text" class="form-control" id="basicpill-warranty-input" placeholder="Enter Warranty Period (e.g., 1 Year, 2 Years)"
+                                    value={formData.warrantly}
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, warrantly: e.target.value })
+                                    } />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="mb-3">
                                 <label for="basicpill-servicetax-input">Warranty Expiry Date</label>
-                                <input type="date" class="form-control" id="basicpill-servicetax-input" placeholder="Warrantly Expiry Date"
+                                <input type="date" class="form-control" id="basicpill-servicetax-input" placeholder="Warranty Expiry Date"
                                     value={formData.expiryDate}
                                     onChange={(e) =>
                                         setFormData({ ...formData, expiryDate: e.target.value })

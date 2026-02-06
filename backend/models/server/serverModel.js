@@ -54,6 +54,10 @@ const ServerModel = sequelize.define("servers", {
         type: DataTypes.STRING,
         allowNull: false
     },
+    warrantly: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
 }, { timestamps: true });
 
 
