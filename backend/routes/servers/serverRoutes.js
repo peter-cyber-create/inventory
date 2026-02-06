@@ -43,6 +43,13 @@ router.post("/", async (req, res) => {
             server,
         });
     } catch (error) {
+        // Check if the error is due to missing table
+        if (error.message && error.message.includes('relation "servers" does not exist')) {
+            return res.status(503).json({
+                status: "error",
+                message: "Server database table not found. Please contact system administrator to create the 'servers' table in the database.",
+            });
+        }
         res.status(500).json({
             status: "error",
             message: error.message,
@@ -69,6 +76,13 @@ router.post("/virtual", async (req, res) => {
             server,
         });
     } catch (error) {
+        // Check if the error is due to missing table
+        if (error.message && error.message.includes('relation "servers" does not exist')) {
+            return res.status(503).json({
+                status: "error",
+                message: "Server database table not found. Please contact system administrator to create the 'servers' table in the database.",
+            });
+        }
         res.status(500).json({
             status: "error",
             message: error.message,
@@ -91,6 +105,13 @@ router.get("/", async (req, res) => {
             servers,
         });
     } catch (error) {
+        // Check if the error is due to missing table
+        if (error.message && error.message.includes('relation "servers" does not exist')) {
+            return res.status(503).json({
+                status: "error",
+                message: "Server database table not found. Please contact system administrator to create the 'servers' table in the database.",
+            });
+        }
         res.status(500).json({
             status: "error",
             message: error.message,
@@ -113,6 +134,13 @@ router.get("/virtual", async (req, res) => {
             servers,
         });
     } catch (error) {
+        // Check if the error is due to missing table
+        if (error.message && error.message.includes('relation "servers" does not exist')) {
+            return res.status(503).json({
+                status: "error",
+                message: "Server database table not found. Please contact system administrator to create the 'servers' table in the database.",
+            });
+        }
         res.status(500).json({
             status: "error",
             message: error.message,
@@ -147,6 +175,13 @@ router.patch("/:id", async (req, res) => {
             },
         });
     } catch (error) {
+        // Check if the error is due to missing table
+        if (error.message && error.message.includes('relation "servers" does not exist')) {
+            return res.status(503).json({
+                status: "error",
+                message: "Server database table not found. Please contact system administrator to create the 'servers' table in the database.",
+            });
+        }
         res.status(500).json({
             status: "error",
             message: error.message,
@@ -170,6 +205,13 @@ router.get("/:id", async (req, res) => {
             server,
         });
     } catch (error) {
+        // Check if the error is due to missing table
+        if (error.message && error.message.includes('relation "servers" does not exist')) {
+            return res.status(503).json({
+                status: "error",
+                message: "Server database table not found. Please contact system administrator to create the 'servers' table in the database.",
+            });
+        }
         res.status(500).json({
             status: "error",
             message: error.message,
@@ -193,6 +235,13 @@ router.delete("/:id", async (req, res) => {
 
         res.status(204).json();
     } catch (error) {
+        // Check if the error is due to missing table
+        if (error.message && error.message.includes('relation "servers" does not exist')) {
+            return res.status(503).json({
+                status: "error",
+                message: "Server database table not found. Please contact system administrator to create the 'servers' table in the database.",
+            });
+        }
         res.status(500).json({
             status: "error",
             message: error.message,
