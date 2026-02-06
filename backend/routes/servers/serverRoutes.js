@@ -3,16 +3,41 @@ const ServerModal = require("../../models/server/serverModel.js");
 
 const router = express.Router();
 
+// Basic validation helper
+const validateServerPayload = (body) => {
+    const requiredFields = [
+        "serialNo",
+        "engranvedNo",
+        "serverName",
+        "productNo",
+        "brand",
+        "IP",
+        "purchaseDate",
+        "warrantly",
+        "expiryDate",
+        "memory",
+        "processor",
+        "hypervisor",
+        "hardDisk"
+    ];
+
+    const missing = requiredFields.filter((field) => !body[field] || String(body[field]).trim() === "");
+    return missing;
+};
+
+// Create physical or generic server
 router.post("/", async (req, res) => {
-
     try {
-        const { serialNo, engranvedNo, serverName, productNo, brand, IP, purchaseDate, warrantly, expiryDate, memory,
-            processor, hypervisor, hardDisk } = req.body;
+        const missing = validateServerPayload(req.body);
+        if (missing.length > 0) {
+            return res.status(400).json({
+                status: "error",
+                message: `Missing required fields: ${missing.join(", ")}`
+            });
+        }
 
-        const server = await ServerModal.create({
-            serialNo, engranvedNo, serverName, productNo, brand, IP, purchaseDate, warrantly, expiryDate, memory,
-            processor, hypervisor, hardDisk
-        });
+        const server = await ServerModal.create(req.body);
+
         res.status(201).json({
             status: "success",
             server,
@@ -25,7 +50,56 @@ router.post("/", async (req, res) => {
     }
 });
 
+// Alias route for virtual servers – currently same model,
+// separated so existing frontend /servers/virtual keeps working.
+router.post("/virtual", async (req, res) => {
+    try {
+        const missing = validateServerPayload(req.body);
+        if (missing.length > 0) {
+            return res.status(400).json({
+                status: "error",
+                message: `Missing required fields: ${missing.join(", ")}`
+            });
+        }
+
+        const server = await ServerModal.create(req.body);
+
+        res.status(201).json({
+            status: "success",
+            server,
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: "error",
+            message: error.message,
+        });
+    }
+});
+
+// List physical/generic servers
 router.get("/", async (req, res) => {
+    try {
+        const page = req.query.page || 1;
+        const limit = req.query.limit || 10;
+        const skip = (page - 1) * limit;
+
+        const servers = await ServerModal.findAll({ limit, offset: skip });
+
+        res.status(200).json({
+            status: "success",
+            results: servers.length,
+            servers,
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: "error",
+            message: error.message,
+        });
+    }
+});
+
+// Alias list for virtual servers (same data set for now)
+router.get("/virtual", async (req, res) => {
     try {
         const page = req.query.page || 1;
         const limit = req.query.limit || 10;

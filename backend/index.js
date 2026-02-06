@@ -46,6 +46,7 @@ const requisitionRoutes = require("./routes/assets/requisition.js");
 const transferRoutes = require("./routes/assets/tranferRoutes.js");
 const maintenance = require("./routes/assets/maintenanceRoutes.js");
 const disposalRoutes = require("./routes/assets/DisposalRoutes.js");
+const serverRoutes = require("./routes/servers/serverRoutes.js");
 
 // Vehicles Routes
 const VehicleType = require("./routes/vehicles/vTypes.js");
@@ -115,6 +116,7 @@ app.use("/api/disposal", disposalRoutes);
 app.use("/api/transfers", transferRoutes);
 app.use("/api/requisition", requisitionRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/servers", serverRoutes);
 
 /**************** Vehicles Routes ********************/
 app.use("/api/v/vehicle", vehicleRoutes);

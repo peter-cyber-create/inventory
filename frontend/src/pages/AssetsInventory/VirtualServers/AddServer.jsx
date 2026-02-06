@@ -23,6 +23,33 @@ const AddServer = ({ close, refresh }) => {
 
     const [currentStep, setCurrentStep] = useState(0);
 
+    const validateForm = () => {
+        const requiredFields = [
+            { key: 'serverName', label: 'Server Name' },
+            { key: 'serialNo', label: 'Serial Number' },
+            { key: 'engranvedNo', label: 'Engraved Number' },
+            { key: 'productNo', label: 'Product Number' },
+            { key: 'brand', label: 'Brand' },
+            { key: 'IP', label: 'IP Address' },
+            { key: 'purchaseDate', label: 'Purchase Date' },
+            { key: 'warrantly', label: 'Warranty' },
+            { key: 'expiryDate', label: 'Expiry Date' },
+            { key: 'memory', label: 'Memory' },
+            { key: 'processor', label: 'Processor' },
+            { key: 'hypervisor', label: 'Hypervisor' },
+            { key: 'hardDisk', label: 'Hard Disk' },
+        ];
+
+        for (const field of requiredFields) {
+            if (!formData[field.key] || String(formData[field.key]).trim() === "") {
+                toast.error(`${field.label} is required`);
+                return false;
+            }
+        }
+
+        return true;
+    };
+
     const handleNext = () => {
         setCurrentStep(prevStep => prevStep + 1);
     };
@@ -35,6 +62,11 @@ const AddServer = ({ close, refresh }) => {
         e.preventDefault();
         setLoading(true);
 
+        if (!validateForm()) {
+            setLoading(false);
+            return;
+        }
+
         try {
             const response = await API.post("/servers/virtual", formData);
             setLoading(false);
@@ -44,7 +76,11 @@ const AddServer = ({ close, refresh }) => {
         } catch (error) {
             console.log("error", error);
             setLoading(false);
-            toast.error("Error while Adding Host Server");
+            const message =
+                error.response?.data?.message ||
+                error.message ||
+                "Error while Adding Host Server";
+            toast.error(message);
         }
     };
 
