@@ -66,17 +66,7 @@ npm run build
 cd "$APP_DIR"
 echo -e "${GREEN}✓${NC} Frontend rebuilt"
 
-# 5. Fix ESLint warnings
-echo ""
-echo "5. Configuring ESLint..."
-if [ -f "$APP_DIR/scripts/deployment/fix-all-eslint-warnings.sh" ]; then
-    "$APP_DIR/scripts/deployment/fix-all-eslint-warnings.sh" || true
-    echo -e "${GREEN}✓${NC} ESLint configured"
-else
-    echo -e "${YELLOW}⚠${NC} ESLint fix script not found"
-fi
-
-# 6. Ensure PM2 is running
+# 5. Ensure PM2 is running
 echo ""
 echo "6. Checking PM2 processes..."
 if command -v pm2 &> /dev/null; then
@@ -98,7 +88,7 @@ else
     echo -e "${RED}✗${NC} PM2 not found"
 fi
 
-# 7. Ensure Nginx is configured and running
+# 6. Ensure Nginx is configured and running
 echo ""
 echo "7. Checking Nginx..."
 if command -v nginx &> /dev/null; then
@@ -128,7 +118,7 @@ else
     echo -e "${RED}✗${NC} Nginx not installed"
 fi
 
-# 8. Run production readiness check
+# 7. Run production readiness check
 echo ""
 echo "8. Running production readiness check..."
 if [ -f "$APP_DIR/scripts/deployment/production-readiness.sh" ]; then

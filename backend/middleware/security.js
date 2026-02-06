@@ -13,6 +13,10 @@ const createRateLimit = (windowMs, max, message) => {
         },
         standardHeaders: true,
         legacyHeaders: false,
+        // IMPORTANT: we are behind Nginx with `app.set('trust proxy', true)`.
+        // Explicitly tell express-rate-limit NOT to re-use Express's trust proxy
+        // setting for IP detection, to avoid ERR_ERL_PERMISSIVE_TRUST_PROXY.
+        trustProxy: false,
     });
 };
 
