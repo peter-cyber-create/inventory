@@ -9,14 +9,37 @@ const router = express.Router();
 router.post("/", Auth, authorize('admin', 'it'), async (req, res) => {
 
     try {
-        const maintenance = await Maintenance.create(req.body);
+        const { servicedBy, servicedOn, nextService, taskName, description, assetId } = req.body;
 
-        const audit = await Audit.create({
-            action: "Preventive Maintenance",
-            actionedBy: req.body.user,
-            description: "Asset Preventive Maintenance Done",
-            assetId: req.body.assetId
-        })
+        if (!servicedBy || !servicedOn || !nextService || !taskName || !description || !assetId) {
+            return res.status(400).json({
+                status: "error",
+                message: "All maintenance fields are required: Task Name, Serviced By, Serviced On, Next Service Date, Description and Asset reference."
+            });
+        }
+
+        const maintenance = await Maintenance.create({
+            servicedBy,
+            servicedOn,
+            nextService,
+            taskName,
+            description,
+            assetId
+        });
+
+        // Try to write an audit record, but do NOT fail the main request if audits table is missing
+        let audit = null;
+        try {
+            audit = await Audit.create({
+                action: "Preventive Maintenance",
+                actionedBy: req.body.user || 'system',
+                description: "Asset Preventive Maintenance Done",
+                assetId: assetId
+            });
+        } catch (auditError) {
+            // Log and continue – maintenance record is more important than audit logging
+            console.error('Audit log creation failed for maintenance:', auditError.message);
+        }
 
         res.status(201).json({
             status: "success",
@@ -24,6 +47,14 @@ router.post("/", Auth, authorize('admin', 'it'), async (req, res) => {
             audit
         });
     } catch (error) {
+        if (error.name === 'SequelizeValidationError') {
+            const message = error.errors?.map(e => e.message).join(', ') || 'Validation error while saving maintenance record.';
+            return res.status(400).json({
+                status: "error",
+                message
+            });
+        }
+
         res.status(500).json({
             status: "error",
             message: error.message,
@@ -107,7 +138,7 @@ router.get("/:id", Auth, authorize('admin', 'it'), async (req, res) => {
     }
 });
 
-router.get("/asset/:id", async (req, res) => {
+router.get("/asset/:id", Auth, authorize('admin', 'it'), async (req, res) => {
     try {
         const maintenance = await Maintenance.findAll({
             where: {
