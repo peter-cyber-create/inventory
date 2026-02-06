@@ -1,5 +1,4 @@
 import { NumericFormat as NumberFormat } from 'react-number-format';
-/* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import API from '../../../helpers/api';

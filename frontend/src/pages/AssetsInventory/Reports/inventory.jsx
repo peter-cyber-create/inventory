@@ -1,5 +1,3 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
-/* eslint-disable no-undef */
 import React, { useState, useEffect, Fragment } from 'react'
 import { Link, useHistory } from 'react-router-dom';
 import API from "../../../helpers/api";

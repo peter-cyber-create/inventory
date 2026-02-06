@@ -56,7 +56,7 @@ const UserManagement = () => {
 
     useEffect(() => {
         fetchUsers();
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    }, []);
 
     const applyFilters = useCallback(() => {
         let filtered = [...users];

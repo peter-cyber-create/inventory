@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useState, useEffect, Fragment } from 'react'
 import { Link, useHistory } from 'react-router-dom';
 import { toast } from "react-toastify";

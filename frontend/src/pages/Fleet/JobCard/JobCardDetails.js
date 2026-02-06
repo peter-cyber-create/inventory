@@ -43,8 +43,8 @@ const JobCardDetail = ({ match }) => {
 
   useEffect(() => {
     loadJobCard();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    // We intentionally only depend on the ID to avoid reloading unnecessarily
+  }, [id]);
 
   const handlePrint = () => {
     const printContent = printRef.current.innerHTML;

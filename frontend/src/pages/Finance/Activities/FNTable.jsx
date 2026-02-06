@@ -1,5 +1,3 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
-
 import React from 'react';
 import moment from 'moment';
 import '../../../assets/css/gou-moh-theme.css';
