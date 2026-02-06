@@ -17,12 +17,22 @@ const Types = () => {
     const loadCategories = async () => {
         setLoading(true);
         try {
-            const res = await API.get(`/type`);
+            const res = await API.get(`/api/type`);
             console.log(res)
-            setTypes(res?.data.type);
+            // Defensively normalize: ensure we always have an array
+            const typesList = Array.isArray(res?.data?.type) 
+                ? res.data.type 
+                : Array.isArray(res?.data?.assets) 
+                    ? res.data.assets 
+                    : Array.isArray(res?.data) 
+                        ? res.data 
+                        : [];
+            setTypes(typesList);
             setLoading(false);
         } catch (error) {
             console.log("error", error);
+            // On error, set empty array to prevent .map() crashes
+            setTypes([]);
             setLoading(false);
         }
     };
