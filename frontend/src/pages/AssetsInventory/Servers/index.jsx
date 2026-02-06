@@ -14,7 +14,7 @@ import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
 
 const Servers = () => {
     const [assets, setAssets] = useState([]);
-    const [loading, setLoading] = useState([]);
+    const [loading, setLoading] = useState(false);
     const [id, setId] = useState("");
     const [showModal, setShowModal] = useState(false);
     const [updateModal, setUpdate] = useState(false);
@@ -28,12 +28,13 @@ const Servers = () => {
     const loadServers = async () => {
         setLoading(true);
         try {
-            const res = await API.get("/servers");
-            console.log(res)
-            setAssets(res.data.servers);
-            setLoading(false);
+            const res = await API.get("/api/servers");
+            const list = res.data?.servers;
+            setAssets(Array.isArray(list) ? list : []);
         } catch (error) {
             console.log("error", error);
+            setAssets([]);
+        } finally {
             setLoading(false);
         }
     };
@@ -44,16 +45,16 @@ const Servers = () => {
 
     const handleDelete = async (id) => {
         setLoading(true);
-        await API.delete(`/legal/${id}`)
-            .then(() => {
-                setLoading(false);
-                toast.success('Server Successfully Deleted');
-            })
-            .catch((error) => {
-                setLoading(false);
-                toast.error(`Failed in Deleting Server`);
-            });
-        loadServers();
+        try {
+            await API.delete(`/api/servers/${id}`);
+            toast.success('Server Successfully Deleted');
+            await loadServers();
+        } catch (error) {
+            console.log("error", error);
+            toast.error(error.response?.data?.message || 'Failed in Deleting Server');
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {

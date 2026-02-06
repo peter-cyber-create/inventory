@@ -68,7 +68,7 @@ const AddServer = ({ close, refresh }) => {
         }
 
         try {
-            const response = await API.post("/servers/virtual", formData);
+            const response = await API.post("/api/servers/virtual", formData);
             setLoading(false);
             close();
             refresh();
