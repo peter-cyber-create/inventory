@@ -1,7 +1,10 @@
 import React, { Fragment } from "react";
 import { Link } from "react-router-dom";
 
-const FNTable = ({ data, handleDelete, handleEdit, handleView }) => {
+const FNTable = ({ data = [], handleDelete, handleEdit, handleView }) => {
+  // Defensively normalize: ensure data is always an array
+  const safeData = Array.isArray(data) ? data : [];
+  
   return (
     <Fragment>
       <div className="table-responsive">
@@ -19,7 +22,7 @@ const FNTable = ({ data, handleDelete, handleEdit, handleView }) => {
             </tr>
           </thead>
           <tbody>
-            {data.map((l, index) => (
+            {safeData.map((l, index) => (
               <tr key={index}>
                 <td>{l.vehicle.old_number_plate||l.vehicle.new_number_plate}</td>
                 <td>{l.receivedBy}</td>

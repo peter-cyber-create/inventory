@@ -21,13 +21,15 @@ const Requisition = () => {
   const loadAsset = async (id) => {
     setLoading(true);
     try {
-      const res = await API.get(`/requisition/asset/${id}`);
+      const res = await API.get(`/api/requisition/asset/${id}`);
       console.log(res);
-      setModel(res?.data.asset.model.name);
-      setSerialNo(res?.data.asset.serialNo);
+      setModel(res?.data?.asset?.model?.name || '');
+      setSerialNo(res?.data?.asset?.serialNo || '');
       setLoading(false);
     } catch (error) {
       console.log("error", error);
+      setModel('');
+      setSerialNo('');
       setLoading(false);
     }
   };
@@ -41,10 +43,15 @@ const Requisition = () => {
   const loadRequisition = async () => {
     setLoading(true);
     try {
-      const res = await API.get(`/requisition/it/assets`);
+      const res = await API.get(`/api/requisition/it/assets`);
       console.log(res);
-      // Ensure we always set an array, even if API fails
-      setRequisitions(res?.data?.assets || []);
+      // Defensively normalize: ensure we always have an array
+      const requisitionsList = Array.isArray(res?.data?.assets) 
+          ? res.data.assets 
+          : Array.isArray(res?.data) 
+              ? res.data 
+              : [];
+      setRequisitions(requisitionsList);
       setLoading(false);
     } catch (error) {
       console.log("error", error);

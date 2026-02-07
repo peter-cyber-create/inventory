@@ -20,12 +20,20 @@ const Users = () => {
     const loadUsers = async () => {
         setLoading(true);
         try {
-            const res = await API.get(`/users/finance`);
+            const res = await API.get(`/api/users/finance`);
             console.log(res)
-            setUsers(res?.data.users);
+            // Defensively normalize: ensure we always have an array
+            const usersList = Array.isArray(res?.data?.users) 
+                ? res.data.users 
+                : Array.isArray(res?.data) 
+                    ? res.data 
+                    : [];
+            setUsers(usersList);
             setLoading(false);
         } catch (error) {
             console.log("error", error);
+            // On error, set empty array to prevent .map() crashes
+            setUsers([]);
             setLoading(false);
         }
     };

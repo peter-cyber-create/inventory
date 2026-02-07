@@ -17,9 +17,17 @@ const PendingAccountability = () => {
     const fetchPendingActivities = async () => {
         try {
             const response = await API.get('/api/reports/accountability');
-            setActivities(response.data.activities);
+            // Defensively normalize: ensure we always have an array
+            const activitiesList = Array.isArray(response?.data?.activities) 
+                ? response.data.activities 
+                : Array.isArray(response?.data) 
+                    ? response.data 
+                    : [];
+            setActivities(activitiesList);
         } catch (error) {
             toast.error('Failed to fetch pending activities');
+            // On error, set empty array to prevent .map() crashes
+            setActivities([]);
         } finally {
             setLoading(false);
         }
@@ -53,7 +61,7 @@ const PendingAccountability = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {activities.map(activity => {
+                                {Array.isArray(activities) && activities.map(activity => {
                                     const daysSinceEnd = Math.floor(
                                         (new Date() - new Date(activity.endDate)) / (1000 * 60 * 60 * 24)
                                     );
