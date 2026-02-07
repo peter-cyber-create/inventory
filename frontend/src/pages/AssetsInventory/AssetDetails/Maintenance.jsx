@@ -8,7 +8,7 @@ import FNEmpty from '../../../components/FNEmpty';
 
 const Maintenance = ({ id }) => {
     const [maintenance, setMaintenance] = useState([]);
-    const [loading, setLoading] = useState([]);
+    const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
 
     const handleShow = () => setShowModal(true);
@@ -17,18 +17,22 @@ const Maintenance = ({ id }) => {
     const loadMaintenance = async () => {
         setLoading(true);
         try {
-            const res = await API.get(`/maintenance/asset/${id}`);
-            setMaintenance(res.data.maintenance);
-            setLoading(false);
+            const res = await API.get(`/api/maintenance/asset/${id}`);
+            const list = res.data?.maintenance;
+            setMaintenance(Array.isArray(list) ? list : []);
         } catch (error) {
             console.log("error", error);
+            setMaintenance([]);
+        } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        loadMaintenance();
-    }, []);
+        if (id) {
+            loadMaintenance();
+        }
+    }, [id]);
 
     const tableColumns = [
         { key: 'taskName', label: 'Task Name' },

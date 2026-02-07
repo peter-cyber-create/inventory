@@ -33,12 +33,20 @@ const Depts = () => {
     const loadDepts = async () => {
         setLoading(true);
         try {
-            const res = await API.get("/department");
+            const res = await API.get("/api/department");
             console.log(res)
-            setDepts(res?.data.depts);
+            // Defensively normalize: ensure we always have an array
+            const deptsList = Array.isArray(res?.data?.depts) 
+                ? res.data.depts 
+                : Array.isArray(res?.data) 
+                    ? res.data 
+                    : [];
+            setDepts(deptsList);
             setLoading(false);
         } catch (error) {
             console.log("error", error);
+            // On error, set empty array to prevent .map() crashes
+            setDepts([]);
             setLoading(false);
         }
     };
@@ -108,7 +116,7 @@ const Depts = () => {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {depts && depts.map((dept, index) => (
+                                                {Array.isArray(depts) && depts.map((dept, index) => (
                                                     <tr key={index}>
                                                         <td>{dept.id}</td>
                                                         <td>{dept.name}</td>

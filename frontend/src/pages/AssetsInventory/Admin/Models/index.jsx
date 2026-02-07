@@ -33,7 +33,7 @@ const Models = () => {
         formData.append('file', file);
 
         try {
-            const response = await API.post('/uploads/models', formData, {
+            const response = await API.post('/api/uploads/models', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
                 onUploadProgress: (progressEvent) => {
                     const percentage = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -55,11 +55,21 @@ const Models = () => {
     const loadModels = async () => {
         setLoading(true);
         try {
-            const res = await API.get('/model');
-            setModels(res?.data?.model || []);
+            const res = await API.get('/api/model');
+            // Defensively normalize: ensure we always have an array
+            const modelsList = Array.isArray(res?.data?.model) 
+                ? res.data.model 
+                : Array.isArray(res?.data?.assets) 
+                    ? res.data.assets 
+                    : Array.isArray(res?.data) 
+                        ? res.data 
+                        : [];
+            setModels(modelsList);
         } catch (error) {
             console.error('Error loading models:', error);
             toast.error('Failed to load models. Please try again.');
+            // On error, set empty array to prevent .map() crashes
+            setModels([]);
         } finally {
             setLoading(false);
         }
@@ -67,7 +77,7 @@ const Models = () => {
 
     const downloadExcel = async () => {
         try {
-            const response = await API.get('/downloads/models', {
+            const response = await API.get('/api/downloads/models', {
                 responseType: 'blob', 
             });
 

@@ -28,12 +28,20 @@ const Staff = () => {
     const loadUsers = async () => {
         setLoading(true);
         try {
-            const res = await API.get(`/staff`);
+            const res = await API.get(`/api/staff`);
             console.log(res)
-            setUsers(res?.data.staff);
+            // Defensively normalize: ensure we always have an array
+            const usersList = Array.isArray(res?.data?.staff) 
+                ? res.data.staff 
+                : Array.isArray(res?.data) 
+                    ? res.data 
+                    : [];
+            setUsers(usersList);
             setLoading(false);
         } catch (error) {
             console.log("error", error);
+            // On error, set empty array to prevent .map() crashes
+            setUsers([]);
             setLoading(false);
         }
     };
@@ -100,7 +108,7 @@ const Staff = () => {
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        {users.map((user, index) => (
+                                                        {Array.isArray(users) && users.map((user, index) => (
                                                             <tr key={index}>
                                                                 <td>{user.depart.name}</td>
                                                                 <td>{user.division.name}</td>

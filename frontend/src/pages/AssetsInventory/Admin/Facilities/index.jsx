@@ -28,12 +28,20 @@ const Facilities = () => {
     const loadFacilities = async () => {
         setLoading(true);
         try {
-            const res = await API.get(`/facility`);
+            const res = await API.get(`/api/facility`);
             console.log(res)
-            setFacilities(res?.data.facilities);
+            // Defensively normalize: ensure we always have an array
+            const facilitiesList = Array.isArray(res?.data?.facilities) 
+                ? res.data.facilities 
+                : Array.isArray(res?.data) 
+                    ? res.data 
+                    : [];
+            setFacilities(facilitiesList);
             setLoading(false);
         } catch (error) {
             console.log("error", error);
+            // On error, set empty array to prevent .map() crashes
+            setFacilities([]);
             setLoading(false);
         }
     };
@@ -99,7 +107,7 @@ const Facilities = () => {
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        {facilities.map((f, index) => (
+                                                        {Array.isArray(facilities) && facilities.map((f, index) => (
                                                             <tr key={index}>
                                                                 <td>{f.name}</td>
                                                                 <td>{f.level}</td>

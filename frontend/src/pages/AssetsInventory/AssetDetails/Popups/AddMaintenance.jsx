@@ -8,8 +8,41 @@ const AddMaintenance = ({ close, id, maintenance }) => {
     const [formData, setFormData] = useState({
         servicedBy: "", servicedOn: "", nextService: "", taskName: "", description: "", assetId: id});
 
+    const validateForm = () => {
+        if (!formData.taskName.trim()) {
+            toast.error('Task Name is required');
+            return false;
+        }
+        if (!formData.servicedBy.trim()) {
+            toast.error('Serviced By is required');
+            return false;
+        }
+        if (!formData.servicedOn) {
+            toast.error('Serviced On date is required');
+            return false;
+        }
+        if (!formData.nextService) {
+            toast.error('Next Service Date is required');
+            return false;
+        }
+        if (!formData.description.trim()) {
+            toast.error('Description is required');
+            return false;
+        }
+        if (!formData.assetId) {
+        toast.error('Asset reference is missing. Please reopen this asset and try again.');
+        return false;
+        }
+        return true;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!validateForm()) {
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -21,7 +54,11 @@ const AddMaintenance = ({ close, id, maintenance }) => {
         } catch (error) {
             console.log("error", error);
             setLoading(false);
-            toast.error("Error While Adding Maintenance Details");
+            const message =
+                error.response?.data?.message ||
+                error.message ||
+                "Failed to save maintenance record. Please try again.";
+            toast.error(message);
         }
     };
 

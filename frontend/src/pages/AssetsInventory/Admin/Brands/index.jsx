@@ -17,12 +17,20 @@ const Brands = () => {
     const loadBrands = async () => {
         setLoading(true);
         try {
-            const res = await API.get(`/brand`);
+            const res = await API.get(`/api/brand`);
             console.log(res)
-            setBrands(res?.data.assets);
+            // Defensively normalize: ensure we always have an array
+            const brandsList = Array.isArray(res?.data?.assets) 
+                ? res.data.assets 
+                : Array.isArray(res?.data) 
+                    ? res.data 
+                    : [];
+            setBrands(brandsList);
             setLoading(false);
         } catch (error) {
             console.log("error", error);
+            // On error, set empty array to prevent .map() crashes
+            setBrands([]);
             setLoading(false);
         }
     };

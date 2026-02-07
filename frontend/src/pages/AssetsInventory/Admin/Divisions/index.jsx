@@ -33,12 +33,20 @@ const Divisions = () => {
     const loadDivisions = async () => {
         setLoading(true);
         try {
-            const res = await API.get("/division");
+            const res = await API.get("/api/division");
             console.log(res)
-            setDivision(res?.data.division);
+            // Defensively normalize: ensure we always have an array
+            const divisionsList = Array.isArray(res?.data?.division) 
+                ? res.data.division 
+                : Array.isArray(res?.data) 
+                    ? res.data 
+                    : [];
+            setDivision(divisionsList);
             setLoading(false);
         } catch (error) {
             console.log("error", error);
+            // On error, set empty array to prevent .map() crashes
+            setDivision([]);
             setLoading(false);
         }
     };
@@ -109,7 +117,7 @@ const Divisions = () => {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {division && division.map((division, index) => (
+                                                {Array.isArray(division) && division.map((division, index) => (
                                                     <tr key={index}>
                                                         <td>{division.id}</td>
                                                         <td>{division.deptId}</td>
