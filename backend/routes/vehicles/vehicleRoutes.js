@@ -63,7 +63,7 @@ router.get("/", Auth, authorize('admin', 'garage'), async (req, res) => {
       where: whereClause,
       limit,
       offset: skip,
-      order: [["createdAt", "DESC"]],
+      order: [["created_at", "DESC"]],
     });
 
     res.status(200).json({

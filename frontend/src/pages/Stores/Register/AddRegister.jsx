@@ -15,7 +15,7 @@ const AddRegister = ({ close, refresh }) => {
     const [models, setModel] = useState([]);
     const [formData, setFormData] = useState({
         serialNo: "", engravedNo: "", processor: "", memory: "", graphics: "", storage: "", typeId: "",
-        orderNo: "", supplier: "", funding: "", funder: "", purchaseCost: "", purchaseDate: "", warrantly: "", categoryId: "", brandId: "",
+        orderNo: "", supplier: "", funding: "", funder: "", purchaseCost: "", purchaseDate: "", warranty: "", categoryId: "", brandId: "",
         modelId: "", estimatedCost: "" });
 
     const tabData = [

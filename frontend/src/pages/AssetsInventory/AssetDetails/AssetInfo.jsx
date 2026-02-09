@@ -191,7 +191,7 @@ const AssetInfo = ({ asset }) => {
                         <Text>{asset.purchaseDate || 'N/A'}</Text>
                     </Descriptions.Item>
                     <Descriptions.Item label="Warranty">
-                        <Text>{asset.warrantly || 'N/A'}</Text>
+                        <Text>{asset.warranty || 'N/A'}</Text>
                     </Descriptions.Item>
                 </Descriptions>
             </Card>

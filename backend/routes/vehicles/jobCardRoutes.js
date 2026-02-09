@@ -225,7 +225,7 @@ router.get("/history", Auth, authorize('admin', 'garage'), async (req, res) => {
                 j.id,
                 j."licensePlate",
                 j.repair,
-                j."createdAt",
+                j."created_at",
                 p.partname,
                 p.partno,
                 p.specification,

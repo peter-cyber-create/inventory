@@ -16,8 +16,30 @@ router.get('/', Auth, authorize('admin', 'store'), async (req, res) => {
 
     // Parameterized query to prevent SQL injection
     const query = `
-      SELECT * FROM ledger 
-      ORDER BY "createdAt" DESC
+      SELECT 
+        sl.ledger_id,
+        sl.item_id,
+        sl.transaction_type,
+        sl.transaction_id,
+        sl.reference_number,
+        sl.quantity_in,
+        sl.quantity_out,
+        sl.balance,
+        sl.unit_cost,
+        sl.location_id,
+        sl.batch_number,
+        sl.expiry_date,
+        sl.transaction_date,
+        sl.created_by,
+        sl.created_at,
+        i.item_code,
+        i.item_description,
+        i.unit_of_issue,
+        l.location_name
+      FROM stock_ledger sl
+      LEFT JOIN items i ON sl.item_id = i.item_id
+      LEFT JOIN locations l ON sl.location_id = l.location_id
+      ORDER BY sl.created_at DESC
       LIMIT :limit OFFSET :offset
     `;
 
@@ -27,7 +49,7 @@ router.get('/', Auth, authorize('admin', 'store'), async (req, res) => {
     });
 
     // Get total count - safe static query
-    const countQuery = 'SELECT COUNT(*) as total FROM ledger';
+    const countQuery = 'SELECT COUNT(*) as total FROM stock_ledger';
     const countResult = await sequelize.query(countQuery, {
       type: sequelize.QueryTypes.SELECT
     });
@@ -58,16 +80,18 @@ router.get('/balance', Auth, authorize('admin', 'store'), async (req, res) => {
   try {
     const query = `
       SELECT 
-        item_code,
-        MAX(item_description) as item_description,
-        MAX(unit_of_issue) as unit_of_issue,
-        SUM(balance_on_hand) as balance_on_hand,
-        AVG(unit_cost) as unit_cost,
-        SUM(total_value) as total_value,
-        MAX(department) as department
-      FROM ledger 
-      GROUP BY item_code
-      ORDER BY item_code ASC
+        i.item_code,
+        i.item_description,
+        i.unit_of_issue,
+        SUM(sl.balance) as balance_on_hand,
+        AVG(sl.unit_cost) as unit_cost,
+        SUM(sl.balance * sl.unit_cost) as total_value,
+        l.location_name as department
+      FROM stock_ledger sl
+      LEFT JOIN items i ON sl.item_id = i.item_id
+      LEFT JOIN locations l ON sl.location_id = l.location_id
+      GROUP BY i.item_code, i.item_description, i.unit_of_issue, l.location_name
+      ORDER BY i.item_code ASC
     `;
 
     const balances = await sequelize.query(query, {
@@ -97,16 +121,18 @@ router.get('/low-stock', Auth, authorize('admin', 'store'), async (req, res) => 
     // Parameterized query to prevent SQL injection
     const query = `
       SELECT 
-        item_code,
-        MAX(item_description) as item_description,
-        MAX(unit_of_issue) as unit_of_issue,
-        SUM(balance_on_hand) as balance_on_hand,
-        AVG(unit_cost) as unit_cost,
-        MAX(department) as department
-      FROM ledger 
-      GROUP BY item_code
-      HAVING SUM(balance_on_hand) <= :threshold
-      ORDER BY SUM(balance_on_hand) ASC
+        i.item_code,
+        i.item_description,
+        i.unit_of_issue,
+        SUM(sl.balance) as balance_on_hand,
+        AVG(sl.unit_cost) as unit_cost,
+        l.location_name as department
+      FROM stock_ledger sl
+      LEFT JOIN items i ON sl.item_id = i.item_id
+      LEFT JOIN locations l ON sl.location_id = l.location_id
+      GROUP BY i.item_code, i.item_description, i.unit_of_issue, l.location_name
+      HAVING SUM(sl.balance) <= :threshold
+      ORDER BY SUM(sl.balance) ASC
     `;
 
     const lowStockItems = await sequelize.query(query, {
@@ -133,51 +159,47 @@ router.get('/low-stock', Auth, authorize('admin', 'store'), async (req, res) => 
 router.post('/', Auth, authorize('admin', 'store'), async (req, res) => {
   try {
     const {
-      transaction_date,
-      reference_type,
-      reference_number,
-      item_description,
-      item_code,
-      unit_of_issue,
-      quantity_received,
-      quantity_issued,
-      balance_on_hand,
+      item_id,
+      location_id,
+      transaction_type,
+      quantity_in,
+      quantity_out,
       unit_cost,
-      total_value,
-      department,
-      remarks,
-      created_by,
-      is_manual_entry
+      batch_number,
+      expiry_date,
+      reference_number,
+      created_by
     } = req.body;
 
+    const balance = (quantity_in || 0) - (quantity_out || 0);
+
     const query = `
-      INSERT INTO ledger (
-        transaction_date, reference_type, reference_number, item_description,
-        item_code, unit_of_issue, quantity_received, quantity_issued,
-        balance_on_hand, unit_cost, total_value, department, remarks,
-        created_by, is_manual_entry
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+      INSERT INTO stock_ledger (
+        item_id, location_id, transaction_type, transaction_id,
+        quantity_in, quantity_out, balance, unit_cost, 
+        batch_number, expiry_date, reference_number, transaction_date,
+        created_by
+      ) VALUES (:item_id, :location_id, :transaction_type, 0,
+        :quantity_in, :quantity_out, :balance, :unit_cost, 
+        :batch_number, :expiry_date, :reference_number, NOW(),
+        :created_by)
       RETURNING *
     `;
 
     const result = await sequelize.query(query, {
-      replacements: [
-        transaction_date || new Date().toISOString().split('T')[0],
-        reference_type,
-        reference_number,
-        item_description,
-        item_code,
-        unit_of_issue,
-        quantity_received || 0,
-        quantity_issued || 0,
-        balance_on_hand || 0,
-        unit_cost || 0,
-        total_value || 0,
-        department,
-        remarks,
-        created_by || 'system',
-        is_manual_entry || false
-      ],
+      replacements: {
+        item_id,
+        location_id,
+        transaction_type: transaction_type || 'Manual',
+        quantity_in: quantity_in || 0,
+        quantity_out: quantity_out || 0,
+        balance: balance,
+        unit_cost: unit_cost || 0,
+        batch_number: batch_number || null,
+        expiry_date: expiry_date || null,
+        reference_number: reference_number || 'MANUAL',
+        created_by: created_by || 'system'
+      },
       type: sequelize.QueryTypes.INSERT
     });
 

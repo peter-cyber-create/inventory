@@ -39,7 +39,7 @@
     "xlsx": "^0.18.5"
   },
   "scripts": {
-    "start": "DISABLE_ESLINT_PLUGIN=true react-scripts start",
+    "start": "PORT=3000 DISABLE_ESLINT_PLUGIN=true react-scripts start",
     "build": "GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true react-scripts build",
     "build:dev": "DISABLE_ESLINT_PLUGIN=true react-scripts build",
     "eject": "react-scripts eject",

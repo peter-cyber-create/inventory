@@ -13,9 +13,9 @@ CREATE TABLE IF NOT EXISTS "servers" (
     "purchaseDate" VARCHAR(255) NOT NULL,
     "processor" VARCHAR(255) NOT NULL,
     "expiryDate" VARCHAR(255) NOT NULL,
-    "hypervisor" VARCHAR(255) NOT NULL,
-    "hardDisk" VARCHAR(255) NOT NULL,
-    "warrantly" VARCHAR(255),
+   "hypervisor" VARCHAR(255) NOT NULL,
+   "hardDisk" VARCHAR(255) NOT NULL,
+   "warranty" VARCHAR(255),
     "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL,
     "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL
 );

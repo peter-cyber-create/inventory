@@ -15,7 +15,7 @@ const Category = sequelize.define(
     },
     typeId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: Type,
         key: "id",

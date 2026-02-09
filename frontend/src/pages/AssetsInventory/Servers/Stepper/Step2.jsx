@@ -64,9 +64,9 @@ const Step2 = ({ formData, setFormData }) => {
                             <div class="mb-3">
                                 <label for="basicpill-warranty-input">Warranty Period</label>
                                 <input type="text" class="form-control" id="basicpill-warranty-input" placeholder="Enter Warranty Period (e.g., 1 Year, 2 Years)"
-                                    value={formData.warrantly}
+                                    value={formData.warranty}
                                     onChange={(e) =>
-                                        setFormData({ ...formData, warrantly: e.target.value })
+                                        setFormData({ ...formData, warranty: e.target.value })
                                     } />
                             </div>
                         </div>

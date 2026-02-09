@@ -10,7 +10,7 @@ const AddServer = ({ close, refresh }) => {
 
     const [formData, setFormData] = useState({
         serialNo: "", engranvedNo: "", serverName: "", productNo: "", brand: "",
-        IP: "", purchaseDate: "", warrantly: "", expiryDate: "", memory: "",
+        IP: "", purchaseDate: "", warranty: "", expiryDate: "", memory: "",
         processor: "", hypervisor: "", hardDisk: "",
     });
 

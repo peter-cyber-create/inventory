@@ -2,10 +2,13 @@ import axios from "axios";
 
 // Use relative path in production (Nginx proxies /api to backend)
 // Use absolute URL in development
-const baseURL =
-  (process.env.NODE_ENV === "development"
+const configuredBase =
+  process.env.NODE_ENV === "development"
     ? process.env.REACT_APP_API_BASE_URL_DEV || "http://localhost:5000"
-    : process.env.REACT_APP_API_BASE_URL_PROD || "");
+    : process.env.REACT_APP_API_BASE_URL_PROD || "";
+
+// Normalize base URL (remove trailing slash)
+const baseURL = String(configuredBase || "").replace(/\/$/, "");
 
 const API = axios.create({
   baseURL,
@@ -15,6 +18,17 @@ const API = axios.create({
 // Request interceptor - add auth token to requests
 API.interceptors.request.use(
   (config) => {
+    // Avoid double "/api/api" when baseURL already contains `/api`
+    try {
+      const cfgUrl = String(config.url || "");
+      if (baseURL.endsWith("/api") && cfgUrl.startsWith("/api")) {
+        // remove the leading /api from the request path so axios joins correctly
+        config.url = cfgUrl.replace(/^\/api/, "");
+      }
+    } catch (e) {
+      // noop - if normalization fails, proceed with original config
+    }
+
     const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

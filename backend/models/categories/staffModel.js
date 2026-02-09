@@ -27,7 +27,7 @@ const Staff = sequelize.define("staff",
         },
         deptId: {
             type: DataTypes.INTEGER,
-            allowNull: false,
+            allowNull: true,
             references: {
                 model: Departs,
                 key: "id",
@@ -35,7 +35,7 @@ const Staff = sequelize.define("staff",
         },
         divisionId: {
             type: DataTypes.INTEGER,
-            allowNull: false,
+            allowNull: true,
             references: {
                 model: Division,
                 key: "id",

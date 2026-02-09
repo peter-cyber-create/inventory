@@ -92,7 +92,7 @@ router.get('/accountability', async (req, res) => {
                     model: User,
                 }
             ],
-            order: [['createdAt', 'ASC']]
+            order: [['created_at', 'ASC']]
         });
 
         res.json({ activities });

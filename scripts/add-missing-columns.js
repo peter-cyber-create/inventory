@@ -50,7 +50,7 @@ async function addMissingColumns() {
       funder: { type: DataTypes.STRING, allowNull: true },
       purchaseCost: { type: DataTypes.DOUBLE, allowNull: true },
       purchaseDate: { type: DataTypes.DATE, allowNull: true },
-      warrantly: { type: DataTypes.STRING, allowNull: true },
+      warranty: { type: DataTypes.STRING, allowNull: true },
       estimatedCost: { type: DataTypes.STRING, allowNull: true },
       requisition: { type: DataTypes.BOOLEAN, allowNull: true, defaultValue: false },
       storesdispatch: { type: DataTypes.BOOLEAN, allowNull: true, defaultValue: false },

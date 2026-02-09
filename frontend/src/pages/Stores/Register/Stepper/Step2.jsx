@@ -104,11 +104,11 @@ const Step2 = ({ formData, setFormData }) => {
                 </div>
                 <div class="col-lg-3">
                     <div class="mb-3">
-                        <label for="basicpill-cstno-input">Warrantly</label>
-                        <input type="text" class="form-control" placeholder="Enter Warrantly"
-                            value={formData.warrantly}
+                        <label for="basicpill-cstno-input">Warranty</label>
+                        <input type="text" class="form-control" placeholder="Enter Warranty"
+                            value={formData.warranty}
                             onChange={(e) =>
-                                setFormData({ ...formData, warrantly: e.target.value })
+                                setFormData({ ...formData, warranty: e.target.value })
                             } />
                     </div>
                 </div>

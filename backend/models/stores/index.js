@@ -4,6 +4,7 @@ const Item = require('./itemModel.js');
 const Form5Upload = require('./form5UploadModel.js');
 const ConsignmentData = require('./consignmentDataModel.js');
 const GRN = require('./grnModel.js');
+const GRNItem = require('./grnItemModel.js');
 const StockLedger = require('./stockLedgerModel.js');
 const Requisition = require('./requisitionModel.js');
 const RequisitionItem = require('./requisitionItemModel.js');
@@ -40,6 +41,9 @@ GRN.belongsTo(Location, { foreignKey: 'location_id', as: 'location' });
 GRN.belongsTo(User, { foreignKey: 'received_by', as: 'receiver' });
 GRN.belongsTo(User, { foreignKey: 'verified_by', as: 'verifier' });
 GRN.belongsTo(User, { foreignKey: 'approved_by', as: 'approver' });
+// Associate GRNs with their GRN items
+GRN.hasMany(GRNItem, { foreignKey: 'grn_id', as: 'items' });
+GRNItem.belongsTo(GRN, { foreignKey: 'grn_id', as: 'grn' });
 
 Item.hasMany(GRN, { foreignKey: 'item_id', as: 'grns' });
 Location.hasMany(GRN, { foreignKey: 'location_id', as: 'grns' });

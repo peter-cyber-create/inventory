@@ -78,7 +78,11 @@ const app = express();
 dotenv.config();
 
 // Trust proxy (required when behind reverse proxy like Nginx)
-app.set('trust proxy', true);
+// Only enable in production or when explicitly set via environment variable
+// For local development without Nginx, set to false to avoid rate limiter warnings
+const enableTrustProxy = process.env.ENABLE_TRUST_PROXY === 'true' || 
+                         (process.env.NODE_ENV === 'production' && process.env.BEHIND_PROXY === 'true');
+app.set('trust proxy', enableTrustProxy);
 
 // Configure CORS to allow network access
 app.use(cors(corsOptions));
@@ -119,7 +123,8 @@ app.use("/api/reports", reportRoutes);
 app.use("/api/servers", serverRoutes);
 
 /**************** Vehicles Routes ********************/
-app.use("/api/v/vehicle", vehicleRoutes);
+app.use("/api/vehicles", vehicleRoutes);  // Primary vehicles endpoint
+app.use("/api/v/vehicle", vehicleRoutes);  // Legacy vehicles endpoint
 app.use("/api/v/type", VehicleType);
 app.use("/api/depts", DeptRoutes);
 app.use("/api/v/make", VehicleMake);

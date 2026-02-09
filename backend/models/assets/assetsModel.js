@@ -58,7 +58,7 @@ const AssetModel = sequelize.define("assets", {
     purchaseDate: {
         type: DataTypes.DATE,
     },
-    warrantly: {
+    warranty: {
         type: DataTypes.STRING,
     },
     estimatedCost: {

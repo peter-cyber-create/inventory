@@ -54,7 +54,7 @@ const ServerModel = sequelize.define("servers", {
         type: DataTypes.STRING,
         allowNull: false
     },
-    warrantly: {
+    warranty: {
         type: DataTypes.STRING,
         allowNull: true
     },
