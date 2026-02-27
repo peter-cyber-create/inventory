@@ -1,0 +1,332 @@
+// Government IMS - Production Schema (PostgreSQL)
+// Modular, auditable, scalable. Security (auth/RBAC) can be added later.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============== CORE (Shared) ==============
+
+model Department {
+  id        String   @id @default(cuid())
+  name      String
+  code      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  users     User[]
+  storeRequisitions StoreRequisition[]
+  financeActivities FinanceActivity[]
+}
+
+model User {
+  id             String    @id @default(cuid())
+  name           String
+  email          String    @unique
+  username       String?   @unique
+  healthEmail    String?   @map("health_email")
+  phone          String?
+  designation    String?
+  module         String?
+  passwordHash   String?   @map("password_hash")
+  isActive       Boolean   @default(true) @map("is_active")
+  departmentId   String?   @map("department_id")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  department     Department? @relation(fields: [departmentId], references: [id])
+  roleId         String?   @map("role_id")
+  role           Role?     @relation(fields: [roleId], references: [id])
+
+  ictAssetsAssigned   IctAsset[]       @relation("AssignedTo")
+  ictRequisitions     IctRequisition[]
+  ictIssuesReceived   IctIssue[]       @relation("IctIssueReceivedTo")
+  fleetRequisitions   FleetRequisition[]
+  receivingRecords    ReceivingRecord[]
+  jobCardsAssigned    JobCard[]
+  storeRequisitions   StoreRequisition[]
+  storeIssuesBy       StoreIssue[]
+  financeActivities   FinanceActivity[]
+  ictMaintenanceCreated IctMaintenance[]
+}
+
+// ============== ADMINISTRATION ==============
+
+model Role {
+  id     String @id @default(cuid())
+  name   String @unique
+  users  User[]
+}
+
+model SystemSetting {
+  id           String @id @default(cuid())
+  settingKey   String @unique @map("setting_key")
+  settingValue String @map("setting_value")
+}
+
+// ============== ICT MODULE ==============
+
+model IctAsset {
+  id            String    @id @default(cuid())
+  assetTag      String    @unique @map("asset_tag")
+  name          String
+  category      String
+  serialNumber  String?   @map("serial_number")
+  status        String    @default("available")
+  location      String?
+  assignedToId  String?   @map("assigned_to")
+  purchaseDate  DateTime? @map("purchase_date")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  assignedTo    User?     @relation("AssignedTo", fields: [assignedToId], references: [id])
+  maintenance   IctMaintenance[]
+  issues        IctIssue[]
+}
+
+model IctRequisition {
+  id          String    @id @default(cuid())
+  requesterId String    @map("requester_id")
+  assetType   String    @map("asset_type")
+  quantity    Int       @default(1)
+  justification String?
+  status      String    @default("pending")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  requester   User      @relation(fields: [requesterId], references: [id])
+  issues      IctIssue[]
+}
+
+model IctIssue {
+  id            String   @id @default(cuid())
+  requisitionId String   @map("requisition_id")
+  assetId       String   @map("asset_id")
+  issuedToId    String   @map("issued_to")
+  issueDate     DateTime @default(now()) @map("issue_date")
+  requisition   IctRequisition @relation(fields: [requisitionId], references: [id])
+  asset         IctAsset @relation(fields: [assetId], references: [id])
+  issuedTo      User     @relation("IctIssueReceivedTo", fields: [issuedToId], references: [id])
+}
+
+model IctMaintenance {
+  id               String   @id @default(cuid())
+  assetId          String   @map("asset_id")
+  issueDescription String?  @map("issue_description")
+  actionTaken      String?  @map("action_taken")
+  technician       String?
+  maintenanceDate  DateTime @default(now()) @map("maintenance_date")
+  nextServiceDate  DateTime? @map("next_service_date")
+  cost             Decimal?  @map("cost") @db.Decimal(14, 2)
+  createdById      String?   @map("created_by")
+
+  asset            IctAsset @relation(fields: [assetId], references: [id])
+  createdBy        User?    @relation(fields: [createdById], references: [id])
+}
+
+model Server {
+  id             String  @id @default(cuid())
+  name           String
+  serialNumber   String? @map("serial_number")
+  engravedNumber String? @map("engraved_number")
+  brand          String?
+  productNumber  String? @map("product_number")
+  ipAddress      String  @map("ip_address")
+  location       String?
+  status         String  @default("active")
+  type           String  @default("physical")
+  hostServerId   String? @map("host_server_id")
+
+  hostServer     Server? @relation("VirtualHost", fields: [hostServerId], references: [id])
+  virtualServers Server[] @relation("VirtualHost")
+}
+
+// ============== FLEET MODULE ==============
+
+model Vehicle {
+  id                 String   @id @default(cuid())
+  registrationNumber String   @unique @map("registration_number")
+  make               String
+  model              String
+  year               Int?
+  status             String   @default("active")
+  assignedDriver     String?  @map("assigned_driver")
+  oldNumberPlate     String?  @map("old_number_plate")
+  newNumberPlate     String?  @map("new_number_plate")
+  type               String?
+  chassisNumber      String?  @map("chassis_number")
+  engineNumber       String?  @map("engine_number")
+  fuel               String?
+  power              Int?
+  totalCost          Decimal? @map("total_cost") @db.Decimal(14, 2)
+  countryOfOrigin    String?  @map("country_of_origin")
+  color              String?
+  userDepartment     String?  @map("user_department")
+  officer            String?
+  contact            String?
+  fleetRequisitions  FleetRequisition[]
+  receivingRecords   ReceivingRecord[] @relation("VehicleReceiving")   // add relation name
+  jobCards           JobCard[]
+}
+
+model ReceivingRecord {
+  id            String   @id @default(cuid())
+  requisitionId String   @map("requisition_id")
+  receivedById  String   @map("received_by")
+  vehicleId     String?  @map("vehicle_id")                            // if you want it linked to Vehicle
+  receivedDate  DateTime @default(now()) @map("received_date")
+  transportOfficer String? @map("transport_officer")
+  oldNumberPlates  String? @map("old_number_plates")
+  newNumberPlates  String? @map("new_number_plates")
+  driverName       String? @map("driver_name")
+  mileage          Int?
+  checklist        Json?
+  remarks          String?
+  userSignature    String? @map("user_signature")
+  acceptedBy       String? @map("accepted_by")
+
+  requisition   FleetRequisition @relation(fields: [requisitionId], references: [id])
+  receivedBy    User             @relation(fields: [receivedById], references: [id])
+  vehicle       Vehicle?         @relation("VehicleReceiving", fields: [vehicleId], references: [id])
+}
+
+model SparePart {
+  id         String  @id @default(cuid())
+  name       String
+  partNumber String  @unique @map("part_number")
+  quantity   Int     @default(0)
+  location   String?
+  category   String?
+  brand      String?
+  unitPrice  Decimal? @map("unit_price") @db.Decimal(12, 2)
+  unitOfMeasure String? @map("unit_of_measure")
+}
+
+model FleetRequisition {
+  id          String   @id @default(cuid())
+  vehicleId   String?  @map("vehicle_id")
+  requestedById String @map("requested_by")
+  description String?
+  projectUnit String?  @map("project_unit")
+  headOfDepartment String? @map("head_of_department")
+  serviceRequestingOfficer String? @map("service_requesting_officer")
+  driverName  String?  @map("driver_name")
+  mobile      String?
+  projectEmail String? @map("project_email")
+  currentMileage Int?  @map("current_mileage")
+  lastServiceMileage Int? @map("last_service_mileage")
+  requestDate DateTime? @map("request_date")
+  details     Json?
+  status      String   @default("pending")
+  createdAt   DateTime @default(now()) @map("created_at")
+  vehicle     Vehicle? @relation(fields: [vehicleId], references: [id])
+  requestedBy User     @relation(fields: [requestedById], references: [id])
+  receiving   ReceivingRecord[]
+}
+
+
+model JobCard {
+  id               String    @id @default(cuid())
+  vehicleId        String    @map("vehicle_id")
+  issueDescription String?   @map("issue_description")
+  assignedToId     String?   @map("assigned_to")
+  startDate        DateTime? @map("start_date")
+  endDate          DateTime? @map("end_date")
+  status           String    @default("open")
+  vehicle          Vehicle   @relation(fields: [vehicleId], references: [id])
+  assignedTo       User?     @relation(fields: [assignedToId], references: [id])
+}
+
+// ============== STORES MODULE ==============
+
+model StoreItem {
+  id              String   @id @default(cuid())
+  name            String
+  category        String?
+  unit            String   @default("pcs")
+  quantityInStock Int      @default(0) @map("quantity_in_stock")
+  brand           String?
+  barcode         String?
+  grnItems        GrnItem[]
+  stockLedger     StockLedger[]
+}
+
+model GoodsReceivedNote {
+  id          String    @id @default(cuid())
+  supplier    String?
+  receivedById String?  @map("received_by")
+  receivedDate DateTime @default(now()) @map("received_date")
+  contractNo     String? @map("contract_no")
+  lpoNo          String? @map("lpo_no")
+  deliveryNoteNo String? @map("delivery_note_no")
+  taxInvoiceNo   String? @map("tax_invoice_no")
+  grnNo          String? @map("grn_no")
+  supplierContact String? @map("supplier_contact")
+  deliveryLocation String? @map("delivery_location")
+  remarks        String?
+  items       GrnItem[]
+}
+
+model GrnItem {
+  id        String  @id @default(cuid())
+  grnId     String  @map("grn_id")
+  itemId    String  @map("item_id")
+  quantity  Int
+  unitPrice Decimal? @map("unit_price") @db.Decimal(12, 2)
+  grn       GoodsReceivedNote @relation(fields: [grnId], references: [id], onDelete: Cascade)
+  item      StoreItem @relation(fields: [itemId], references: [id])
+}
+
+model StoreRequisition {
+  id           String   @id @default(cuid())
+  requesterId  String   @map("requester_id")
+  departmentId String?  @map("department_id")
+  status       String   @default("pending")
+  createdAt    DateTime @default(now()) @map("created_at")
+   serialNumber String?  @map("serial_number")
+   country      String?
+   ministry     String?
+   fromDepartment String? @map("from_department")
+   toStore      String?  @map("to_store")
+   purpose      String?
+  requester    User     @relation(fields: [requesterId], references: [id])
+  department   Department? @relation(fields: [departmentId], references: [id])
+  issues       StoreIssue[]
+}
+
+model StoreIssue {
+  id            String   @id @default(cuid())
+  requisitionId String   @map("requisition_id")
+  issuedById    String   @map("issued_by")
+  issueDate     DateTime @default(now()) @map("issue_date")
+  requisition   StoreRequisition @relation(fields: [requisitionId], references: [id])
+  issuedBy      User     @relation(fields: [issuedById], references: [id])
+}
+
+model StockLedger {
+  id               String   @id @default(cuid())
+  itemId           String   @map("item_id")
+  transactionType  String   @map("transaction_type") // IN, OUT, ADJUST
+  quantity         Int
+  balanceAfter     Int     @map("balance_after")
+  transactionDate  DateTime @default(now()) @map("transaction_date")
+  item             StoreItem @relation(fields: [itemId], references: [id])
+}
+
+// ============== FINANCE MODULE ==============
+
+model FinanceActivity {
+  id           String    @id @default(cuid())
+  title        String
+  description  String?
+  amount       Decimal   @db.Decimal(14, 2)
+  activityType String?   @map("activity_type")
+  departmentId String?   @map("department_id")
+  createdById  String    @map("created_by")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  invoiceDate  DateTime? @map("invoice_date")
+  voucherNumber String?  @map("voucher_number")
+  funder       String?
+  status       String?
+  days         Int?
+  participants Json?
+  department   Department? @relation(fields: [departmentId], references: [id])
+  createdBy    User      @relation(fields: [createdById], references: [id])
+}
