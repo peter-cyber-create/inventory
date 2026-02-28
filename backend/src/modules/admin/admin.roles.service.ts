@@ -31,6 +31,10 @@ export const adminRolesService = {
   },
 
   async remove(id: string) {
+    const userCount = await prisma.user.count({ where: { roleId: id } });
+    if (userCount > 0) {
+      throw new AppError(400, `Cannot delete role: ${userCount} user(s) are assigned. Reassign or remove them first.`);
+    }
     await prisma.role.delete({ where: { id } });
   },
 };

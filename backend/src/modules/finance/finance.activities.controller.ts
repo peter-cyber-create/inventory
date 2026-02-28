@@ -3,12 +3,15 @@ import { AuthRequest } from '../../middleware/auth.js';
 import { financeActivitiesService } from './finance.activities.service.js';
 
 export async function list(req: AuthRequest, res: Response) {
-  const { departmentId, activityType } = req.query;
-  const list = await financeActivitiesService.list({
+  const { departmentId, activityType, search, page, limit } = req.query;
+  const result = await financeActivitiesService.list({
     departmentId: departmentId as string | undefined,
     activityType: activityType as string | undefined,
+    search: search as string | undefined,
+    page: page ? parseInt(String(page), 10) : undefined,
+    limit: limit ? parseInt(String(limit), 10) : undefined,
   });
-  res.json(list);
+  res.json(result);
 }
 
 export async function getOne(req: AuthRequest, res: Response) {

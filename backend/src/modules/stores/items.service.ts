@@ -1,13 +1,28 @@
 import { prisma } from '../../lib/prisma.js';
 import { AppError } from '../../middleware/errorHandler.js';
 
+const DEFAULT_LIMIT = 20;
+const MAX_LIMIT = 100;
+
 export const itemsService = {
-  async list(category?: string) {
-    const where = category ? { category } : {};
-    return prisma.storeItem.findMany({
-      where,
-      orderBy: { name: 'asc' },
-    });
+  async list(filters?: { category?: string; search?: string; page?: number; limit?: number }) {
+    const where: { category?: string; OR?: { name?: { contains: string; mode: 'insensitive' }; barcode?: { contains: string; mode: 'insensitive' } }[] } = {};
+    if (filters?.category) where.category = filters.category;
+    if (filters?.search?.trim()) {
+      const q = filters.search.trim();
+      where.OR = [
+        { name: { contains: q, mode: 'insensitive' } },
+        { barcode: { contains: q, mode: 'insensitive' } },
+      ];
+    }
+    const page = Math.max(1, filters?.page ?? 1);
+    const limit = Math.min(MAX_LIMIT, Math.max(1, filters?.limit ?? DEFAULT_LIMIT));
+    const skip = (page - 1) * limit;
+    const [data, total] = await Promise.all([
+      prisma.storeItem.findMany({ where, orderBy: { name: 'asc' }, skip, take: limit }),
+      prisma.storeItem.count({ where }),
+    ]);
+    return { data, total, page, limit };
   },
 
   async getOne(id: string) {
@@ -51,6 +66,16 @@ export const itemsService = {
   },
 
   async remove(id: string) {
+    const [grnCount, ledgerCount] = await Promise.all([
+      prisma.grnItem.count({ where: { itemId: id } }),
+      prisma.stockLedger.count({ where: { itemId: id } }),
+    ]);
+    if (grnCount > 0 || ledgerCount > 0) {
+      throw new AppError(
+        400,
+        'Cannot delete item: it has GRN lines or stock ledger entries. Remove or adjust those first.',
+      );
+    }
     await prisma.storeItem.delete({ where: { id } });
   },
 };

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import api from '../../services/api';
+import { Link, useNavigate } from 'react-router-dom';
+import api, { clearAuthToken } from '../../services/api';
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -13,13 +14,46 @@ export default function Dashboard() {
     api
       .get('/api/admin/reports/summary')
       .then((res) => setSummary(res.data))
-      .catch((err) => setError(err.message))
+      .catch((err) => {
+        const msg = err.response?.data?.error || err.message;
+        if (err.response?.status === 401) {
+          clearAuthToken();
+          setError('Session expired. Please sign in again.');
+          setTimeout(() => navigate('/login', { replace: true }), 1500);
+        } else {
+          setError(msg);
+        }
+      })
       .finally(() => setLoading(false));
   };
-  useEffect(load, []);
+  useEffect(load, [navigate]);
 
-  if (loading) return <div className="p-6">Loading...</div>;
-  if (error) return <div className="p-6 text-red-600">Error: {error}. <button type="button" onClick={load} className="underline ml-1">Retry</button></div>;
+  if (loading) {
+    return (
+      <div className="p-6 animate-pulse">
+        <div className="h-8 bg-gray-200 rounded w-48 mb-6" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="bg-gray-100 rounded-lg h-24" />
+          ))}
+        </div>
+        <div className="bg-gray-100 rounded-lg h-20" />
+      </div>
+    );
+  }
+  if (error) {
+    const is401 = error.includes('Session expired');
+    return (
+      <div className="p-6">
+        <p className={is401 ? 'text-amber-700' : 'text-red-600'}>
+          {error}
+          {!is401 && (
+            <button type="button" onClick={load} className="underline ml-1">Retry</button>
+          )}
+        </p>
+      </div>
+    );
+  }
 
   const cards = [
     { title: 'Users', value: summary?.users ?? 0, to: '/admin/users' },
@@ -29,6 +63,8 @@ export default function Dashboard() {
     { title: 'Finance Activities', value: summary?.financeActivities ?? 0, to: '/finance/activities' },
   ];
   const pending = summary?.pendingRequisitions ?? {};
+  const total = (summary?.users ?? 0) + (summary?.ictAssets ?? 0) + (summary?.vehicles ?? 0) + (summary?.storeItems ?? 0) + (summary?.financeActivities ?? 0);
+  const allZero = total === 0 && (pending.ict ?? 0) === 0 && (pending.stores ?? 0) === 0 && (pending.fleet ?? 0) === 0;
 
   return (
     <div className="p-6">
@@ -38,6 +74,17 @@ export default function Dashboard() {
           Refresh
         </button>
       </div>
+      {allZero && (
+        <div className="mb-6 p-4 bg-slate-50 border border-slate-200 rounded-lg text-sm text-gov-slate">
+          <p className="font-medium text-gov-navy mb-1">Get started</p>
+          <p>No data yet. Add users, store items, ICT assets, vehicles, or finance activities to see counts here.</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <Link to="/admin/users" className="text-gov-blue hover:underline">Add user</Link>
+            <Link to="/stores/items" className="text-gov-blue hover:underline">Add store item</Link>
+            <Link to="/ict/assets" className="text-gov-blue hover:underline">Add ICT asset</Link>
+          </div>
+        </div>
+      )}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         {cards.map((c) => (
           <Link key={c.title} to={c.to} className="bg-white rounded-lg shadow border border-gray-100 p-4 block hover:border-gov-blue/30 hover:shadow-md transition-shadow">

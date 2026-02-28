@@ -3,9 +3,15 @@ import { AuthRequest } from '../../middleware/auth.js';
 import { ictAssetsService } from './ict.assets.service.js';
 
 export async function list(req: AuthRequest, res: Response) {
-  const { status, category } = req.query;
-  const list = await ictAssetsService.list({ status: status as string | undefined, category: category as string | undefined });
-  res.json(list);
+  const { status, category, search, page, limit } = req.query;
+  const result = await ictAssetsService.list({
+    status: status as string | undefined,
+    category: category as string | undefined,
+    search: search as string | undefined,
+    page: page ? parseInt(String(page), 10) : undefined,
+    limit: limit ? parseInt(String(limit), 10) : undefined,
+  });
+  res.json(result);
 }
 
 export async function getOne(req: AuthRequest, res: Response) {

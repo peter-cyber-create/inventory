@@ -27,8 +27,11 @@ export default function StoresRequisitions() {
 
   useEffect(() => {
     if (showForm) {
-      api.get('/api/admin/departments').then((res) => setDepartments(res.data)).catch(() => setDepartments([]));
-      api.get('/api/stores/items').then((res) => setItems(res.data)).catch(() => setItems([]));
+      api.get('/api/admin/departments').then((res) => setDepartments(Array.isArray(res.data) ? res.data : (res.data?.data ?? []))).catch(() => setDepartments([]));
+      api.get('/api/stores/items', { params: { limit: 500 } }).then((res) => {
+        const d = res.data?.data ?? res.data;
+        setItems(Array.isArray(d) ? d : []);
+      }).catch(() => setItems([]));
     }
   }, [showForm]);
 

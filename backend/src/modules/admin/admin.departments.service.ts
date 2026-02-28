@@ -33,6 +33,18 @@ export const adminDepartmentsService = {
   },
 
   async remove(id: string) {
+    const [users, storeReqs, finance] = await Promise.all([
+      prisma.user.count({ where: { departmentId: id } }),
+      prisma.storeRequisition.count({ where: { departmentId: id } }),
+      prisma.financeActivity.count({ where: { departmentId: id } }),
+    ]);
+    if (users > 0 || storeReqs > 0 || finance > 0) {
+      const parts = [];
+      if (users > 0) parts.push(`${users} user(s)`);
+      if (storeReqs > 0) parts.push('store requisitions');
+      if (finance > 0) parts.push('finance activities');
+      throw new AppError(400, `Cannot delete department: linked to ${parts.join(', ')}. Remove or reassign first.`);
+    }
     await prisma.department.delete({ where: { id } });
   },
 };

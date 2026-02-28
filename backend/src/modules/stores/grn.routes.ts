@@ -20,6 +20,7 @@ const createBody = z.object({
     supplierContact: z.string().optional(),
     remarks: z.string().optional(),
     receivedById: z.string().optional(),
+    receivedDate: z.string().optional(),
     items: z.array(z.object({
       itemId: z.string(),
       quantity: z.number().min(1),

@@ -5,9 +5,13 @@ import { AppError } from "../../../middleware/errorHandler.js";
 import { prisma } from "../../../lib/prisma.js";
 
 export const authService = {
-  async login(email: string, password: string) {
-    const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase() },
+  async login(loginId: string, password: string) {
+    const id = loginId.trim().toLowerCase();
+    const isEmail = id.includes("@");
+    const user = await prisma.user.findFirst({
+      where: isEmail
+        ? { email: id }
+        : { username: { equals: id, mode: "insensitive" } },
       include: {
         role: true,
         department: true,

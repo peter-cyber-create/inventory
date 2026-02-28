@@ -1,6 +1,9 @@
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
+
+const DEFAULT_ADMIN_PASSWORD = 'Admin@123';
 
 async function main() {
   const dept = await prisma.department.upsert({
@@ -13,54 +16,21 @@ async function main() {
     update: {},
     create: { name: 'Admin' },
   });
-  // Core permissions
-  const permissionDefs = [
-    { key: 'dashboard.view', label: 'View dashboard', module: 'dashboard' },
-    { key: 'stores.items.manage', label: 'Manage store items', module: 'stores' },
-    { key: 'stores.grn.manage', label: 'Manage GRNs', module: 'stores' },
-    { key: 'stores.requisitions.manage', label: 'Manage store requisitions', module: 'stores' },
-    { key: 'stores.issues.manage', label: 'Manage store issues', module: 'stores' },
-    { key: 'ict.assets.manage', label: 'Manage ICT assets', module: 'ict' },
-    { key: 'fleet.vehicles.manage', label: 'Manage vehicles', module: 'fleet' },
-    { key: 'finance.activities.manage', label: 'Manage finance activities', module: 'finance' },
-    { key: 'admin.users.manage', label: 'Manage users', module: 'admin' },
-    { key: 'admin.roles.manage', label: 'Manage roles', module: 'admin' },
-    { key: 'admin.settings.manage', label: 'Manage system settings', module: 'admin' },
-    { key: 'reports.view', label: 'View system reports', module: 'reports' },
-  ];
 
-  const permissions = await Promise.all(
-    permissionDefs.map((p) =>
-      prisma.permission.upsert({
-        where: { key: p.key },
-        update: { label: p.label, module: p.module },
-        create: p,
-      }),
-    ),
-  );
-
-  // Link all permissions to Admin role
-  await Promise.all(
-    permissions.map((perm) =>
-      prisma.rolePermission.upsert({
-        where: { role_id_permission_id: { role_id: role.id, permission_id: perm.id } },
-        update: {},
-        create: { roleId: role.id, permissionId: perm.id },
-      }),
-    ),
-  );
-
+  const passwordHash = await bcrypt.hash(DEFAULT_ADMIN_PASSWORD, 10);
   await prisma.user.upsert({
     where: { email: 'admin@ims.local' },
-    update: {},
+    update: { passwordHash, username: 'admin' },
     create: {
       name: 'System Administrator',
       email: 'admin@ims.local',
+      username: 'admin',
+      passwordHash,
       departmentId: dept.id,
       roleId: role.id,
     },
   });
-  console.log('Seed completed: department, role, admin user.');
+  console.log('Seed completed: department, role, admin user (login: admin@ims.local or admin / ' + DEFAULT_ADMIN_PASSWORD + ')');
 }
 
 main()

@@ -13,6 +13,7 @@ const createBody = z.object({
   body: z.object({
     name: z.string(),
     email: z.string().email(),
+    password: z.string().min(1).optional(),
     username: z.string().optional(),
     healthEmail: z.string().email().optional(),
     phone: z.string().optional(),
@@ -28,6 +29,7 @@ const updateBody = z.object({
   body: z.object({
     name: z.string().optional(),
     email: z.string().email().optional(),
+    password: z.string().min(1).optional(),
     username: z.string().optional().nullable(),
     healthEmail: z.string().email().optional().nullable(),
     phone: z.string().optional().nullable(),

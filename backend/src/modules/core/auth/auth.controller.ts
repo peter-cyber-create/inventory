@@ -3,8 +3,8 @@ import { AuthRequest } from "../../../middleware/auth.js";
 import { authService } from "./auth.service.js";
 
 export async function login(req: AuthRequest, res: Response) {
-  const { email, password } = req.body;
-  const result = await authService.login(email, password);
+  const { email: loginId, password } = req.body;
+  const result = await authService.login(loginId, password);
   res.json(result);
 }
 

@@ -1,16 +1,36 @@
 import { prisma } from '../../lib/prisma.js';
 import { AppError } from '../../middleware/errorHandler.js';
 
+const DEFAULT_LIMIT = 20;
+const MAX_LIMIT = 100;
+
 export const ictAssetsService = {
-  async list(filters?: { status?: string; category?: string }) {
-    const where: { status?: string; category?: string } = {};
+  async list(filters?: { status?: string; category?: string; search?: string; page?: number; limit?: number }) {
+    const where: { status?: string; category?: string; OR?: { assetTag?: { contains: string; mode: 'insensitive' }; name?: { contains: string; mode: 'insensitive' }; serialNumber?: { contains: string; mode: 'insensitive' } }[] } = {};
     if (filters?.status) where.status = filters.status;
     if (filters?.category) where.category = filters.category;
-    return prisma.ictAsset.findMany({
-      where,
-      include: { assignedTo: { select: { id: true, name: true, email: true } } },
-      orderBy: { assetTag: 'asc' },
-    });
+    if (filters?.search?.trim()) {
+      const q = filters.search.trim();
+      where.OR = [
+        { assetTag: { contains: q, mode: 'insensitive' } },
+        { name: { contains: q, mode: 'insensitive' } },
+        { serialNumber: { contains: q, mode: 'insensitive' } },
+      ];
+    }
+    const page = Math.max(1, filters?.page ?? 1);
+    const limit = Math.min(MAX_LIMIT, Math.max(1, filters?.limit ?? DEFAULT_LIMIT));
+    const skip = (page - 1) * limit;
+    const [data, total] = await Promise.all([
+      prisma.ictAsset.findMany({
+        where,
+        include: { assignedTo: { select: { id: true, name: true, email: true } } },
+        orderBy: { assetTag: 'asc' },
+        skip,
+        take: limit,
+      }),
+      prisma.ictAsset.count({ where }),
+    ]);
+    return { data, total, page, limit };
   },
 
   async getOne(id: string) {

@@ -3,9 +3,14 @@ import { AuthRequest } from '../../middleware/auth.js';
 import { vehiclesService } from './vehicles.service.js';
 
 export async function list(req: AuthRequest, res: Response) {
-  const { status } = req.query;
-  const list = await vehiclesService.list(status as string | undefined);
-  res.json(list);
+  const { status, search, page, limit } = req.query;
+  const result = await vehiclesService.list({
+    status: status as string | undefined,
+    search: search as string | undefined,
+    page: page ? parseInt(String(page), 10) : undefined,
+    limit: limit ? parseInt(String(limit), 10) : undefined,
+  });
+  res.json(result);
 }
 
 export async function getOne(req: AuthRequest, res: Response) {

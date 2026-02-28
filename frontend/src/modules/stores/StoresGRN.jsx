@@ -8,6 +8,7 @@ export default function StoresGRN() {
   const [items, setItems] = useState([]);
   const [form, setForm] = useState({
     supplier: '',
+    receivedDate: new Date().toISOString().slice(0, 10),
     contractNo: '',
     lpoNo: '',
     deliveryNoteNo: '',
@@ -27,7 +28,10 @@ export default function StoresGRN() {
 
   useEffect(() => {
     if (showForm) {
-      api.get('/api/stores/items').then((res) => setItems(res.data)).catch(() => setItems([]));
+      api.get('/api/stores/items', { params: { limit: 500 } }).then((res) => {
+        const d = res.data?.data ?? res.data;
+        setItems(Array.isArray(d) ? d : []);
+      }).catch(() => setItems([]));
     }
   }, [showForm]);
 
@@ -43,6 +47,7 @@ export default function StoresGRN() {
     setError('');
     const payload = {
       supplier: form.supplier.trim() || undefined,
+      receivedDate: form.receivedDate || undefined,
       contractNo: form.contractNo.trim() || undefined,
       lpoNo: form.lpoNo.trim() || undefined,
       deliveryNoteNo: form.deliveryNoteNo.trim() || undefined,
@@ -67,6 +72,7 @@ export default function StoresGRN() {
         setShowForm(false);
         setForm({
           supplier: '',
+          receivedDate: new Date().toISOString().slice(0, 10),
           contractNo: '',
           lpoNo: '',
           deliveryNoteNo: '',
@@ -102,6 +108,15 @@ export default function StoresGRN() {
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && <p className="text-sm text-red-600">{error}</p>}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Received date</label>
+                  <input
+                    type="date"
+                    value={form.receivedDate}
+                    onChange={(e) => setForm((f) => ({ ...f, receivedDate: e.target.value }))}
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                  />
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Supplier</label>
                   <input

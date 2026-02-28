@@ -29,6 +29,7 @@ export const grnService = {
     supplierContact?: string;
     remarks?: string;
     receivedById?: string;
+    receivedDate?: string;
     items: { itemId: string; quantity: number; unitPrice?: number }[];
   }) {
     const itemIds = data.items.map((i) => i.itemId);
@@ -40,6 +41,7 @@ export const grnService = {
         data: {
           supplier: data.supplier,
           receivedById: data.receivedById ?? null,
+          receivedDate: data.receivedDate ? new Date(data.receivedDate) : undefined,
           contractNo: data.contractNo,
           lpoNo: data.lpoNo,
           deliveryNoteNo: data.deliveryNoteNo,
@@ -50,8 +52,9 @@ export const grnService = {
         },
       });
       for (const line of data.items) {
-        const item = items.find((i) => i.id === line.itemId)!;
-        const newBalance = item.quantityInStock + line.quantity;
+        const current = await tx.storeItem.findUnique({ where: { id: line.itemId } });
+        if (!current) throw new AppError(400, `Item not found: ${line.itemId}`);
+        const newBalance = current.quantityInStock + line.quantity;
         await tx.grnItem.create({
           data: {
             grnId: note.id,

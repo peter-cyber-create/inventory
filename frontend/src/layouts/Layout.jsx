@@ -1,6 +1,7 @@
+import { useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { getToken, getUser } from '../services/auth';
-import api, { clearAuthToken } from '../services/api';
+import { clearAuthToken } from '../services/api';
 
 const nav = [
   { to: '/dashboard', label: 'Dashboard' },
@@ -57,10 +58,18 @@ export default function Layout() {
   const token = getToken();
   const user = getUser();
 
+  useEffect(() => {
+    if (!token) {
+      navigate('/login', { replace: true });
+    }
+  }, [token, navigate]);
+
   const handleLogout = () => {
     clearAuthToken();
     navigate('/login', { replace: true });
   };
+
+  if (!token) return null;
 
   return (
     <div className="min-h-screen flex">

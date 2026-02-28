@@ -3,18 +3,28 @@ import { AppError } from '../../middleware/errorHandler.js';
 import { Decimal } from '@prisma/client/runtime/library';
 
 export const financeActivitiesService = {
-  async list(filters?: { departmentId?: string; activityType?: string }) {
-    const where: { departmentId?: string; activityType?: string } = {};
+  async list(filters?: { departmentId?: string; activityType?: string; search?: string; page?: number; limit?: number }) {
+    const where: { departmentId?: string; activityType?: string; title?: { contains: string; mode: 'insensitive' } } = {};
     if (filters?.departmentId) where.departmentId = filters.departmentId;
     if (filters?.activityType) where.activityType = filters.activityType;
-    return prisma.financeActivity.findMany({
-      where,
-      include: {
-        department: { select: { id: true, name: true, code: true } },
-        createdBy: { select: { id: true, name: true, email: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    if (filters?.search?.trim()) where.title = { contains: filters.search.trim(), mode: 'insensitive' };
+    const page = Math.max(1, filters?.page ?? 1);
+    const limit = Math.min(100, Math.max(1, filters?.limit ?? 20));
+    const skip = (page - 1) * limit;
+    const [data, total] = await Promise.all([
+      prisma.financeActivity.findMany({
+        where,
+        include: {
+          department: { select: { id: true, name: true, code: true } },
+          createdBy: { select: { id: true, name: true, email: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      prisma.financeActivity.count({ where }),
+    ]);
+    return { data, total, page, limit };
   },
 
   async getOne(id: string) {

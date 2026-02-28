@@ -11,9 +11,9 @@ router.use(requireAuth);
 const idParam = z.object({ params: z.object({ id: z.string() }) });
 const createBody = z.object({
   body: z.object({
-    title: z.string(),
+    title: z.string().min(1, 'Title is required'),
     description: z.string().optional(),
-    amount: z.number(),
+    amount: z.number().positive('Amount must be greater than 0'),
     activityType: z.string().optional(),
     departmentId: z.string().optional(),
     invoiceDate: z.string().optional(),
@@ -39,7 +39,7 @@ const updateBody = z.object({
   body: z.object({
     title: z.string().optional(),
     description: z.string().optional(),
-    amount: z.number().optional(),
+    amount: z.number().positive('Amount must be greater than 0').optional(),
     activityType: z.string().optional(),
     departmentId: z.string().optional().nullable(),
     invoiceDate: z.string().optional(),

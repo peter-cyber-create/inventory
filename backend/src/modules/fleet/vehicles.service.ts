@@ -1,14 +1,35 @@
 import { prisma } from '../../lib/prisma.js';
 import { AppError } from '../../middleware/errorHandler.js';
 
+const DEFAULT_LIMIT = 20;
+const MAX_LIMIT = 100;
+
 export const vehiclesService = {
-  async list(status?: string) {
-    const where = status ? { status } : {};
-    return prisma.vehicle.findMany({
-      where,
-      include: { _count: { select: { jobCards: true, fleetRequisitions: true } } },
-      orderBy: { registrationNumber: 'asc' },
-    });
+  async list(filters?: { status?: string; search?: string; page?: number; limit?: number }) {
+    const where: { status?: string; OR?: { registrationNumber?: { contains: string; mode: 'insensitive' }; make?: { contains: string; mode: 'insensitive' }; model?: { contains: string; mode: 'insensitive' } }[] } = {};
+    if (filters?.status) where.status = filters.status;
+    if (filters?.search?.trim()) {
+      const q = filters.search.trim();
+      where.OR = [
+        { registrationNumber: { contains: q, mode: 'insensitive' } },
+        { make: { contains: q, mode: 'insensitive' } },
+        { model: { contains: q, mode: 'insensitive' } },
+      ];
+    }
+    const page = Math.max(1, filters?.page ?? 1);
+    const limit = Math.min(MAX_LIMIT, Math.max(1, filters?.limit ?? DEFAULT_LIMIT));
+    const skip = (page - 1) * limit;
+    const [data, total] = await Promise.all([
+      prisma.vehicle.findMany({
+        where,
+        include: { _count: { select: { jobCards: true, fleetRequisitions: true } } },
+        orderBy: { registrationNumber: 'asc' },
+        skip,
+        take: limit,
+      }),
+      prisma.vehicle.count({ where }),
+    ]);
+    return { data, total, page, limit };
   },
 
   async getOne(id: string) {
