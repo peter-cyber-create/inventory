@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "npx vite",
-    "build": "npx vite build",
+    "build": "npx vite build && node write-build-time.cjs",
     "preview": "npx vite preview"
   },
   "dependencies": {

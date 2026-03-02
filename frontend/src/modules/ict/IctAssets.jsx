@@ -1,7 +1,17 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
+import { getUser } from '../../services/auth';
+import PageLayout from '../../components/ui/PageLayout';
+import Modal from '../../components/ui/Modal';
+import DataTable from '../../components/ui/DataTable';
+import FormField from '../../components/ui/FormField';
+import FormActions from '../../components/ui/FormActions';
+import FormMetadataHeader from '../../components/ui/FormMetadataHeader';
+import FormSectionCollapsible from '../../components/ui/FormSectionCollapsible';
+import AuditTrailPanel from '../../components/ui/AuditTrailPanel';
 
 const STATUS_OPTIONS = ['available', 'assigned', 'maintenance'];
+const CATEGORY_OPTIONS = ['Laptop', 'Desktop', 'Tablet', 'Server', 'Monitor', 'Printer', 'Network', 'Other'];
 
 export default function IctAssets() {
   const [list, setList] = useState([]);
@@ -12,15 +22,17 @@ export default function IctAssets() {
   const [form, setForm] = useState({
     assetTag: '', name: '', category: '', serialNumber: '', status: 'available',
     location: '', assignedToId: '', purchaseDate: '',
+    cost: '', fundingSource: '', procurementRef: '',
+    rackLocation: '', ipAddress: '',
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const limit = 20;
+  const currentUser = getUser();
 
   const load = (p = page, q = search) => {
     setLoading(true);
@@ -49,7 +61,11 @@ export default function IctAssets() {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ assetTag: '', name: '', category: '', serialNumber: '', status: 'available', location: '', assignedToId: '', purchaseDate: '' });
+    setForm({
+      assetTag: '', name: '', category: '', serialNumber: '', status: 'available',
+      location: '', assignedToId: '', purchaseDate: '',
+      cost: '', fundingSource: '', procurementRef: '', rackLocation: '', ipAddress: '',
+    });
     setShowForm(true);
     setError('');
   };
@@ -58,16 +74,22 @@ export default function IctAssets() {
     setForm({
       assetTag: a.assetTag,
       name: a.name,
-      category: a.category,
+      category: a.category ?? '',
       serialNumber: a.serialNumber ?? '',
       status: a.status ?? 'available',
       location: a.location ?? '',
       assignedToId: a.assignedToId ?? '',
       purchaseDate: a.purchaseDate ? new Date(a.purchaseDate).toISOString().slice(0, 10) : '',
+      cost: a.cost ?? '',
+      fundingSource: a.fundingSource ?? '',
+      procurementRef: a.procurementRef ?? '',
+      rackLocation: a.rackLocation ?? '',
+      ipAddress: a.ipAddress ?? '',
     });
     setShowForm(true);
     setError('');
   };
+  const closeForm = () => { setShowForm(false); setEditing(null); };
 
   const handleDelete = (a) => {
     if (!window.confirm(`Delete asset "${a.assetTag}"?`)) return;
@@ -89,129 +111,169 @@ export default function IctAssets() {
     if (form.assignedToId) payload.assignedToId = form.assignedToId;
     else if (editing) payload.assignedToId = null;
     if (form.purchaseDate) payload.purchaseDate = form.purchaseDate;
-
-    const then = () => { setShowForm(false); setEditing(null); load(page, search); };
-    const req = editing
-      ? api.patch(`/api/ict/assets/${editing.id}`, payload)
-      : api.post('/api/ict/assets', payload);
-    req
-      .then(then)
-      .catch((err) => setError(err.response?.data?.error || err.message))
-      .finally(() => setSubmitting(false));
+    const then = () => { closeForm(); load(page, search); };
+    const req = editing ? api.patch(`/api/ict/assets/${editing.id}`, payload) : api.post('/api/ict/assets', payload);
+    req.then(then).catch((err) => setError(err.response?.data?.error || err.message)).finally(() => setSubmitting(false));
   };
 
+  const isServer = (form.category || '').toLowerCase() === 'server';
+  const docStatus = editing ? (editing.status || 'Draft') : 'Draft';
+  const isLocked = false;
+
+  const columns = [
+    { key: 'assetTag', label: 'Asset Tag' },
+    { key: 'name', label: 'Name' },
+    { key: 'category', label: 'Category' },
+    { key: 'status', label: 'Status' },
+    { key: 'location', label: 'Location', render: (r) => r.location ?? '—' },
+    { key: 'assignedTo', label: 'Assigned To', render: (r) => r.assignedTo?.name ?? '—' },
+    {
+      key: 'actions',
+      label: 'Actions',
+      render: (r) => (
+        <span className="flex gap-2">
+          <button type="button" onClick={() => openEdit(r)} className="text-gov-primary hover:underline text-body-sm">Edit</button>
+          <button type="button" onClick={() => handleDelete(r)} className="text-gov-danger hover:underline text-body-sm">Delete</button>
+        </span>
+      ),
+    },
+  ];
+
   return (
-    <div className="p-6">
-      <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
-        <h1 className="text-2xl font-semibold text-gov-navy">ICT Assets Inventory</h1>
-        <form onSubmit={(e) => { e.preventDefault(); setSearch(searchInput); setPage(1); }} className="flex gap-2">
-          <input type="text" placeholder="Search tag, name, serial" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} className="border border-gray-300 rounded px-3 py-2 text-sm w-48" />
-          <button type="submit" className="px-3 py-2 border border-gray-300 rounded text-sm hover:bg-gray-50">Search</button>
-        </form>
-        <button type="button" onClick={openCreate} className="px-4 py-2 bg-gov-blue text-white rounded-md text-sm font-medium hover:opacity-90">
-          Add Asset
-        </button>
-      </div>
-      {error && !showForm && <p className="text-sm text-red-600 mb-2">{error}</p>}
+    <PageLayout
+      title="ICT Assets Inventory"
+      actions={
+        <>
+          <form onSubmit={(e) => { e.preventDefault(); setSearch(searchInput); setPage(1); }} className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Search tag, name, serial"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="ims-input w-48"
+            />
+            <button type="submit" className="ims-btn-secondary">Search</button>
+          </form>
+          <button type="button" onClick={openCreate} className="ims-btn-primary">Add Asset</button>
+        </>
+      }
+    >
+      {error && !showForm && <p className="text-body-sm text-gov-danger mb-4">{error}</p>}
 
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6">
-            <h2 className="text-lg font-semibold text-gov-navy mb-4">{editing ? 'Edit Asset' : 'New ICT Asset'}</h2>
-            <form onSubmit={handleSubmit} className="space-y-3">
-              {error && <p className="text-sm text-red-600">{error}</p>}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Asset Tag *</label>
-                <input type="text" required value={form.assetTag} onChange={(e) => setForm((f) => ({ ...f, assetTag: e.target.value }))} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
-                <input type="text" required value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
-                <input type="text" required value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Serial Number</label>
-                <input type="text" value={form.serialNumber} onChange={(e) => setForm((f) => ({ ...f, serialNumber: e.target.value }))} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <select value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))} className="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                  {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                <input type="text" value={form.location} onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Assigned To</label>
-                <select value={form.assignedToId} onChange={(e) => setForm((f) => ({ ...f, assignedToId: e.target.value }))} className="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                  <option value="">— None —</option>
-                  {users.map((u) => <option key={u.id} value={u.id}>{u.name} ({u.email})</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Purchase Date</label>
-                <input type="date" value={form.purchaseDate} onChange={(e) => setForm((f) => ({ ...f, purchaseDate: e.target.value }))} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-              </div>
-              <div className="flex gap-2 pt-2">
-                <button type="submit" disabled={submitting} className="px-4 py-2 bg-gov-blue text-white rounded text-sm disabled:opacity-50">{submitting ? 'Saving...' : 'Save'}</button>
-                <button type="button" onClick={() => { setShowForm(false); setEditing(null); }} className="px-4 py-2 border border-gray-300 rounded text-sm">Cancel</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+        <Modal title={editing ? 'Edit ICT Asset' : 'Asset Registration'} onClose={closeForm} width="max-w-4xl">
+          <form onSubmit={handleSubmit} className="p-5">
+            {error && <p className="text-body-sm text-gov-danger mb-4">{error}</p>}
 
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <div className="bg-white rounded-lg shadow border overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Asset Tag</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Name</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Category</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Status</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Location</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Assigned To</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {list.map((a) => (
-                <tr key={a.id}>
-                  <td className="px-4 py-2 text-sm">{a.assetTag}</td>
-                  <td className="px-4 py-2 text-sm">{a.name}</td>
-                  <td className="px-4 py-2 text-sm">{a.category}</td>
-                  <td className="px-4 py-2 text-sm">{a.status}</td>
-                  <td className="px-4 py-2 text-sm">{a.location ?? '-'}</td>
-                  <td className="px-4 py-2 text-sm">{a.assignedTo?.name ?? '-'}</td>
-                  <td className="px-4 py-2 text-sm">
-                    <button type="button" onClick={() => openEdit(a)} className="text-gov-blue text-sm mr-2">Edit</button>
-                    <button type="button" onClick={() => handleDelete(a)} className="text-red-600 text-sm">Delete</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {list.length === 0 && <p className="p-4 text-gray-500 text-sm">No assets recorded.</p>}
-          {total > limit && (
-            <div className="px-4 py-2 border-t border-gray-200 flex justify-between text-sm">
-              <span className="text-gray-600">{list.length} of {total}</span>
-              <div className="flex gap-2">
-                <button type="button" disabled={page <= 1} onClick={() => load(page - 1, search)} className="px-2 py-1 border rounded disabled:opacity-50">Prev</button>
-                <span className="py-1">Page {page}</span>
-                <button type="button" disabled={page * limit >= total} onClick={() => load(page + 1, search)} className="px-2 py-1 border rounded disabled:opacity-50">Next</button>
+            <FormMetadataHeader
+              documentNumber={editing?.assetTag ?? '—'}
+              status={docStatus}
+              createdBy={editing?.createdBy ?? currentUser?.name ?? '—'}
+              department={editing?.department ?? currentUser?.department?.name ?? '—'}
+              date={editing?.createdAt ? new Date(editing.createdAt).toLocaleDateString() : new Date().toLocaleDateString()}
+              referenceCode={editing?.id ? editing.id.slice(0, 8) : '—'}
+            />
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-0">
+                <FormSectionCollapsible id="sec-identity" title="Section A – Asset Identity" defaultOpen={true}>
+                  <FormField label="Asset code (tag)" required>
+                    <input type="text" required value={form.assetTag} onChange={(e) => setForm((f) => ({ ...f, assetTag: e.target.value }))} className="ims-input" disabled={isLocked} />
+                  </FormField>
+                  <FormField label="Category" required>
+                    <select value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))} className="ims-input" required disabled={isLocked}>
+                      <option value="">— Select —</option>
+                      {CATEGORY_OPTIONS.map((c) => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </FormField>
+                  <FormField label="Name / Model" required>
+                    <input type="text" required value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} className="ims-input" disabled={isLocked} />
+                  </FormField>
+                  <FormField label="Serial number">
+                    <input type="text" value={form.serialNumber} onChange={(e) => setForm((f) => ({ ...f, serialNumber: e.target.value }))} className="ims-input" disabled={isLocked} />
+                  </FormField>
+                  {isServer && (
+                    <>
+                      <FormField label="Rack location">
+                        <input type="text" value={form.rackLocation} onChange={(e) => setForm((f) => ({ ...f, rackLocation: e.target.value }))} className="ims-input" disabled={isLocked} />
+                      </FormField>
+                      <FormField label="IP address">
+                        <input type="text" value={form.ipAddress} onChange={(e) => setForm((f) => ({ ...f, ipAddress: e.target.value }))} className="ims-input" disabled={isLocked} placeholder="e.g. 10.0.0.1" />
+                      </FormField>
+                    </>
+                  )}
+                </FormSectionCollapsible>
+
+                <FormSectionCollapsible id="sec-financial" title="Section B – Financial Information" defaultOpen={true}>
+                  <FormField label="Cost">
+                    <input type="number" min="0" step="0.01" value={form.cost} onChange={(e) => setForm((f) => ({ ...f, cost: e.target.value }))} className="ims-input" disabled={isLocked} />
+                  </FormField>
+                  <FormField label="Funding source">
+                    <input type="text" value={form.fundingSource} onChange={(e) => setForm((f) => ({ ...f, fundingSource: e.target.value }))} className="ims-input" disabled={isLocked} />
+                  </FormField>
+                  <FormField label="Procurement reference">
+                    <input type="text" value={form.procurementRef} onChange={(e) => setForm((f) => ({ ...f, procurementRef: e.target.value }))} className="ims-input" disabled={isLocked} />
+                  </FormField>
+                </FormSectionCollapsible>
+
+                <FormSectionCollapsible id="sec-assignment" title="Section C – Assignment" defaultOpen={true}>
+                  <FormField label="Location">
+                    <input type="text" value={form.location} onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))} className="ims-input" disabled={isLocked} />
+                  </FormField>
+                  <FormField label="Assigned to">
+                    <select value={form.assignedToId} onChange={(e) => setForm((f) => ({ ...f, assignedToId: e.target.value }))} className="ims-input" disabled={isLocked}>
+                      <option value="">— None —</option>
+                      {users.map((u) => <option key={u.id} value={u.id}>{u.name} ({u.email})</option>)}
+                    </select>
+                  </FormField>
+                  <FormField label="Status">
+                    <select value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))} className="ims-input" disabled={isLocked}>
+                      {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </FormField>
+                </FormSectionCollapsible>
+
+                <FormSectionCollapsible id="sec-lifecycle" title="Section D – Lifecycle" defaultOpen={false}>
+                  <FormField label="Purchase date">
+                    <input type="date" value={form.purchaseDate} onChange={(e) => setForm((f) => ({ ...f, purchaseDate: e.target.value }))} className="ims-input" disabled={isLocked} />
+                  </FormField>
+                </FormSectionCollapsible>
+
+                <FormActions className="mt-4">
+                  <button type="button" onClick={closeForm} className="ims-btn-secondary">Cancel</button>
+                  <button type="submit" disabled={submitting} className="ims-btn-primary">{submitting ? 'Saving…' : 'Save'}</button>
+                </FormActions>
+              </div>
+              <div>
+                <AuditTrailPanel
+                  createdBy={editing?.createdBy ?? currentUser?.name}
+                  createdAt={editing?.createdAt}
+                  modifiedBy={editing?.modifiedBy}
+                  modifiedAt={editing?.updatedAt}
+                />
               </div>
             </div>
-          )}
-        </div>
+          </form>
+        </Modal>
       )}
-    </div>
+
+      <DataTable
+        columns={columns}
+        data={list}
+        loading={loading}
+        emptyMessage="No assets recorded."
+        searchSlot={null}
+        paginationSlot={
+          total > limit ? (
+            <div className="flex items-center gap-2 text-body-sm text-gov-secondary">
+              <span>{list.length} of {total}</span>
+              <button type="button" disabled={page <= 1} onClick={() => load(page - 1, search)} className="ims-btn-secondary py-1 px-2 text-body-sm disabled:opacity-50">Prev</button>
+              <span>Page {page}</span>
+              <button type="button" disabled={page * limit >= total} onClick={() => load(page + 1, search)} className="ims-btn-secondary py-1 px-2 text-body-sm disabled:opacity-50">Next</button>
+            </div>
+          ) : null
+        }
+      />
+    </PageLayout>
   );
 }

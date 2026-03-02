@@ -11,13 +11,13 @@ export default function StoresLedger() {
     const params = {};
     if (from) params.from = from;
     if (to) params.to = to;
-    api.get('/api/stores/ledger', { params }).then((res) => setList(res.data)).catch(() => setList([])).finally(() => setLoading(false));
+    api.get('/api/stores/ledger', { params }).then((res) => setList(Array.isArray(res.data) ? res.data : (res.data?.data ?? []))).catch(() => setList([])).finally(() => setLoading(false));
   };
   useEffect(load, []);
   const onFilter = (e) => { e.preventDefault(); load(); };
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-semibold text-gov-navy mb-4">Stock Ledger</h1>
+      <h1 className="text-2xl font-semibold text-gov-primary mb-4">Stock Ledger</h1>
       <form onSubmit={onFilter} className="flex flex-wrap gap-2 mb-4">
         <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="border border-gray-300 rounded px-3 py-2 text-sm" placeholder="From" />
         <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="border border-gray-300 rounded px-3 py-2 text-sm" placeholder="To" />

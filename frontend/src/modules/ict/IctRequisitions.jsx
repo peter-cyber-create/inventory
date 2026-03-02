@@ -1,22 +1,36 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
+import { getUser } from '../../services/auth';
+import PageLayout from '../../components/ui/PageLayout';
+import Modal from '../../components/ui/Modal';
+import FormMetadataHeader from '../../components/ui/FormMetadataHeader';
+import FormSectionCollapsible from '../../components/ui/FormSectionCollapsible';
+import FormField from '../../components/ui/FormField';
+import FormActions from '../../components/ui/FormActions';
+import AuditTrailPanel from '../../components/ui/AuditTrailPanel';
 
 export default function IctRequisitions() {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ assetType: '', quantity: 1, justification: '' });
+  const [form, setForm] = useState({ assetType: '', quantity: 1, justification: '', requisitionType: 'Standard' });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const currentUser = getUser();
 
   const load = () => {
-    api.get('/api/ict/requisitions').then((res) => setList(res.data)).catch(() => setList([])).finally(() => setLoading(false));
+    api.get('/api/ict/requisitions').then((res) => setList(Array.isArray(res.data) ? res.data : (res.data?.data ?? []))).catch(() => setList([])).finally(() => setLoading(false));
   };
   useEffect(load, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
+    const isEmergency = (form.requisitionType || '').toLowerCase() === 'emergency';
+    if (isEmergency && !form.justification?.trim()) {
+      setError('Justification is required for Emergency requisitions.');
+      return;
+    }
     setSubmitting(true);
     const payload = { assetType: form.assetType.trim(), quantity: Number(form.quantity) || 1 };
     if (form.justification.trim()) payload.justification = form.justification.trim();
@@ -24,78 +38,99 @@ export default function IctRequisitions() {
       .post('/api/ict/requisitions', payload)
       .then(() => {
         setShowForm(false);
-        setForm({ assetType: '', quantity: 1, justification: '' });
+        setForm({ assetType: '', quantity: 1, justification: '', requisitionType: 'Standard' });
         load();
       })
       .catch((err) => setError(err.response?.data?.error || err.message))
       .finally(() => setSubmitting(false));
   };
 
+  const isEmergency = (form.requisitionType || '').toLowerCase() === 'emergency';
+
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-gov-navy">ICT Requisitions</h1>
-        <button type="button" onClick={() => setShowForm(true)} className="px-4 py-2 bg-gov-blue text-white rounded-md text-sm font-medium hover:opacity-90">
+    <PageLayout
+      title="ICT Requisitions"
+      actions={
+        <button type="button" onClick={() => { setShowForm(true); setError(''); }} className="ims-btn-primary">
           Create Requisition
         </button>
-      </div>
-
+      }
+    >
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h2 className="text-lg font-semibold text-gov-navy mb-4">New ICT Requisition</h2>
-            <form onSubmit={handleSubmit} className="space-y-3">
-              {error && <p className="text-sm text-red-600">{error}</p>}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Asset Type *</label>
-                <input type="text" required value={form.assetType} onChange={(e) => setForm((f) => ({ ...f, assetType: e.target.value }))} placeholder="e.g. Laptop, Monitor" className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+        <Modal title="New ICT Requisition" onClose={() => setShowForm(false)} width="max-w-2xl">
+          <form onSubmit={handleSubmit} className="p-5">
+            {error && <p className="text-body-sm text-gov-danger mb-4">{error}</p>}
+
+            <FormMetadataHeader
+              documentNumber="—"
+              status="Draft"
+              createdBy={currentUser?.name ?? '—'}
+              department={currentUser?.department?.name ?? '—'}
+              date={new Date().toLocaleDateString()}
+            />
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-0">
+                <FormSectionCollapsible id="ict-req-details" title="Section A – Request details" defaultOpen={true}>
+                  <FormField label="Requisition type">
+                    <select value={form.requisitionType} onChange={(e) => setForm((f) => ({ ...f, requisitionType: e.target.value }))} className="ims-input">
+                      <option value="Standard">Standard</option>
+                      <option value="Emergency">Emergency</option>
+                    </select>
+                  </FormField>
+                  <FormField label="Asset type" required>
+                    <input type="text" required value={form.assetType} onChange={(e) => setForm((f) => ({ ...f, assetType: e.target.value }))} placeholder="e.g. Laptop, Monitor" className="ims-input" />
+                  </FormField>
+                  <FormField label="Quantity" required>
+                    <input type="number" min={1} value={form.quantity} onChange={(e) => setForm((f) => ({ ...f, quantity: parseInt(e.target.value, 10) || 1 }))} className="ims-input" />
+                  </FormField>
+                  <FormField label="Justification" required={isEmergency}>
+                    <textarea value={form.justification} onChange={(e) => setForm((f) => ({ ...f, justification: e.target.value }))} rows={3} className="ims-input" placeholder={isEmergency ? 'Required for emergency requisitions' : 'Optional'} />
+                  </FormField>
+                </FormSectionCollapsible>
+
+                <FormActions className="mt-4">
+                  <button type="button" onClick={() => setShowForm(false)} className="ims-btn-secondary">Cancel</button>
+                  <button type="submit" disabled={submitting} className="ims-btn-primary">{submitting ? 'Submitting…' : 'Submit'}</button>
+                </FormActions>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
-                <input type="number" min={1} value={form.quantity} onChange={(e) => setForm((f) => ({ ...f, quantity: parseInt(e.target.value, 10) || 1 }))} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
+                <AuditTrailPanel createdBy={currentUser?.name} />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Justification</label>
-                <textarea value={form.justification} onChange={(e) => setForm((f) => ({ ...f, justification: e.target.value }))} rows={3} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-              </div>
-              <div className="flex gap-2 pt-2">
-                <button type="submit" disabled={submitting} className="px-4 py-2 bg-gov-blue text-white rounded text-sm disabled:opacity-50">{submitting ? 'Saving...' : 'Submit'}</button>
-                <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border border-gray-300 rounded text-sm">Cancel</button>
-              </div>
-            </form>
-          </div>
-        </div>
+            </div>
+          </form>
+        </Modal>
       )}
 
       {loading ? (
-        <p>Loading...</p>
+        <p className="text-body text-gov-secondary">Loading…</p>
       ) : (
-        <div className="bg-white rounded-lg shadow border overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        <div className="ims-card overflow-hidden">
+          <table className="min-w-full divide-y divide-gov-border">
+            <thead className="ims-table-header">
               <tr>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Asset Type</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Quantity</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Requester</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Status</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Date</th>
+                <th className="px-4 py-3 text-left text-label text-gov-secondary uppercase tracking-wider">Asset Type</th>
+                <th className="px-4 py-3 text-left text-label text-gov-secondary uppercase tracking-wider">Quantity</th>
+                <th className="px-4 py-3 text-left text-label text-gov-secondary uppercase tracking-wider">Requester</th>
+                <th className="px-4 py-3 text-left text-label text-gov-secondary uppercase tracking-wider">Status</th>
+                <th className="px-4 py-3 text-left text-label text-gov-secondary uppercase tracking-wider">Date</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gov-borderLight">
               {list.map((r) => (
-                <tr key={r.id}>
-                  <td className="px-4 py-2 text-sm">{r.assetType}</td>
-                  <td className="px-4 py-2 text-sm">{r.quantity}</td>
-                  <td className="px-4 py-2 text-sm">{r.requester?.name ?? '-'}</td>
-                  <td className="px-4 py-2 text-sm">{r.status}</td>
-                  <td className="px-4 py-2 text-sm">{r.createdAt ? new Date(r.createdAt).toLocaleDateString() : '-'}</td>
+                <tr key={r.id} className="ims-table-row">
+                  <td className="px-4 py-3 text-body text-gov-primary">{r.assetType}</td>
+                  <td className="px-4 py-3 text-body text-gov-primary">{r.quantity}</td>
+                  <td className="px-4 py-3 text-body text-gov-primary">{r.requester?.name ?? '—'}</td>
+                  <td className="px-4 py-3 text-body text-gov-primary">{r.status}</td>
+                  <td className="px-4 py-3 text-body text-gov-primary">{r.createdAt ? new Date(r.createdAt).toLocaleDateString() : '—'}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          {list.length === 0 && <p className="p-4 text-gray-500 text-sm">No requisitions.</p>}
+          {list.length === 0 && <p className="p-6 text-body-sm text-gov-secondaryMuted text-center">No requisitions.</p>}
         </div>
       )}
-    </div>
+    </PageLayout>
   );
 }

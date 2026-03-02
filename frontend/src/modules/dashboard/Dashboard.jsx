@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api, { clearAuthToken } from '../../services/api';
+import PageLayout from '../../components/ui/PageLayout';
+import Card from '../../components/ui/Card';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -30,28 +32,29 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="p-6 animate-pulse">
-        <div className="h-8 bg-gray-200 rounded w-48 mb-6" />
+      <PageLayout title="Dashboard">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="bg-gray-100 rounded-lg h-24" />
+            <div key={i} className="ims-card h-24 animate-pulse bg-gov-backgroundAlt rounded-card" />
           ))}
         </div>
-        <div className="bg-gray-100 rounded-lg h-20" />
-      </div>
+        <div className="ims-card h-32 animate-pulse bg-gov-backgroundAlt rounded-card" />
+      </PageLayout>
     );
   }
   if (error) {
     const is401 = error.includes('Session expired');
     return (
-      <div className="p-6">
-        <p className={is401 ? 'text-amber-700' : 'text-red-600'}>
+      <PageLayout title="Dashboard">
+        <p className={is401 ? 'text-gov-warning' : 'text-gov-danger'}>
           {error}
           {!is401 && (
-            <button type="button" onClick={load} className="underline ml-1">Retry</button>
+            <button type="button" onClick={load} className="ims-btn-secondary ml-2">
+              Retry
+            </button>
           )}
         </p>
-      </div>
+      </PageLayout>
     );
   }
 
@@ -67,40 +70,56 @@ export default function Dashboard() {
   const allZero = total === 0 && (pending.ict ?? 0) === 0 && (pending.stores ?? 0) === 0 && (pending.fleet ?? 0) === 0;
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-gov-navy">Dashboard</h1>
-        <button type="button" onClick={load} className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50">
+    <PageLayout
+      title="Dashboard"
+      actions={
+        <button type="button" onClick={load} className="ims-btn-secondary">
           Refresh
         </button>
-      </div>
+      }
+    >
       {allZero && (
-        <div className="mb-6 p-4 bg-slate-50 border border-slate-200 rounded-lg text-sm text-gov-slate">
-          <p className="font-medium text-gov-navy mb-1">Get started</p>
-          <p>No data yet. Add users, store items, ICT assets, vehicles, or finance activities to see counts here.</p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            <Link to="/admin/users" className="text-gov-blue hover:underline">Add user</Link>
-            <Link to="/stores/items" className="text-gov-blue hover:underline">Add store item</Link>
-            <Link to="/ict/assets" className="text-gov-blue hover:underline">Add ICT asset</Link>
+        <Card className="mb-6">
+          <p className="text-heading-sm text-gov-primary mb-1">Get started</p>
+          <p className="text-body text-gov-secondary mb-2">
+            No data yet. Add users, store items, ICT assets, vehicles, or finance activities to see counts here.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Link to="/admin/users" className="text-body text-gov-accent hover:underline font-medium">Add user</Link>
+            <span className="text-gov-border">|</span>
+            <Link to="/stores/items" className="text-body text-gov-accent hover:underline font-medium">Add store item</Link>
+            <span className="text-gov-border">|</span>
+            <Link to="/ict/assets" className="text-body text-gov-accent hover:underline font-medium">Add ICT asset</Link>
           </div>
-        </div>
+        </Card>
       )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         {cards.map((c) => (
-          <Link key={c.title} to={c.to} className="bg-white rounded-lg shadow border border-gray-100 p-4 block hover:border-gov-blue/30 hover:shadow-md transition-shadow">
-            <div className="text-sm text-gov-slate">{c.title}</div>
-            <div className="text-2xl font-semibold text-gov-navy mt-1">{c.value}</div>
+          <Link
+            key={c.title}
+            to={c.to}
+            className="ims-card p-6 block border border-gov-border hover:shadow-card-hover hover:border-gov-border transition-all duration-normal"
+          >
+            <div className="text-label text-gov-secondaryMuted uppercase tracking-wide">{c.title}</div>
+            <div className="text-2xl font-semibold text-gov-primary mt-2">{c.value}</div>
           </Link>
         ))}
       </div>
-      <div className="bg-white rounded-lg shadow border border-gray-100 p-4">
-        <h2 className="font-medium text-gov-navy mb-3">Pending Requisitions</h2>
-        <div className="flex flex-wrap gap-6 text-sm">
-          <Link to="/ict/requisitions" className="text-gov-blue hover:underline">ICT: <strong>{pending.ict ?? 0}</strong></Link>
-          <Link to="/stores/requisitions" className="text-gov-blue hover:underline">Stores: <strong>{pending.stores ?? 0}</strong></Link>
-          <Link to="/fleet/requisitions" className="text-gov-blue hover:underline">Fleet: <strong>{pending.fleet ?? 0}</strong></Link>
+
+      <Card title="Pending Requisitions">
+        <div className="flex flex-wrap gap-6 text-body">
+          <Link to="/ict/requisitions" className="text-gov-primary hover:text-gov-accent font-medium transition-colors duration-fast">
+            ICT: <strong>{pending.ict ?? 0}</strong>
+          </Link>
+          <Link to="/stores/requisitions" className="text-gov-primary hover:text-gov-accent font-medium transition-colors duration-fast">
+            Stores: <strong>{pending.stores ?? 0}</strong>
+          </Link>
+          <Link to="/fleet/requisitions" className="text-gov-primary hover:text-gov-accent font-medium transition-colors duration-fast">
+            Fleet: <strong>{pending.fleet ?? 0}</strong>
+          </Link>
         </div>
-      </div>
-    </div>
+      </Card>
+    </PageLayout>
   );
 }

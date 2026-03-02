@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import { list, getOne, getByKey, set, create, update, remove } from './admin.settings.controller.js';
-import { requireAuth } from '../../middleware/auth.js';
+import { requireAuth, requireModule } from '../../middleware/auth.js';
 import { validate } from '../../middleware/validate.js';
 import { auditLog } from '../../middleware/audit.js';
 import { z } from 'zod';
 
 const router = Router();
-router.use(requireAuth);
+router.use(requireAuth, requireModule('Admin'));
 
 const idParam = z.object({ params: z.object({ id: z.string() }) });
 const keyParam = z.object({ params: z.object({ key: z.string() }) });

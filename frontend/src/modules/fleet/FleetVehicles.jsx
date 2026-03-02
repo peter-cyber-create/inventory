@@ -1,35 +1,26 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
+import PageLayout from '../../components/ui/PageLayout';
+import Modal from '../../components/ui/Modal';
+import DataTable from '../../components/ui/DataTable';
+import FormSection from '../../components/ui/FormSection';
+import FormField from '../../components/ui/FormField';
+import FormActions from '../../components/ui/FormActions';
+
+const INITIAL_FORM = {
+  registrationNumber: '', make: '', model: '', year: '', status: 'active', assignedDriver: '',
+  oldNumberPlate: '', newNumberPlate: '', type: '', chassisNumber: '', engineNumber: '',
+  fuel: '', power: '', totalCost: '', countryOfOrigin: '', color: '', userDepartment: '', officer: '', contact: '',
+};
 
 export default function FleetVehicles() {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState({
-    registrationNumber: '',
-    make: '',
-    model: '',
-    year: '',
-    status: 'active',
-    assignedDriver: '',
-    oldNumberPlate: '',
-    newNumberPlate: '',
-    type: '',
-    chassisNumber: '',
-    engineNumber: '',
-    fuel: '',
-    power: '',
-    totalCost: '',
-    countryOfOrigin: '',
-    color: '',
-    userDepartment: '',
-    officer: '',
-    contact: '',
-  });
+  const [form, setForm] = useState(INITIAL_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [page, setPage] = useState(1);
@@ -54,27 +45,7 @@ export default function FleetVehicles() {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({
-      registrationNumber: '',
-      make: '',
-      model: '',
-      year: '',
-      status: 'active',
-      assignedDriver: '',
-      oldNumberPlate: '',
-      newNumberPlate: '',
-      type: '',
-      chassisNumber: '',
-      engineNumber: '',
-      fuel: '',
-      power: '',
-      totalCost: '',
-      countryOfOrigin: '',
-      color: '',
-      userDepartment: '',
-      officer: '',
-      contact: '',
-    });
+    setForm(INITIAL_FORM);
     setShowForm(true);
     setError('');
   };
@@ -104,6 +75,7 @@ export default function FleetVehicles() {
     setShowForm(true);
     setError('');
   };
+  const closeForm = () => { setShowForm(false); setEditing(null); };
 
   const handleDelete = (v) => {
     if (!window.confirm(`Delete vehicle "${v.registrationNumber}"?`)) return;
@@ -146,244 +118,138 @@ export default function FleetVehicles() {
     else if (editing) payload.officer = null;
     if (form.contact.trim()) payload.contact = form.contact.trim();
     else if (editing) payload.contact = null;
-
-    const then = () => { setShowForm(false); setEditing(null); load(page, search); };
+    const then = () => { closeForm(); load(page, search); };
     const req = editing ? api.patch(`/api/fleet/vehicles/${editing.id}`, payload) : api.post('/api/fleet/vehicles', payload);
     req.then(then).catch((err) => setError(err.response?.data?.error || err.message)).finally(() => setSubmitting(false));
   };
 
+  const columns = [
+    { key: 'registrationNumber', label: 'Registration' },
+    { key: 'make', label: 'Make / Model', render: (r) => `${r.make} ${r.model}`.trim() },
+    { key: 'year', label: 'Year', render: (r) => r.year ?? '—' },
+    { key: 'status', label: 'Status' },
+    { key: 'assignedDriver', label: 'Driver', render: (r) => r.assignedDriver ?? '—' },
+    {
+      key: 'actions',
+      label: 'Actions',
+      render: (r) => (
+        <span className="flex gap-2">
+          <button type="button" onClick={() => openEdit(r)} className="text-gov-primary hover:underline text-body-sm">Edit</button>
+          <button type="button" onClick={() => handleDelete(r)} className="text-gov-danger hover:underline text-body-sm">Delete</button>
+        </span>
+      ),
+    },
+  ];
+
   return (
-    <div className="p-6">
-      <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
-        <h1 className="text-2xl font-semibold text-gov-navy">Vehicles</h1>
-        <form onSubmit={(e) => { e.preventDefault(); setSearch(searchInput); setPage(1); }} className="flex gap-2">
-          <input type="text" placeholder="Search registration, make, model" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} className="border border-gray-300 rounded px-3 py-2 text-sm w-48" />
-          <button type="submit" className="px-3 py-2 border border-gray-300 rounded text-sm hover:bg-gray-50">Search</button>
-        </form>
-        <button type="button" onClick={openCreate} className="px-4 py-2 bg-gov-blue text-white rounded-md text-sm font-medium hover:opacity-90">
-          Add Vehicle
-        </button>
-      </div>
-      {error && !showForm && <p className="text-sm text-red-600 mb-2">{error}</p>}
+    <PageLayout
+      title="Fleet Vehicles"
+      actions={
+        <>
+          <form onSubmit={(e) => { e.preventDefault(); setSearch(searchInput); setPage(1); }} className="flex gap-2">
+            <input type="text" placeholder="Search registration, make, model" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} className="ims-input w-48" />
+            <button type="submit" className="ims-btn-secondary">Search</button>
+          </form>
+          <button type="button" onClick={openCreate} className="ims-btn-primary">Add Vehicle</button>
+        </>
+      }
+    >
+      {error && !showForm && <p className="text-body-sm text-gov-danger mb-4">{error}</p>}
 
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h2 className="text-lg font-semibold text-gov-navy mb-4">{editing ? 'Edit Vehicle' : 'New Vehicle'}</h2>
-            <form onSubmit={handleSubmit} className="space-y-3">
-              {error && <p className="text-sm text-red-600">{error}</p>}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Registration Number *</label>
-                <input type="text" required value={form.registrationNumber} onChange={(e) => setForm((f) => ({ ...f, registrationNumber: e.target.value }))} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Old number plate</label>
-                  <input
-                    type="text"
-                    value={form.oldNumberPlate}
-                    onChange={(e) => setForm((f) => ({ ...f, oldNumberPlate: e.target.value }))}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">New number plate</label>
-                  <input
-                    type="text"
-                    value={form.newNumberPlate}
-                    onChange={(e) => setForm((f) => ({ ...f, newNumberPlate: e.target.value }))}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Make *</label>
-                <input type="text" required value={form.make} onChange={(e) => setForm((f) => ({ ...f, make: e.target.value }))} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Model *</label>
-                <input type="text" required value={form.model} onChange={(e) => setForm((f) => ({ ...f, model: e.target.value }))} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                <input
-                  type="text"
-                  value={form.type}
-                  onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
-                  placeholder="e.g. saloon, truck"
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Chassis number</label>
-                  <input
-                    type="text"
-                    value={form.chassisNumber}
-                    onChange={(e) => setForm((f) => ({ ...f, chassisNumber: e.target.value }))}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Engine number</label>
-                  <input
-                    type="text"
-                    value={form.engineNumber}
-                    onChange={(e) => setForm((f) => ({ ...f, engineNumber: e.target.value }))}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Fuel</label>
-                  <input
-                    type="text"
-                    value={form.fuel}
-                    onChange={(e) => setForm((f) => ({ ...f, fuel: e.target.value }))}
-                    placeholder="e.g. Diesel, Petrol"
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Power (HP)</label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={form.power}
-                    onChange={(e) => setForm((f) => ({ ...f, power: e.target.value }))}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Total cost</label>
-                  <input
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    value={form.totalCost}
-                    onChange={(e) => setForm((f) => ({ ...f, totalCost: e.target.value }))}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Country of origin</label>
-                  <input
-                    type="text"
-                    value={form.countryOfOrigin}
-                    onChange={(e) => setForm((f) => ({ ...f, countryOfOrigin: e.target.value }))}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
-                  <input
-                    type="text"
-                    value={form.color}
-                    onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">User department</label>
-                  <input
-                    type="text"
-                    value={form.userDepartment}
-                    onChange={(e) => setForm((f) => ({ ...f, userDepartment: e.target.value }))}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Officer</label>
-                  <input
-                    type="text"
-                    value={form.officer}
-                    onChange={(e) => setForm((f) => ({ ...f, officer: e.target.value }))}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Contact</label>
-                  <input
-                    type="text"
-                    value={form.contact}
-                    onChange={(e) => setForm((f) => ({ ...f, contact: e.target.value }))}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
-                <input type="number" min={1900} max={2100} value={form.year} onChange={(e) => setForm((f) => ({ ...f, year: e.target.value }))} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <select value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))} className="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+        <Modal title={editing ? 'Edit Vehicle' : 'New Vehicle'} onClose={closeForm} width="max-w-2xl">
+          <form onSubmit={handleSubmit} className="p-5">
+            {error && <p className="text-body-sm text-gov-danger mb-4">{error}</p>}
+            <FormSection title="General">
+              <FormField label="Registration Number" required>
+                <input type="text" required value={form.registrationNumber} onChange={(e) => setForm((f) => ({ ...f, registrationNumber: e.target.value }))} className="ims-input" />
+              </FormField>
+              <FormField label="Status">
+                <select value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))} className="ims-input">
                   <option value="active">active</option>
                   <option value="inactive">inactive</option>
                 </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Assigned Driver</label>
-                <input type="text" value={form.assignedDriver} onChange={(e) => setForm((f) => ({ ...f, assignedDriver: e.target.value }))} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" />
-              </div>
-              <div className="flex gap-2 pt-2">
-                <button type="submit" disabled={submitting} className="px-4 py-2 bg-gov-blue text-white rounded text-sm disabled:opacity-50">{submitting ? 'Saving...' : 'Save'}</button>
-                <button type="button" onClick={() => { setShowForm(false); setEditing(null); }} className="px-4 py-2 border border-gray-300 rounded text-sm">Cancel</button>
-              </div>
-            </form>
-          </div>
-        </div>
+              </FormField>
+              <FormField label="Make" required>
+                <input type="text" required value={form.make} onChange={(e) => setForm((f) => ({ ...f, make: e.target.value }))} className="ims-input" />
+              </FormField>
+              <FormField label="Model" required>
+                <input type="text" required value={form.model} onChange={(e) => setForm((f) => ({ ...f, model: e.target.value }))} className="ims-input" />
+              </FormField>
+              <FormField label="Year">
+                <input type="number" min={1900} max={2100} value={form.year} onChange={(e) => setForm((f) => ({ ...f, year: e.target.value }))} className="ims-input" />
+              </FormField>
+              <FormField label="Type">
+                <input type="text" value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))} placeholder="e.g. saloon, truck" className="ims-input" />
+              </FormField>
+            </FormSection>
+            <FormSection title="Identification">
+              <FormField label="Old number plate">
+                <input type="text" value={form.oldNumberPlate} onChange={(e) => setForm((f) => ({ ...f, oldNumberPlate: e.target.value }))} className="ims-input" />
+              </FormField>
+              <FormField label="New number plate">
+                <input type="text" value={form.newNumberPlate} onChange={(e) => setForm((f) => ({ ...f, newNumberPlate: e.target.value }))} className="ims-input" />
+              </FormField>
+              <FormField label="Chassis number">
+                <input type="text" value={form.chassisNumber} onChange={(e) => setForm((f) => ({ ...f, chassisNumber: e.target.value }))} className="ims-input" />
+              </FormField>
+              <FormField label="Engine number">
+                <input type="text" value={form.engineNumber} onChange={(e) => setForm((f) => ({ ...f, engineNumber: e.target.value }))} className="ims-input" />
+              </FormField>
+              <FormField label="Fuel">
+                <input type="text" value={form.fuel} onChange={(e) => setForm((f) => ({ ...f, fuel: e.target.value }))} placeholder="e.g. Diesel, Petrol" className="ims-input" />
+              </FormField>
+              <FormField label="Power (HP)">
+                <input type="number" min={0} value={form.power} onChange={(e) => setForm((f) => ({ ...f, power: e.target.value }))} className="ims-input" />
+              </FormField>
+              <FormField label="Total cost">
+                <input type="number" min={0} step="0.01" value={form.totalCost} onChange={(e) => setForm((f) => ({ ...f, totalCost: e.target.value }))} className="ims-input" />
+              </FormField>
+              <FormField label="Country of origin">
+                <input type="text" value={form.countryOfOrigin} onChange={(e) => setForm((f) => ({ ...f, countryOfOrigin: e.target.value }))} className="ims-input" />
+              </FormField>
+              <FormField label="Color">
+                <input type="text" value={form.color} onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))} className="ims-input" />
+              </FormField>
+            </FormSection>
+            <FormSection title="Assignment">
+              <FormField label="Assigned Driver">
+                <input type="text" value={form.assignedDriver} onChange={(e) => setForm((f) => ({ ...f, assignedDriver: e.target.value }))} className="ims-input" />
+              </FormField>
+              <FormField label="User department">
+                <input type="text" value={form.userDepartment} onChange={(e) => setForm((f) => ({ ...f, userDepartment: e.target.value }))} className="ims-input" />
+              </FormField>
+              <FormField label="Officer">
+                <input type="text" value={form.officer} onChange={(e) => setForm((f) => ({ ...f, officer: e.target.value }))} className="ims-input" />
+              </FormField>
+              <FormField label="Contact">
+                <input type="text" value={form.contact} onChange={(e) => setForm((f) => ({ ...f, contact: e.target.value }))} className="ims-input" />
+              </FormField>
+            </FormSection>
+            <FormActions>
+              <button type="button" onClick={closeForm} className="ims-btn-secondary">Cancel</button>
+              <button type="submit" disabled={submitting} className="ims-btn-primary">{submitting ? 'Saving…' : 'Save'}</button>
+            </FormActions>
+          </form>
+        </Modal>
       )}
 
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <div className="bg-white rounded-lg shadow border overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Registration</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Make / Model</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Year</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Status</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Driver</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {list.map((v) => (
-                <tr key={v.id}>
-                  <td className="px-4 py-2 text-sm">{v.registrationNumber}</td>
-                  <td className="px-4 py-2 text-sm">{v.make} {v.model}</td>
-                  <td className="px-4 py-2 text-sm">{v.year ?? '-'}</td>
-                  <td className="px-4 py-2 text-sm">{v.status}</td>
-                  <td className="px-4 py-2 text-sm">{v.assignedDriver ?? '-'}</td>
-                  <td className="px-4 py-2 text-sm">
-                    <button type="button" onClick={() => openEdit(v)} className="text-gov-blue text-sm mr-2">Edit</button>
-                    <button type="button" onClick={() => handleDelete(v)} className="text-red-600 text-sm">Delete</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {list.length === 0 && <p className="p-4 text-gray-500 text-sm">No vehicles.</p>}
-          {total > limit && (
-            <div className="px-4 py-2 border-t border-gray-200 flex justify-between text-sm">
-              <span className="text-gray-600">{list.length} of {total}</span>
-              <div className="flex gap-2">
-                <button type="button" disabled={page <= 1} onClick={() => load(page - 1, search)} className="px-2 py-1 border rounded disabled:opacity-50">Prev</button>
-                <span className="py-1">Page {page}</span>
-                <button type="button" disabled={page * limit >= total} onClick={() => load(page + 1, search)} className="px-2 py-1 border rounded disabled:opacity-50">Next</button>
-              </div>
+      <DataTable
+        columns={columns}
+        data={list}
+        loading={loading}
+        emptyMessage="No vehicles."
+        paginationSlot={
+          total > limit ? (
+            <div className="flex items-center gap-2 text-body-sm text-gov-secondary">
+              <span>{list.length} of {total}</span>
+              <button type="button" disabled={page <= 1} onClick={() => load(page - 1, search)} className="ims-btn-secondary py-1 px-2 text-body-sm disabled:opacity-50">Prev</button>
+              <span>Page {page}</span>
+              <button type="button" disabled={page * limit >= total} onClick={() => load(page + 1, search)} className="ims-btn-secondary py-1 px-2 text-body-sm disabled:opacity-50">Next</button>
             </div>
-          )}
-        </div>
-      )}
-    </div>
+          ) : null
+        }
+      />
+    </PageLayout>
   );
 }

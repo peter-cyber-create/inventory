@@ -26,16 +26,16 @@ export const ictMaintenanceService = {
     issueDescription?: string;
     actionTaken?: string;
     technician?: string;
-    maintenanceDate?: Date;
-    nextServiceDate?: Date;
+    maintenanceDate?: string;
+    nextServiceDate?: string;
     cost?: number;
     createdById?: string;
   }) {
     const asset = await prisma.ictAsset.findUnique({ where: { id: data.assetId } });
     if (!asset) throw new AppError(404, 'ICT asset not found');
-    const maintDate = data.maintenanceDate ?? new Date();
-    const nextDate = data.nextServiceDate;
-    if (nextDate && new Date(nextDate) < new Date(maintDate)) {
+    const maintDate = data.maintenanceDate ? new Date(data.maintenanceDate) : new Date();
+    const nextDate = data.nextServiceDate ? new Date(data.nextServiceDate) : undefined;
+    if (nextDate && nextDate < maintDate) {
       throw new AppError(400, 'Next service date must be on or after maintenance date');
     }
     return prisma.ictMaintenance.create({

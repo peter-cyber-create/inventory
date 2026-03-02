@@ -32,7 +32,10 @@ export default function IctMaintenance() {
     if (showForm) {
       api
         .get('/api/ict/assets')
-        .then((res) => setAssets(res.data || []))
+        .then((res) => {
+          const d = res.data?.data ?? res.data;
+          setAssets(Array.isArray(d) ? d : []);
+        })
         .catch(() => setAssets([]));
     }
   }, [showForm]);
@@ -117,11 +120,11 @@ export default function IctMaintenance() {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-gov-navy">ICT Asset Maintenance</h1>
+        <h1 className="text-2xl font-semibold text-gov-primary">ICT Asset Maintenance</h1>
         <button
           type="button"
           onClick={openCreate}
-          className="px-4 py-2 bg-gov-blue text-white rounded-md text-sm font-medium hover:opacity-90"
+          className="ims-btn-primary"
         >
           Add Maintenance Record
         </button>
@@ -131,7 +134,7 @@ export default function IctMaintenance() {
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6">
-            <h2 className="text-lg font-semibold text-gov-navy mb-4">
+            <h2 className="text-lg font-semibold text-gov-primary mb-4">
               {editing ? 'Edit Maintenance Record' : 'New Maintenance Record'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-3">
@@ -264,7 +267,7 @@ export default function IctMaintenance() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 bg-gov-blue text-white rounded text-sm disabled:opacity-50"
+                  className="ims-btn-primary disabled:opacity-50"
                 >
                   {submitting ? 'Saving...' : 'Save'}
                 </button>
@@ -354,7 +357,7 @@ export default function IctMaintenance() {
                     <button
                       type="button"
                       onClick={() => openEdit(m)}
-                      className="text-gov-blue text-sm mr-2"
+                      className="text-gov-accent text-sm mr-2"
                     >
                       Edit
                     </button>

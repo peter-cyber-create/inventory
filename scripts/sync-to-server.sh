@@ -12,5 +12,13 @@ RSYNC_EXCLUDES=(
   --exclude '.git'
 )
 rsync -avz "${RSYNC_EXCLUDES[@]}" . frank@172.27.1.170:~/inv/
-echo "Sync done. Now on the server run:"
-echo "  cd ~/inv && npm install && cd backend && npm install && cd .. && npm run build && cd backend && npx prisma migrate deploy && npm start"
+echo ""
+echo "Sync done. You must BUILD on the server or the new UI will not appear."
+echo "On the server run:"
+echo "  cd ~/inv && bash scripts/deploy-on-server.sh"
+echo ""
+echo "Or manually:"
+echo "  cd ~/inv && npm install && cd backend && npm install && cd .. && npm run build"
+echo "  cd backend && npx prisma migrate deploy && pkill -f 'node dist/index.js'; nohup npm start > ../backend.log 2>&1 &"
+echo ""
+echo "Then hard-refresh the browser (Ctrl+Shift+R or Cmd+Shift+R) to avoid cached index.html."

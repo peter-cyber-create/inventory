@@ -13,6 +13,7 @@ export const storeRequisitionsService = {
         requester: { select: { id: true, name: true, email: true } },
         department: { select: { id: true, name: true, code: true } },
         issues: true,
+        items: { include: { item: true } },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -25,6 +26,7 @@ export const storeRequisitionsService = {
         requester: true,
         department: true,
         issues: true,
+        items: { include: { item: true } },
       },
     });
     if (!r) throw new AppError(404, 'Store requisition not found');
@@ -62,11 +64,22 @@ export const storeRequisitionsService = {
           purpose: data.purpose,
         },
       });
+      for (const line of data.items) {
+        await tx.storeRequisitionItem.create({
+          data: {
+            requisitionId: header.id,
+            itemId: line.itemId,
+            quantityRequested: line.quantityRequested,
+            quantityApproved: line.quantityRequested,
+          },
+        });
+      }
       return tx.storeRequisition.findUnique({
         where: { id: header.id },
         include: {
           requester: { select: { id: true, name: true, email: true } },
           department: { select: { id: true, name: true, code: true } },
+          items: { include: { item: true } },
         },
       });
     });

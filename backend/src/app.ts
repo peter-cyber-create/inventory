@@ -20,6 +20,7 @@ app.use(morgan("combined"));
 app.use(express.json());
 
 app.get("/health", (_req, res) => res.json({ status: "ok", timestamp: new Date().toISOString() }));
+app.get("/api/build-info", (_req, res) => res.json({ ok: true, backend: "ims", time: new Date().toISOString() }));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/dashboard", dashboardRoutes);

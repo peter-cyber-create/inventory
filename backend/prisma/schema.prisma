@@ -246,6 +246,7 @@ model StoreItem {
   barcode         String?
   grnItems        GrnItem[]
   stockLedger     StockLedger[]
+  requisitionItems StoreRequisitionItem[]
 }
 
 model GoodsReceivedNote {
@@ -280,15 +281,26 @@ model StoreRequisition {
   departmentId String?  @map("department_id")
   status       String   @default("pending")
   createdAt    DateTime @default(now()) @map("created_at")
-   serialNumber String?  @map("serial_number")
-   country      String?
-   ministry     String?
-   fromDepartment String? @map("from_department")
-   toStore      String?  @map("to_store")
-   purpose      String?
+  serialNumber String?  @map("serial_number")
+  country      String?
+  ministry     String?
+  fromDepartment String? @map("from_department")
+  toStore      String?  @map("to_store")
+  purpose      String?
   requester    User     @relation(fields: [requesterId], references: [id])
   department   Department? @relation(fields: [departmentId], references: [id])
   issues       StoreIssue[]
+  items        StoreRequisitionItem[]
+}
+
+model StoreRequisitionItem {
+  id                String   @id @default(cuid())
+  requisitionId     String   @map("requisition_id")
+  itemId            String   @map("item_id")
+  quantityRequested Int      @map("quantity_requested")
+  quantityApproved  Int?     @map("quantity_approved")
+  requisition       StoreRequisition @relation(fields: [requisitionId], references: [id], onDelete: Cascade)
+  item              StoreItem @relation(fields: [itemId], references: [id])
 }
 
 model StoreIssue {

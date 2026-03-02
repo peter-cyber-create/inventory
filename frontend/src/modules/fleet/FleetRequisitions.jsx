@@ -1,5 +1,13 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
+import { getUser } from '../../services/auth';
+import PageLayout from '../../components/ui/PageLayout';
+import Modal from '../../components/ui/Modal';
+import FormMetadataHeader from '../../components/ui/FormMetadataHeader';
+import FormSectionCollapsible from '../../components/ui/FormSectionCollapsible';
+import FormField from '../../components/ui/FormField';
+import FormActions from '../../components/ui/FormActions';
+import AuditTrailPanel from '../../components/ui/AuditTrailPanel';
 
 export default function FleetRequisitions() {
   const [list, setList] = useState([]);
@@ -22,17 +30,20 @@ export default function FleetRequisitions() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const currentUser = getUser();
 
   const load = () => {
-    api.get('/api/fleet/requisitions').then((res) => setList(res.data)).catch(() => setList([])).finally(() => setLoading(false));
+    api.get('/api/fleet/requisitions').then((res) => setList(Array.isArray(res.data) ? res.data : (res.data?.data ?? []))).catch(() => setList([])).finally(() => setLoading(false));
   };
   useEffect(load, []);
 
   useEffect(() => {
     if (showForm) {
-      api
-        .get('/api/fleet/vehicles')
-        .then((res) => setVehicles(res.data || []))
+      api.get('/api/fleet/vehicles', { params: { limit: 500 } })
+        .then((res) => {
+          const raw = res.data;
+          setVehicles(Array.isArray(raw) ? raw : (raw?.data ?? []));
+        })
         .catch(() => setVehicles([]));
     }
   }, [showForm]);
@@ -71,18 +82,8 @@ export default function FleetRequisitions() {
       .then(() => {
         setShowForm(false);
         setForm({
-          projectUnit: '',
-          headOfDepartment: '',
-          serviceRequestingOfficer: '',
-          driverName: '',
-          mobile: '',
-          projectEmail: '',
-          vehicleId: '',
-          registrationNumber: '',
-          currentMileage: '',
-          lastServiceMileage: '',
-          requestDate: '',
-          description: '',
+          projectUnit: '', headOfDepartment: '', serviceRequestingOfficer: '', driverName: '', mobile: '', projectEmail: '',
+          vehicleId: '', registrationNumber: '', currentMileage: '', lastServiceMileage: '', requestDate: '', description: '',
         });
         load();
       })
@@ -90,192 +91,135 @@ export default function FleetRequisitions() {
       .finally(() => setSubmitting(false));
   };
 
+  const vehicleLabel = form.vehicleId ? vehicles.find((v) => v.id === form.vehicleId)?.registrationNumber : '—';
+
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-gov-navy">Fleet Requisitions</h1>
-        <button type="button" onClick={() => setShowForm(true)} className="px-4 py-2 bg-gov-blue text-white rounded-md text-sm font-medium hover:opacity-90">
+    <PageLayout
+      title="Fleet Requisitions"
+      actions={
+        <button type="button" onClick={() => { setShowForm(true); setError(''); }} className="ims-btn-primary">
           Create Requisition
         </button>
-      </div>
-
+      }
+    >
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
-            <h2 className="text-lg font-semibold text-gov-navy mb-4">Service Requisition</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {error && <p className="text-sm text-red-600">{error}</p>}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Project / Unit *</label>
-                  <input
-                    type="text"
-                    value={form.projectUnit}
-                    onChange={(e) => setForm((f) => ({ ...f, projectUnit: e.target.value }))}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Head of department *</label>
-                  <input
-                    type="text"
-                    value={form.headOfDepartment}
-                    onChange={(e) => setForm((f) => ({ ...f, headOfDepartment: e.target.value }))}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Service requesting officer *</label>
-                  <input
-                    type="text"
-                    value={form.serviceRequestingOfficer}
-                    onChange={(e) => setForm((f) => ({ ...f, serviceRequestingOfficer: e.target.value }))}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Driver name</label>
-                  <input
-                    type="text"
-                    value={form.driverName}
-                    onChange={(e) => setForm((f) => ({ ...f, driverName: e.target.value }))}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Mobile</label>
-                  <input
-                    type="tel"
-                    value={form.mobile}
-                    onChange={(e) => setForm((f) => ({ ...f, mobile: e.target.value }))}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Project / unit email</label>
-                  <input
-                    type="email"
-                    value={form.projectEmail}
-                    onChange={(e) => setForm((f) => ({ ...f, projectEmail: e.target.value }))}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle *</label>
-                  <select
-                    value={form.vehicleId}
-                    onChange={(e) => {
-                      const vId = e.target.value;
-                      const v = vehicles.find((x) => x.id === vId);
-                      setForm((f) => ({
-                        ...f,
-                        vehicleId: vId,
-                        registrationNumber: v ? v.registrationNumber : '',
-                      }));
-                    }}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                  >
-                    <option value="">— Select vehicle —</option>
-                    {vehicles.map((v) => (
-                      <option key={v.id} value={v.id}>
-                        {v.registrationNumber} – {v.make} {v.model}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Registration number</label>
-                  <input
-                    type="text"
-                    readOnly
-                    value={form.registrationNumber}
-                    className="w-full border border-gray-200 bg-gray-50 rounded px-3 py-2 text-sm"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Current mileage</label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={form.currentMileage}
-                    onChange={(e) => setForm((f) => ({ ...f, currentMileage: e.target.value }))}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Last service mileage</label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={form.lastServiceMileage}
-                    onChange={(e) => setForm((f) => ({ ...f, lastServiceMileage: e.target.value }))}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Request date *</label>
-                  <input
-                    type="date"
-                    value={form.requestDate}
-                    onChange={(e) => setForm((f) => ({ ...f, requestDate: e.target.value }))}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                  />
-                </div>
+        <Modal title="Service Requisition" onClose={() => setShowForm(false)} width="max-w-3xl">
+          <form onSubmit={handleSubmit} className="p-5">
+            {error && <p className="text-body-sm text-gov-danger mb-4">{error}</p>}
+
+            <FormMetadataHeader
+              documentNumber="—"
+              status="Draft"
+              createdBy={currentUser?.name ?? '—'}
+              department={currentUser?.department?.name ?? '—'}
+              date={form.requestDate ? new Date(form.requestDate).toLocaleDateString() : new Date().toLocaleDateString()}
+              referenceCode={vehicleLabel}
+            />
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-0">
+                <FormSectionCollapsible id="fleet-req-request" title="Section A – Request details" defaultOpen={true}>
+                  <FormField label="Project / Unit" required>
+                    <input type="text" required value={form.projectUnit} onChange={(e) => setForm((f) => ({ ...f, projectUnit: e.target.value }))} className="ims-input" />
+                  </FormField>
+                  <FormField label="Head of department" required>
+                    <input type="text" required value={form.headOfDepartment} onChange={(e) => setForm((f) => ({ ...f, headOfDepartment: e.target.value }))} className="ims-input" />
+                  </FormField>
+                  <FormField label="Service requesting officer" required>
+                    <input type="text" required value={form.serviceRequestingOfficer} onChange={(e) => setForm((f) => ({ ...f, serviceRequestingOfficer: e.target.value }))} className="ims-input" />
+                  </FormField>
+                  <FormField label="Driver name">
+                    <input type="text" value={form.driverName} onChange={(e) => setForm((f) => ({ ...f, driverName: e.target.value }))} className="ims-input" />
+                  </FormField>
+                  <FormField label="Mobile">
+                    <input type="text" value={form.mobile} onChange={(e) => setForm((f) => ({ ...f, mobile: e.target.value }))} className="ims-input" />
+                  </FormField>
+                  <FormField label="Project email">
+                    <input type="email" value={form.projectEmail} onChange={(e) => setForm((f) => ({ ...f, projectEmail: e.target.value }))} className="ims-input" />
+                  </FormField>
+                </FormSectionCollapsible>
+
+                <FormSectionCollapsible id="fleet-req-vehicle" title="Section B – Vehicle & mileage" defaultOpen={true}>
+                  <FormField label="Vehicle" required>
+                    <select
+                      required
+                      value={form.vehicleId}
+                      onChange={(e) => {
+                        const vId = e.target.value;
+                        const v = vehicles.find((x) => x.id === vId);
+                        setForm((f) => ({
+                          ...f,
+                          vehicleId: vId,
+                          registrationNumber: v ? v.registrationNumber : '',
+                        }));
+                      }}
+                      className="ims-input"
+                    >
+                      <option value="">— Select vehicle —</option>
+                      {vehicles.map((v) => (
+                        <option key={v.id} value={v.id}>
+                          {v.registrationNumber} – {v.make} {v.model}
+                        </option>
+                      ))}
+                    </select>
+                  </FormField>
+                  <FormField label="Registration number">
+                    <input type="text" readOnly value={form.registrationNumber} className="ims-input bg-gov-backgroundAlt" />
+                  </FormField>
+                  <FormField label="Current mileage">
+                    <input type="number" min={0} value={form.currentMileage} onChange={(e) => setForm((f) => ({ ...f, currentMileage: e.target.value }))} className="ims-input" />
+                  </FormField>
+                  <FormField label="Last service mileage">
+                    <input type="number" min={0} value={form.lastServiceMileage} onChange={(e) => setForm((f) => ({ ...f, lastServiceMileage: e.target.value }))} className="ims-input" />
+                  </FormField>
+                  <FormField label="Request date" required>
+                    <input type="date" required value={form.requestDate} onChange={(e) => setForm((f) => ({ ...f, requestDate: e.target.value }))} className="ims-input" />
+                  </FormField>
+                  <FormField label="Work requested / faults" className="md:col-span-2">
+                    <textarea rows={3} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} className="ims-input" placeholder="Describe faults and services requested" />
+                  </FormField>
+                </FormSectionCollapsible>
+
+                <FormActions className="mt-4">
+                  <button type="button" onClick={() => setShowForm(false)} className="ims-btn-secondary">Cancel</button>
+                  <button type="submit" disabled={submitting} className="ims-btn-primary">{submitting ? 'Submitting…' : 'Submit'}</button>
+                </FormActions>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Work requested / faults</label>
-                <textarea
-                  rows={3}
-                  value={form.description}
-                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                  placeholder="Describe faults and services requested"
-                />
+                <AuditTrailPanel createdBy={currentUser?.name} />
               </div>
-              <div className="flex gap-2 pt-2">
-                <button type="submit" disabled={submitting} className="px-4 py-2 bg-gov-blue text-white rounded text-sm disabled:opacity-50">{submitting ? 'Saving...' : 'Submit'}</button>
-                <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border border-gray-300 rounded text-sm">Cancel</button>
-              </div>
-            </form>
-          </div>
-        </div>
+            </div>
+          </form>
+        </Modal>
       )}
 
       {loading ? (
-        <p>Loading...</p>
+        <p className="text-body text-gov-secondary">Loading…</p>
       ) : (
-        <div className="bg-white rounded-lg shadow border overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        <div className="ims-card overflow-hidden">
+          <table className="min-w-full divide-y divide-gov-border">
+            <thead className="ims-table-header">
               <tr>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Vehicle</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Requested By</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Status</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Date</th>
+                <th className="px-4 py-3 text-left text-label text-gov-secondary uppercase tracking-wider">Vehicle</th>
+                <th className="px-4 py-3 text-left text-label text-gov-secondary uppercase tracking-wider">Requested By</th>
+                <th className="px-4 py-3 text-left text-label text-gov-secondary uppercase tracking-wider">Status</th>
+                <th className="px-4 py-3 text-left text-label text-gov-secondary uppercase tracking-wider">Date</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gov-borderLight">
               {list.map((r) => (
-                <tr key={r.id}>
-                  <td className="px-4 py-2 text-sm">{r.vehicle?.registrationNumber ?? '-'}</td>
-                  <td className="px-4 py-2 text-sm">{r.requestedBy?.name ?? '-'}</td>
-                  <td className="px-4 py-2 text-sm">{r.status}</td>
-                  <td className="px-4 py-2 text-sm">{r.createdAt ? new Date(r.createdAt).toLocaleDateString() : '-'}</td>
+                <tr key={r.id} className="ims-table-row">
+                  <td className="px-4 py-3 text-body text-gov-primary">{r.vehicle?.registrationNumber ?? '—'}</td>
+                  <td className="px-4 py-3 text-body text-gov-primary">{r.requestedBy?.name ?? '—'}</td>
+                  <td className="px-4 py-3 text-body text-gov-primary">{r.status}</td>
+                  <td className="px-4 py-3 text-body text-gov-primary">{r.createdAt ? new Date(r.createdAt).toLocaleDateString() : '—'}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          {list.length === 0 && <p className="p-4 text-gray-500 text-sm">No requisitions.</p>}
+          {list.length === 0 && <p className="p-6 text-body-sm text-gov-secondaryMuted text-center">No requisitions.</p>}
         </div>
       )}
-    </div>
+    </PageLayout>
   );
 }

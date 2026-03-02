@@ -35,10 +35,11 @@ export const requisitionsService = {
       projectEmail?: string;
       currentMileage?: number;
       lastServiceMileage?: number;
-      requestDate?: Date;
+      requestDate?: string;
       details?: unknown;
     },
   ) {
+    const requestDate = data.requestDate ? new Date(data.requestDate) : undefined;
     return prisma.fleetRequisition.create({
       data: {
         requestedById: userId,
@@ -52,7 +53,7 @@ export const requisitionsService = {
         projectEmail: data.projectEmail,
         currentMileage: data.currentMileage,
         lastServiceMileage: data.lastServiceMileage,
-        requestDate: data.requestDate,
+        requestDate,
         details: data.details as any,
         status: 'pending',
       },

@@ -1,10 +1,66 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --gov-primary: #0F1C2E;
+  --gov-primary-hover: #1a2d47;
+  --gov-secondary: #2E3B4E;
+  --gov-accent: #0d9488;
+  --gov-border: #d1d9e2;
+  --gov-surface: #ffffff;
+  --gov-background: #F5F7FA;
+  --gov-radius: 4px;
+  --gov-spacing-unit: 8px;
+}
+
 body {
-  @apply bg-gov-light text-gov-navy antialiased;
-  font-family: 'DM Sans', system-ui, sans-serif;
+  @apply bg-gov-background text-gov-primary antialiased;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 0.875rem;
+}
+
+@layer components {
+  .ims-input {
+    @apply w-full border border-gov-border rounded-form px-3 py-2 text-body text-gov-primary bg-gov-surface;
+    @apply focus:outline-none focus:ring-1 focus:ring-gov-accent focus:border-gov-accent transition-shadow duration-fast;
+  }
+  .ims-input-error {
+    @apply border-gov-danger focus:ring-gov-danger focus:border-gov-danger;
+  }
+  .ims-label {
+    @apply block text-label text-gov-secondary mb-1;
+  }
+  .ims-label-required::after {
+    content: ' *';
+    @apply text-gov-danger;
+  }
+  .ims-btn-primary {
+    @apply px-4 py-2 bg-gov-primary text-white rounded-button text-body font-medium;
+    @apply hover:bg-gov-primaryHover focus:outline-none focus:ring-1 focus:ring-gov-accent focus:ring-offset-1 transition-colors duration-fast;
+    @apply disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .ims-btn-secondary {
+    @apply px-4 py-2 border border-gov-secondary bg-gov-surface text-gov-primary rounded-button text-body font-medium;
+    @apply hover:bg-gov-backgroundAlt focus:outline-none focus:ring-1 focus:ring-gov-border transition-colors duration-fast;
+    @apply disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .ims-btn-danger {
+    @apply px-4 py-2 bg-gov-danger text-white rounded-button text-body font-medium;
+    @apply hover:bg-gov-dangerHover focus:outline-none focus:ring-1 focus:ring-gov-danger focus:ring-offset-1;
+  }
+  .ims-card {
+    @apply bg-gov-surface border border-gov-borderLight rounded-card shadow-card;
+  }
+  .ims-section-title {
+    @apply text-heading text-gov-primary mb-3 font-medium;
+  }
+  .ims-table-header {
+    @apply sticky top-0 bg-gov-backgroundAlt border-b border-gov-border z-10;
+  }
+  .ims-table-row {
+    @apply border-b border-gov-borderLight hover:bg-gov-background/60 transition-colors duration-fast;
+  }
 }

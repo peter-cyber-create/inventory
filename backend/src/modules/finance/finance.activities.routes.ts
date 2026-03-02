@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import { list, getOne, create, update, remove } from './finance.activities.controller.js';
-import { requireAuth } from '../../middleware/auth.js';
+import { requireAuth, requireModule } from '../../middleware/auth.js';
 import { validate } from '../../middleware/validate.js';
 import { auditLog } from '../../middleware/audit.js';
 import { z } from 'zod';
 
 const router = Router();
-router.use(requireAuth);
+router.use(requireAuth, requireModule('Finance'));
 
 const idParam = z.object({ params: z.object({ id: z.string() }) });
 const createBody = z.object({
