@@ -1,0 +1,21 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Ministry of Health Inventory Mark</title>
+  <desc id="desc">Stylised shield and cross emblem for Ministry of Health inventory system.</desc>
+  <defs>
+    <linearGradient id="shield" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0F1C2E" />
+      <stop offset="1" stop-color="#1B6B75" />
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="#F5F7FA" stroke="#D1D9E2" stroke-width="2" />
+  <path
+    d="M32 10L18 16v12c0 9.09 5.71 17.46 14 20.5c8.29-3.04 14-11.41 14-20.5V16L32 10z"
+    fill="url(#shield)"
+    stroke="#0F1C2E"
+    stroke-width="1.5"
+  />
+  <rect x="29" y="21" width="6" height="18" rx="1.5" fill="#F9FAFB" />
+  <rect x="23" y="27" width="18" height="6" rx="1.5" fill="#F9FAFB" />
+  <circle cx="32" cy="46" r="3" fill="#C8A951" />
+</svg>
+

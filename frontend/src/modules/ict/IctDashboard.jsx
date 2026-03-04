@@ -22,10 +22,15 @@ export default function IctDashboard() {
 
   if (loading) {
     return (
-      <PageLayout title="ICT Dashboard">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="ims-card h-20 animate-pulse bg-gov-backgroundAlt" />
+      <PageLayout title="ICT Command View">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="ims-card h-24 bg-gov-backgroundAlt rounded-card overflow-hidden relative"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-gov-backgroundAlt/70 to-transparent animate-pulse" />
+            </div>
           ))}
         </div>
       </PageLayout>
@@ -34,7 +39,14 @@ export default function IctDashboard() {
 
   if (error) {
     return (
-      <PageLayout title="ICT Dashboard" actions={<button type="button" onClick={load} className="ims-btn-secondary">Retry</button>}>
+      <PageLayout
+        title="ICT Command View"
+        actions={
+          <button type="button" onClick={load} className="ims-btn-secondary">
+            Retry
+          </button>
+        }
+      >
         <p className="text-gov-danger">{error}</p>
       </PageLayout>
     );
@@ -45,25 +57,35 @@ export default function IctDashboard() {
 
   return (
     <PageLayout
-      title="ICT Dashboard"
+      title="ICT Command View"
       actions={
         <button type="button" onClick={load} className="ims-btn-secondary">
           Refresh
         </button>
       }
     >
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         <Card>
-          <div className="text-label text-gov-secondaryMuted uppercase">ICT Assets</div>
-          <div className="text-2xl font-semibold text-gov-primary mt-2">{totalAssets}</div>
-          <Link to="/ict/assets" className="text-body-sm text-gov-accent hover:underline mt-2 block">
+          <div className="text-label text-gov-secondaryMuted uppercase tracking-[0.14em]">
+            ICT Assets
+          </div>
+          <div className="text-2xl font-semibold text-gov-primary mt-3">{totalAssets}</div>
+          <Link
+            to="/ict/assets"
+            className="text-body-sm text-gov-accent hover:underline mt-3 inline-flex items-center gap-1"
+          >
             View assets
           </Link>
         </Card>
         <Card>
-          <div className="text-label text-gov-secondaryMuted uppercase">Pending ICT Requisitions</div>
-          <div className="text-2xl font-semibold text-gov-primary mt-2">{pendingIctReq}</div>
-          <Link to="/ict/requisitions" className="text-body-sm text-gov-accent hover:underline mt-2 block">
+          <div className="text-label text-gov-secondaryMuted uppercase tracking-[0.14em]">
+            Pending ICT Requisitions
+          </div>
+          <div className="text-2xl font-semibold text-gov-primary mt-3">{pendingIctReq}</div>
+          <Link
+            to="/ict/requisitions"
+            className="text-body-sm text-gov-accent hover:underline mt-3 inline-flex items-center gap-1"
+          >
             View requisitions
           </Link>
         </Card>

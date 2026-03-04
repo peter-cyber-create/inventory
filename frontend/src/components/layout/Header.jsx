@@ -14,13 +14,20 @@ export default function Header() {
 
   return (
     <header className="h-14 flex items-center justify-between px-6 bg-gov-primary border-b border-gov-secondary/50 shadow-header shrink-0">
-      <div className="flex items-center gap-4">
-        <h1 className="text-heading-lg text-white font-semibold tracking-tight">
-          Ministry of Health
-        </h1>
-        <span className="text-body-sm text-white/80 hidden sm:inline">
-          IMS — Integrated Management System
-        </span>
+      <div className="flex items-center gap-3 sm:gap-4">
+        <img
+          src="/mohgou.png"
+          alt="Government of Uganda / Ministry of Health"
+          className="h-8 w-8 rounded-full border border-white/40 bg-white object-contain"
+        />
+        <div className="flex flex-col">
+          <h1 className="text-heading-lg text-white font-semibold leading-tight tracking-tight">
+            Ministry of Health
+          </h1>
+          <span className="text-body-xs text-white/80">
+            Inventory Management System
+          </span>
+        </div>
         {typeof __BUILD_TIME__ !== 'undefined' && (
           <span className="text-label text-white/60 hidden md:inline" title="Build time">
             Build: {new Date(__BUILD_TIME__).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })}

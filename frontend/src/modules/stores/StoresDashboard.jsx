@@ -22,10 +22,15 @@ export default function StoresDashboard() {
 
   if (loading) {
     return (
-      <PageLayout title="Stores Dashboard">
+      <PageLayout title="Stores Command View">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="ims-card h-20 animate-pulse bg-gov-backgroundAlt" />
+            <div
+              key={i}
+              className="ims-card h-24 bg-gov-backgroundAlt rounded-card overflow-hidden relative"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-gov-backgroundAlt/70 to-transparent animate-pulse" />
+            </div>
           ))}
         </div>
       </PageLayout>
@@ -34,7 +39,14 @@ export default function StoresDashboard() {
 
   if (error) {
     return (
-      <PageLayout title="Stores Dashboard" actions={<button type="button" onClick={load} className="ims-btn-secondary">Retry</button>}>
+      <PageLayout
+        title="Stores Command View"
+        actions={
+          <button type="button" onClick={load} className="ims-btn-secondary">
+            Retry
+          </button>
+        }
+      >
         <p className="text-gov-danger">{error}</p>
       </PageLayout>
     );
@@ -45,7 +57,7 @@ export default function StoresDashboard() {
 
   return (
     <PageLayout
-      title="Stores Dashboard"
+      title="Stores Command View"
       actions={
         <button type="button" onClick={load} className="ims-btn-secondary">
           Refresh
@@ -54,16 +66,26 @@ export default function StoresDashboard() {
     >
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         <Card>
-          <div className="text-label text-gov-secondaryMuted uppercase">Store Items</div>
-          <div className="text-2xl font-semibold text-gov-primary mt-2">{storeItems}</div>
-          <Link to="/stores/items" className="text-body-sm text-gov-accent hover:underline mt-2 block">
+          <div className="text-label text-gov-secondaryMuted uppercase tracking-[0.14em]">
+            Store Items
+          </div>
+          <div className="text-2xl font-semibold text-gov-primary mt-3">{storeItems}</div>
+          <Link
+            to="/stores/items"
+            className="text-body-sm text-gov-accent hover:underline mt-3 inline-flex items-center gap-1"
+          >
             View items
           </Link>
         </Card>
         <Card>
-          <div className="text-label text-gov-secondaryMuted uppercase">Pending Store Requisitions</div>
-          <div className="text-2xl font-semibold text-gov-primary mt-2">{pendingStoresReq}</div>
-          <Link to="/stores/requisitions" className="text-body-sm text-gov-accent hover:underline mt-2 block">
+          <div className="text-label text-gov-secondaryMuted uppercase tracking-[0.14em]">
+            Pending Store Requisitions
+          </div>
+          <div className="text-2xl font-semibold text-gov-primary mt-3">{pendingStoresReq}</div>
+          <Link
+            to="/stores/requisitions"
+            className="text-body-sm text-gov-accent hover:underline mt-3 inline-flex items-center gap-1"
+          >
             View requisitions
           </Link>
         </Card>

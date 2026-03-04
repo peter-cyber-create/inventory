@@ -22,10 +22,15 @@ export default function FleetDashboard() {
 
   if (loading) {
     return (
-      <PageLayout title="Fleet Dashboard">
+      <PageLayout title="Fleet Command View">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="ims-card h-20 animate-pulse bg-gov-backgroundAlt" />
+            <div
+              key={i}
+              className="ims-card h-24 bg-gov-backgroundAlt rounded-card overflow-hidden relative"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-gov-backgroundAlt/70 to-transparent animate-pulse" />
+            </div>
           ))}
         </div>
       </PageLayout>
@@ -34,7 +39,14 @@ export default function FleetDashboard() {
 
   if (error) {
     return (
-      <PageLayout title="Fleet Dashboard" actions={<button type="button" onClick={load} className="ims-btn-secondary">Retry</button>}>
+      <PageLayout
+        title="Fleet Command View"
+        actions={
+          <button type="button" onClick={load} className="ims-btn-secondary">
+            Retry
+          </button>
+        }
+      >
         <p className="text-gov-danger">{error}</p>
       </PageLayout>
     );
@@ -45,7 +57,7 @@ export default function FleetDashboard() {
 
   return (
     <PageLayout
-      title="Fleet Dashboard"
+      title="Fleet Command View"
       actions={
         <button type="button" onClick={load} className="ims-btn-secondary">
           Refresh
@@ -54,16 +66,26 @@ export default function FleetDashboard() {
     >
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         <Card>
-          <div className="text-label text-gov-secondaryMuted uppercase">Vehicles</div>
-          <div className="text-2xl font-semibold text-gov-primary mt-2">{vehicles}</div>
-          <Link to="/fleet/vehicles" className="text-body-sm text-gov-accent hover:underline mt-2 block">
+          <div className="text-label text-gov-secondaryMuted uppercase tracking-[0.14em]">
+            Vehicles
+          </div>
+          <div className="text-2xl font-semibold text-gov-primary mt-3">{vehicles}</div>
+          <Link
+            to="/fleet/vehicles"
+            className="text-body-sm text-gov-accent hover:underline mt-3 inline-flex items-center gap-1"
+          >
             View vehicles
           </Link>
         </Card>
         <Card>
-          <div className="text-label text-gov-secondaryMuted uppercase">Pending Fleet Requisitions</div>
-          <div className="text-2xl font-semibold text-gov-primary mt-2">{pendingFleetReq}</div>
-          <Link to="/fleet/requisitions" className="text-body-sm text-gov-accent hover:underline mt-2 block">
+          <div className="text-label text-gov-secondaryMuted uppercase tracking-[0.14em]">
+            Pending Fleet Requisitions
+          </div>
+          <div className="text-2xl font-semibold text-gov-primary mt-3">{pendingFleetReq}</div>
+          <Link
+            to="/fleet/requisitions"
+            className="text-body-sm text-gov-accent hover:underline mt-3 inline-flex items-center gap-1"
+          >
             View requisitions
           </Link>
         </Card>

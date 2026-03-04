@@ -48,7 +48,9 @@ const ALL_NAV = [
     label: 'Finance',
     children: [
       { to: '/finance/dashboard', label: 'Dashboard' },
-      { to: '/finance/activities', label: 'Activities' },
+      { to: '/activities/listing', label: 'Activities' },
+      { to: '/finance/users', label: 'Users' },
+      { to: '/report/activities', label: 'Reports' },
     ],
   },
   {

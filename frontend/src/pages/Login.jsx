@@ -14,6 +14,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
   const sessionExpired = searchParams.get('session') === 'expired';
 
@@ -57,62 +58,162 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gov-background px-4">
-      <div className="w-full max-w-md ims-card p-8 border-gov-border">
-        <div className="mb-6">
-          <h1 className="text-page-title text-gov-primary font-semibold">Ministry of Health</h1>
-          <p className="text-body text-gov-secondaryMuted mt-1">IMS — Sign in to continue</p>
-          {typeof __BUILD_TIME__ !== 'undefined' && (
-            <p className="text-label text-gov-secondaryMuted mt-1">Build: {new Date(__BUILD_TIME__).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })}</p>
-          )}
-        </div>
-        {error && <p className="mb-4 text-body-sm text-gov-danger">{error}</p>}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="ims-label ims-label-required">Username / Email</label>
-            <input
-              type="text"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="username"
-              className="ims-input"
-              required
-            />
-          </div>
-          <div>
-            <label className="ims-label ims-label-required">Password</label>
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-                className="ims-input pr-20"
-                required
+    <div className="min-h-screen flex items-center justify-center bg-gov-background px-4 py-10">
+      <div className="w-full max-w-lg">
+        <div
+          className="ims-card px-10 py-12 border border-gov-border bg-white/95 backdrop-blur-sm shadow-card hover:shadow-card-hover transition-shadow duration-200"
+          onMouseMove={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = (e.clientY - rect.top - rect.height / 2) / rect.height;
+            const y = (e.clientX - rect.left - rect.width / 2) / rect.width;
+            const maxTilt = 3;
+            setTilt({
+              x: -(x * maxTilt),
+              y: y * maxTilt,
+            });
+          }}
+          onMouseLeave={() => setTilt({ x: 0, y: 0 })}
+          style={{
+            transform: `perspective(1200px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) translate3d(0,0,0)`,
+            transition: 'transform 160ms ease-out',
+          }}
+        >
+          <div className="mb-10">
+            <div className="flex items-center gap-3 mb-4">
+              <img
+                src="/mohgou.png"
+                alt="Government of Uganda / Ministry of Health"
+                className="h-10 w-10 rounded-full border border-gov-border bg-white object-contain"
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword((v) => !v)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-label text-gov-secondary hover:text-gov-primary"
-              >
-                {showPassword ? 'Hide' : 'Show'}
-              </button>
+              <div>
+                <h1 className="text-heading text-gov-primary font-semibold tracking-[0.18em] uppercase">
+                  MINISTRY OF HEALTH
+                </h1>
+                <p className="text-label text-gov-secondary tracking-[0.16em] uppercase">
+                  INVENTORY MANAGEMENT SYSTEM
+                </p>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="remember"
-              checked={remember}
-              onChange={(e) => setRemember(e.target.checked)}
-              className="rounded border-gov-border text-gov-accent focus:ring-gov-accent"
-            />
-            <label htmlFor="remember" className="text-body text-gov-secondary">Remember session</label>
+
+          {error && <p className="mb-4 text-body-sm text-gov-danger">{error}</p>}
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-3">
+              <div className="relative">
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gov-secondaryMuted">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path d="M10 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm0 10c-4.418 0-8 1.79-8 4v1h16v-1c0-2.21-3.582-4-8-4Z" />
+                  </svg>
+                </span>
+                <input
+                  type="text"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="username"
+                  required
+                  className="peer ims-input pl-9 pt-6 pb-2 text-body-sm placeholder-transparent"
+                  placeholder="Username or email"
+                />
+                <label className="pointer-events-none absolute left-9 top-2.5 origin-left transform text-[0.75rem] text-gov-secondaryMuted tracking-[0.14em] uppercase transition-all duration-150 peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-[0.8rem] peer-focus:top-1.5 peer-focus:text-[0.7rem] peer-focus:text-gov-primary">
+                  Username / Email
+                  <span className="text-gov-danger ml-0.5">*</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="relative">
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gov-secondaryMuted">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M5 8V6a5 5 0 0 1 10 0v2h1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1h1Zm2-2a3 3 0 0 1 6 0v2H7V6Zm3 4a2 2 0 0 0-1 3.732V15a1 1 0 1 0 2 0v-1.268A2 2 0 0 0 10 10Z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </span>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                  required
+                  className="peer ims-input pl-9 pr-20 pt-6 pb-2 text-body-sm placeholder-transparent"
+                  placeholder="Password"
+                />
+                <label className="pointer-events-none absolute left-9 top-2.5 origin-left transform text-[0.75rem] text-gov-secondaryMuted tracking-[0.14em] uppercase transition-all duration-150 peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-[0.8rem] peer-focus:top-1.5 peer-focus:text-[0.7rem] peer-focus:text-gov-primary">
+                  Password
+                  <span className="text-gov-danger ml-0.5">*</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[0.75rem] text-gov-secondary hover:text-gov-primary"
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="remember"
+                  checked={remember}
+                  onChange={(e) => setRemember(e.target.checked)}
+                  className="h-4 w-4 rounded border-gov-border bg-white text-gov-accent focus:ring-gov-accent"
+                />
+                <label htmlFor="remember" className="text-body-sm text-gov-secondary">
+                  Remember this device
+                </label>
+              </div>
+              <span className="text-[0.7rem] text-gov-secondaryMuted">
+                {/* Reserved for future MFA / recovery controls */}
+              </span>
+            </div>
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full ims-btn-primary h-12 text-body-sm font-medium"
+            >
+              {submitting ? 'Signing in…' : 'Sign in'}
+            </button>
+          </form>
+
+          <div className="mt-8">
+            {typeof __BUILD_TIME__ !== 'undefined' && (
+              <p className="text-[0.75rem] text-gov-secondaryMuted">
+                Build:{' '}
+                {new Date(__BUILD_TIME__).toLocaleString('en-GB', {
+                  dateStyle: 'short',
+                  timeStyle: 'short',
+                })}
+              </p>
+            )}
+            <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[0.7rem] text-gov-secondaryMuted">
+              <span>
+                Version{' '}
+                {typeof __BUILD_TIME__ !== 'undefined'
+                  ? new Date(__BUILD_TIME__).getFullYear()
+                  : '2026'}
+              </span>
+              <span>© 2026 Ministry of Health</span>
+            </div>
           </div>
-          <button type="submit" disabled={submitting} className="w-full ims-btn-primary py-2.5">
-            {submitting ? 'Signing in…' : 'Sign in'}
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   );

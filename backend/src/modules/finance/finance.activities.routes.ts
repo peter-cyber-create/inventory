@@ -1,12 +1,14 @@
 import { Router } from 'express';
-import { list, getOne, create, update, remove } from './finance.activities.controller.js';
+import { list, getOne, create, update, remove, importParticipants } from './finance.activities.controller.js';
 import { requireAuth, requireModule } from '../../middleware/auth.js';
 import { validate } from '../../middleware/validate.js';
 import { auditLog } from '../../middleware/audit.js';
 import { z } from 'zod';
+import multer from 'multer';
 
 const router = Router();
 router.use(requireAuth, requireModule('Finance'));
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
 const idParam = z.object({ params: z.object({ id: z.string() }) });
 const createBody = z.object({
@@ -67,5 +69,6 @@ router.get('/:id', validate(idParam), getOne);
 router.post('/', validate(createBody), auditLog('CREATE', 'FinanceActivity'), create);
 router.patch('/:id', validate(updateBody), auditLog('UPDATE', 'FinanceActivity'), update);
 router.delete('/:id', validate(idParam), auditLog('DELETE', 'FinanceActivity'), remove);
+router.post('/participants/import', upload.single('file'), importParticipants);
 
 export const financeActivitiesRoutes = router;

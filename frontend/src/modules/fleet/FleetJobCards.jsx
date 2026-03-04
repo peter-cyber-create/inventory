@@ -8,6 +8,7 @@ import FormSectionCollapsible from '../../components/ui/FormSectionCollapsible';
 import FormField from '../../components/ui/FormField';
 import FormActions from '../../components/ui/FormActions';
 import AuditTrailPanel from '../../components/ui/AuditTrailPanel';
+import StatusChip from '../../components/ui/StatusChip';
 
 const STATUS_OPTIONS = ['open', 'closed'];
 
@@ -295,7 +296,9 @@ export default function FleetJobCards() {
                   <td className="px-4 py-3 text-body text-gov-primary">{j.assignedTo?.name || '—'}</td>
                   <td className="px-4 py-3 text-body text-gov-primary">{j.startDate ? new Date(j.startDate).toLocaleDateString() : '—'}</td>
                   <td className="px-4 py-3 text-body text-gov-primary">{j.endDate ? new Date(j.endDate).toLocaleDateString() : '—'}</td>
-                  <td className="px-4 py-3 text-body text-gov-primary">{j.status}</td>
+                  <td className="px-4 py-3 text-body text-gov-primary">
+                    <StatusChip status={j.status} />
+                  </td>
                   <td className="px-4 py-3 text-body text-gov-primary">
                     <button type="button" onClick={() => openEdit(j)} className="text-gov-accent hover:underline text-body-sm mr-2">Edit</button>
                     {j.status !== 'closed' && (

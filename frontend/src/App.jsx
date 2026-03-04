@@ -21,12 +21,24 @@ import StoresLedger from './modules/stores/StoresLedger';
 import StoresRequisitions from './modules/stores/StoresRequisitions';
 import StoresIssues from './modules/stores/StoresIssues';
 import FinanceDashboard from './modules/finance/FinanceDashboard';
-import FinanceActivities from './modules/finance/FinanceActivities';
+import ActivityCreate from './modules/finance/Activity/index.jsx';
+import ActivitiesListing from './modules/finance/Activities/index.jsx';
+import UpdateActivity from './modules/finance/Activity/UpdateActivity.jsx';
+import ActivityDetails from './modules/finance/Activity/ActivityDetails.jsx';
+import ActivityParticipants from './modules/finance/Activity/ActivityParticipants.jsx';
 import AdminUsers from './modules/admin/AdminUsers';
 import AdminRoles from './modules/admin/AdminRoles';
 import AdminDepartments from './modules/admin/AdminDepartments';
 import AdminSettings from './modules/admin/AdminSettings';
 import AdminReports from './modules/admin/AdminReports';
+import FinanceUsers from './modules/finance/Users/index.jsx';
+import ActivitiesByDate from './modules/finance/Reports/ActivitiesByDate.jsx';
+import ActivitiesByFunding from './modules/finance/Reports/ActivitiesByFunding.jsx';
+import ActivitiesPerPerson from './modules/finance/Reports/ActivitiesPerPerson.jsx';
+import PendingAccountability from './modules/finance/Reports/PendingAccountability.jsx';
+import FlaggedUsers from './modules/finance/Reports/Flaggedusers.jsx';
+import ActivityPerParticipant from './modules/finance/Reports/ActivityPerParticipant.jsx';
+import UsersAmount from './modules/finance/Reports/UsersAmount.jsx';
 
 export default function App() {
   return (
@@ -54,12 +66,29 @@ export default function App() {
         <Route path="stores/requisitions" element={<StoresRequisitions />} />
         <Route path="stores/issues" element={<StoresIssues />} />
         <Route path="finance/dashboard" element={<FinanceDashboard />} />
-        <Route path="finance/activities" element={<FinanceActivities />} />
+        {/* Legacy route pointing to listing for backward compatibility */}
+        <Route path="finance/activities" element={<ActivitiesListing />} />
+        {/* Finance activities module */}
+        <Route path="activities/add" element={<ActivityCreate />} />
+        <Route path="activities/listing" element={<ActivitiesListing />} />
+        <Route path="activities/update/:id" element={<UpdateActivity />} />
+        <Route path="activities/participants/:id" element={<ActivityParticipants />} />
+        <Route path="activities/:id" element={<ActivityDetails />} />
         <Route path="admin/users" element={<AdminUsers />} />
         <Route path="admin/roles" element={<AdminRoles />} />
         <Route path="admin/departments" element={<AdminDepartments />} />
         <Route path="admin/settings" element={<AdminSettings />} />
         <Route path="admin/reports" element={<AdminReports />} />
+        {/* Finance users */}
+        <Route path="finance/users" element={<FinanceUsers />} />
+        {/* Finance reports */}
+        <Route path="report/activities" element={<ActivitiesByDate />} />
+        <Route path="report/funding" element={<ActivitiesByFunding />} />
+        <Route path="report/person" element={<ActivitiesPerPerson />} />
+        <Route path="report/accountability" element={<PendingAccountability />} />
+        <Route path="report/flagged" element={<FlaggedUsers />} />
+        <Route path="report/participant/activity" element={<ActivityPerParticipant />} />
+        <Route path="report/user/amounts" element={<UsersAmount />} />
         <Route path="*" element={
           <div className="p-6">
             <h1 className="text-page-title text-gov-primary mb-2">Page not found</h1>

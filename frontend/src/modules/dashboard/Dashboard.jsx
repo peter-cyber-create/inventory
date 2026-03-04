@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api, { clearAuthToken } from '../../services/api';
+import { getUser } from '../../services/auth';
 import PageLayout from '../../components/ui/PageLayout';
 import Card from '../../components/ui/Card';
 
@@ -9,6 +10,7 @@ export default function Dashboard() {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const user = getUser();
 
   const load = () => {
     setLoading(true);
@@ -32,13 +34,20 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <PageLayout title="Dashboard">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="ims-card h-24 animate-pulse bg-gov-backgroundAlt rounded-card" />
+      <PageLayout title="National Overview">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="ims-card h-28 bg-gov-backgroundAlt rounded-card overflow-hidden relative"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-gov-backgroundAlt/60 to-transparent animate-pulse" />
+            </div>
           ))}
         </div>
-        <div className="ims-card h-32 animate-pulse bg-gov-backgroundAlt rounded-card" />
+        <div className="ims-card h-40 bg-gov-backgroundAlt rounded-card overflow-hidden relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-gov-backgroundAlt/60 to-transparent animate-pulse" />
+        </div>
       </PageLayout>
     );
   }
@@ -58,20 +67,25 @@ export default function Dashboard() {
     );
   }
 
-  const cards = [
-    { title: 'Users', value: summary?.users ?? 0, to: '/admin/users' },
-    { title: 'ICT Assets', value: summary?.ictAssets ?? 0, to: '/ict/assets' },
-    { title: 'Vehicles', value: summary?.vehicles ?? 0, to: '/fleet/vehicles' },
-    { title: 'Store Items', value: summary?.storeItems ?? 0, to: '/stores/items' },
-    { title: 'Finance Activities', value: summary?.financeActivities ?? 0, to: '/finance/activities' },
+  const baseCards = [
+    { title: 'Users', value: summary?.users ?? 0, to: '/admin/users', module: 'Admin' },
+    { title: 'ICT Assets', value: summary?.ictAssets ?? 0, to: '/ict/assets', module: 'ICT' },
+    { title: 'Vehicles', value: summary?.vehicles ?? 0, to: '/fleet/vehicles', module: 'Fleet' },
+    { title: 'Store Items', value: summary?.storeItems ?? 0, to: '/stores/items', module: 'Stores' },
+    { title: 'Finance Activities', value: summary?.financeActivities ?? 0, to: '/finance/activities', module: 'Finance' },
   ];
+  const userModule = (user?.module || '').toLowerCase();
+  const cards =
+    !userModule || userModule === 'all'
+      ? baseCards
+      : baseCards.filter((c) => c.module.toLowerCase() === userModule);
   const pending = summary?.pendingRequisitions ?? {};
   const total = (summary?.users ?? 0) + (summary?.ictAssets ?? 0) + (summary?.vehicles ?? 0) + (summary?.storeItems ?? 0) + (summary?.financeActivities ?? 0);
   const allZero = total === 0 && (pending.ict ?? 0) === 0 && (pending.stores ?? 0) === 0 && (pending.fleet ?? 0) === 0;
 
   return (
     <PageLayout
-      title="Dashboard"
+      title="National Health Inventory Command"
       actions={
         <button type="button" onClick={load} className="ims-btn-secondary">
           Refresh
@@ -94,15 +108,20 @@ export default function Dashboard() {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {cards.map((c) => (
           <Link
             key={c.title}
             to={c.to}
-            className="ims-card p-6 block border border-gov-border hover:shadow-card-hover hover:border-gov-border transition-all duration-normal"
+            className="ims-card p-6 block border border-gov-border hover:shadow-card-hover hover:border-gov-accent/70 transition-all duration-200"
           >
-            <div className="text-label text-gov-secondaryMuted uppercase tracking-wide">{c.title}</div>
-            <div className="text-2xl font-semibold text-gov-primary mt-2">{c.value}</div>
+            <div className="text-label text-gov-secondaryMuted uppercase tracking-[0.18em]">
+              {c.title}
+            </div>
+            <div className="text-2xl font-semibold text-gov-primary mt-3">{c.value}</div>
+            <div className="mt-3 text-body-xs text-gov-secondaryMuted">
+              View {c.title.toLowerCase()} records
+            </div>
           </Link>
         ))}
       </div>

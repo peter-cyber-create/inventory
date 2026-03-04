@@ -9,6 +9,7 @@ import FormField from '../../components/ui/FormField';
 import LineItemGrid from '../../components/ui/LineItemGrid';
 import FormActions from '../../components/ui/FormActions';
 import AuditTrailPanel from '../../components/ui/AuditTrailPanel';
+import StatusChip from '../../components/ui/StatusChip';
 
 export default function StoresRequisitions() {
   const [list, setList] = useState([]);
@@ -30,11 +31,20 @@ export default function StoresRequisitions() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const currentUser = getUser();
+  const [statusFilter, setStatusFilter] = useState('all');
 
   const load = () => {
-    api.get('/api/stores/requisitions').then((res) => setList(Array.isArray(res.data) ? res.data : (res.data?.data ?? []))).catch(() => setList([])).finally(() => setLoading(false));
+    const params = {};
+    if (statusFilter !== 'all') {
+      params.status = statusFilter;
+    }
+    api
+      .get('/api/stores/requisitions', { params })
+      .then((res) => setList(Array.isArray(res.data) ? res.data : (res.data?.data ?? [])))
+      .catch(() => setList([]))
+      .finally(() => setLoading(false));
   };
-  useEffect(load, []);
+  useEffect(load, [statusFilter]);
 
   useEffect(() => {
     if (showForm) {
@@ -189,6 +199,32 @@ export default function StoresRequisitions() {
         </Modal>
       )}
 
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <span className="text-label text-gov-secondary">Filter:</span>
+        {[
+          { value: 'all', label: 'All' },
+          { value: 'PENDING', label: 'Pending' },
+          { value: 'APPROVED', label: 'Approved' },
+          { value: 'REJECTED', label: 'Rejected' },
+        ].map((opt) => (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => {
+              setLoading(true);
+              setStatusFilter(opt.value);
+            }}
+            className={`px-3 py-1 rounded-full text-xs font-medium border ${
+              statusFilter === opt.value
+                ? 'bg-gov-primary text-white border-gov-primary'
+                : 'bg-gov-backgroundAlt text-gov-secondary border-gov-border hover:border-gov-primary'
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
       {loading ? (
         <p className="text-body text-gov-secondary">Loading…</p>
       ) : (
@@ -200,6 +236,7 @@ export default function StoresRequisitions() {
                 <th className="px-4 py-3 text-left text-label text-gov-secondary uppercase tracking-wider">Department</th>
                 <th className="px-4 py-3 text-left text-label text-gov-secondary uppercase tracking-wider">Status</th>
                 <th className="px-4 py-3 text-left text-label text-gov-secondary uppercase tracking-wider">Date</th>
+                <th className="px-4 py-3 text-left text-label text-gov-secondary uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gov-borderLight">
@@ -207,8 +244,42 @@ export default function StoresRequisitions() {
                 <tr key={r.id} className="ims-table-row">
                   <td className="px-4 py-3 text-body text-gov-primary">{r.requester?.name ?? '—'}</td>
                   <td className="px-4 py-3 text-body text-gov-primary">{r.department?.name ?? '—'}</td>
-                  <td className="px-4 py-3 text-body text-gov-primary">{r.status}</td>
+                  <td className="px-4 py-3">
+                    <StatusChip status={r.status} />
+                  </td>
                   <td className="px-4 py-3 text-body text-gov-primary">{r.createdAt ? new Date(r.createdAt).toLocaleDateString() : '—'}</td>
+                  <td className="px-4 py-3 text-body text-gov-primary">
+                    {String(r.status).toLowerCase() === 'pending' ? (
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            api
+                              .patch(`/api/stores/requisitions/${r.id}/status`, { status: 'APPROVED' })
+                              .then(load)
+                              .catch(() => {});
+                          }}
+                          className="ims-btn-primary px-3 py-1 text-body-xs"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            api
+                              .patch(`/api/stores/requisitions/${r.id}/status`, { status: 'REJECTED' })
+                              .then(load)
+                              .catch(() => {});
+                          }}
+                          className="ims-btn-secondary px-3 py-1 text-body-xs"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-label text-gov-secondaryMuted">—</span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

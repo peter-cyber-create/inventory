@@ -63,4 +63,120 @@ body {
   .ims-table-row {
     @apply border-b border-gov-borderLight hover:bg-gov-background/60 transition-colors duration-fast;
   }
+
+  /* 4D login specific styles */
+  .ims-login-4d-bg {
+    @apply relative min-h-screen overflow-hidden;
+    background: radial-gradient(circle at top left, rgba(200, 169, 81, 0.08), transparent 55%),
+      radial-gradient(circle at bottom right, rgba(27, 107, 117, 0.08), transparent 55%),
+      linear-gradient(135deg, #020617 0%, #020617 40%, #0a1f33 75%, #0f3057 100%);
+    color: #e5edf7;
+  }
+
+  .ims-login-4d-bg::before {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    background-image:
+      radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.03) 0, transparent 55%),
+      radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.02) 0, transparent 50%),
+      linear-gradient(
+        135deg,
+        rgba(15, 48, 87, 0.8),
+        rgba(10, 31, 51, 0.8),
+        rgba(15, 48, 87, 0.8)
+      );
+    opacity: 0.9;
+    filter: blur(4px);
+    animation: ims-login-gradient-slow 40s ease-in-out infinite alternate;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .ims-login-4d-bg::after {
+    /* very subtle particle field */
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 0);
+    background-size: 120px 120px;
+    opacity: 0.06;
+    mix-blend-mode: screen;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .ims-login-4d-panel {
+    @apply relative rounded-card border border-white/10 shadow-2xl;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(18px);
+    box-shadow:
+      0 28px 80px rgba(0, 0, 0, 0.9),
+      0 0 0 1px rgba(255, 255, 255, 0.03);
+  }
+
+  .ims-login-4d-panel::before {
+    /* thin gold accent line at the top */
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 3px;
+    background: linear-gradient(
+      90deg,
+      rgba(200, 169, 81, 0) 0%,
+      rgba(200, 169, 81, 0.9) 40%,
+      rgba(200, 169, 81, 0.9) 60%,
+      rgba(200, 169, 81, 0) 100%
+    );
+  }
+
+  .ims-login-4d-button {
+    @apply w-full flex items-center justify-center gap-2 text-sm font-medium tracking-wide uppercase;
+    height: 52px;
+    background: #0a1f33;
+    color: #f9fafb;
+    border-radius: 9999px;
+    border: 1px solid rgba(200, 169, 81, 0.8);
+    box-shadow:
+      0 16px 32px rgba(0, 0, 0, 0.75),
+      0 0 0 1px rgba(15, 48, 87, 0.9);
+    transition:
+      transform 0.15s ease-out,
+      box-shadow 0.15s ease-out,
+      background 0.15s ease-out;
+  }
+
+  .ims-login-4d-button:hover:not(:disabled) {
+    background: #0f3057;
+    box-shadow:
+      0 22px 40px rgba(0, 0, 0, 0.85),
+      0 0 0 1px rgba(200, 169, 81, 0.9);
+    transform: translateY(-1px);
+  }
+
+  .ims-login-4d-button:active:not(:disabled) {
+    transform: translateY(1px) scale(0.995);
+    box-shadow:
+      0 10px 24px rgba(0, 0, 0, 0.8),
+      0 0 0 1px rgba(200, 169, 81, 0.9);
+  }
+
+  .ims-login-4d-button:disabled {
+    opacity: 0.7;
+    cursor: default;
+  }
+}
+
+@keyframes ims-login-gradient-slow {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1.02);
+  }
+  50% {
+    transform: translate3d(-1.5%, -1.5%, 0) scale(1.04);
+  }
+  100% {
+    transform: translate3d(1.5%, 1.5%, 0) scale(1.03);
+  }
 }

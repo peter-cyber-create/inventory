@@ -8,6 +8,7 @@ import FormSectionCollapsible from '../../components/ui/FormSectionCollapsible';
 import FormField from '../../components/ui/FormField';
 import FormActions from '../../components/ui/FormActions';
 import AuditTrailPanel from '../../components/ui/AuditTrailPanel';
+import StatusChip from '../../components/ui/StatusChip';
 
 export default function FinanceActivities() {
   const [list, setList] = useState([]);
@@ -36,11 +37,13 @@ export default function FinanceActivities() {
   const [total, setTotal] = useState(0);
   const limit = 20;
   const currentUser = getUser();
+  const [statusFilter, setStatusFilter] = useState('all');
 
-  const load = (p = page, q = search) => {
+  const load = (p = page, q = search, status = statusFilter) => {
     setLoading(true);
     const params = { page: p, limit };
     if (q) params.search = q;
+    if (status !== 'all') params.status = status;
     api.get('/api/finance/activities', { params })
       .then((res) => {
         const d = res.data?.data ?? res.data;
@@ -51,7 +54,7 @@ export default function FinanceActivities() {
       .catch(() => { setList([]); setTotal(0); })
       .finally(() => setLoading(false));
   };
-  useEffect(() => { load(1, search); }, [search]);
+  useEffect(() => { load(1, search, statusFilter); }, [search, statusFilter]);
 
   useEffect(() => {
     if (showForm) {
@@ -277,6 +280,33 @@ export default function FinanceActivities() {
         </Modal>
       )}
 
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <span className="text-label text-gov-secondary">Filter:</span>
+        {[
+          { value: 'all', label: 'All' },
+          { value: 'planned', label: 'Planned' },
+          { value: 'ongoing', label: 'Ongoing' },
+          { value: 'completed', label: 'Completed' },
+          { value: 'cancelled', label: 'Cancelled' },
+        ].map((opt) => (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => {
+              setStatusFilter(opt.value);
+              setPage(1);
+            }}
+            className={`px-3 py-1 rounded-full text-xs font-medium border ${
+              statusFilter === opt.value
+                ? 'bg-gov-primary text-white border-gov-primary'
+                : 'bg-gov-backgroundAlt text-gov-secondary border-gov-border hover:border-gov-primary'
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
       {loading ? (
         <p className="text-body text-gov-secondary">Loading…</p>
       ) : (
@@ -299,12 +329,56 @@ export default function FinanceActivities() {
                   <td className="px-4 py-3 text-body text-gov-primary">{a.title}</td>
                   <td className="px-4 py-3 text-body text-gov-primary">{Number(a.amount)}</td>
                   <td className="px-4 py-3 text-body text-gov-primary">{a.activityType ?? '—'}</td>
-                  <td className="px-4 py-3 text-body text-gov-primary">{a.status ?? '—'}</td>
+                  <td className="px-4 py-3">
+                    <StatusChip status={a.status ?? '—'} />
+                  </td>
                   <td className="px-4 py-3 text-body text-gov-primary">{a.department?.name ?? '—'}</td>
                   <td className="px-4 py-3 text-body text-gov-primary">{a.invoiceDate ? new Date(a.invoiceDate).toLocaleDateString() : '—'}</td>
                   <td className="px-4 py-3 text-body text-gov-primary">
-                    <button type="button" onClick={() => openEdit(a)} className="text-gov-accent hover:underline text-body-sm mr-2">Edit</button>
-                    <button type="button" onClick={() => handleDelete(a)} className="text-gov-danger hover:underline text-body-sm">Delete</button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => openEdit(a)}
+                        className="text-gov-accent hover:underline text-body-sm mr-2"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(a)}
+                        className="text-gov-danger hover:underline text-body-sm"
+                      >
+                        Delete
+                      </button>
+                      {(a.status === 'planned' || a.status === 'ongoing' || !a.status) && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              api
+                                .patch(`/api/finance/activities/${a.id}`, { status: 'completed' })
+                                .then(() => load(page, search, statusFilter))
+                                .catch(() => {});
+                            }}
+                            className="ims-btn-primary px-3 py-1 text-body-xs"
+                          >
+                            Mark completed
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              api
+                                .patch(`/api/finance/activities/${a.id}`, { status: 'cancelled' })
+                                .then(() => load(page, search, statusFilter))
+                                .catch(() => {});
+                            }}
+                            className="ims-btn-secondary px-3 py-1 text-body-xs"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
