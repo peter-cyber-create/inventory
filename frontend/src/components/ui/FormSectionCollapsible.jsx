@@ -7,7 +7,7 @@ export default function FormSectionCollapsible({ id, title, defaultOpen = true, 
   const [open, setOpen] = useState(defaultOpen);
 
   return (
-    <div className={`border border-gov-border rounded-form mb-4 overflow-hidden ${className}`}>
+    <div className={`border border-gov-borderLight rounded-card mb-4 overflow-hidden bg-gov-surface ${className}`}>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -27,7 +27,7 @@ export default function FormSectionCollapsible({ id, title, defaultOpen = true, 
       </button>
       {open && (
         <div id={id} className="px-4 py-4 bg-gov-surface">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{children}</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">{children}</div>
         </div>
       )}
     </div>

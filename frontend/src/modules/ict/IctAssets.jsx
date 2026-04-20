@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { getUser } from '../../services/auth';
+import { Link } from 'react-router-dom';
 import PageLayout from '../../components/ui/PageLayout';
 import Modal from '../../components/ui/Modal';
 import DataTable from '../../components/ui/DataTable';
@@ -9,6 +10,13 @@ import FormActions from '../../components/ui/FormActions';
 import FormMetadataHeader from '../../components/ui/FormMetadataHeader';
 import FormSectionCollapsible from '../../components/ui/FormSectionCollapsible';
 import AuditTrailPanel from '../../components/ui/AuditTrailPanel';
+import AddRequisitionPopup from './assetsInventory/Requisition/AddRequisition.jsx';
+import AddIssuePopup from './assetsInventory/Issue/AddIssue.jsx';
+import AssignUserPopup from './assetDetails/Popups/AssignUser.jsx';
+import AddMaintenancePopup from './assetDetails/Popups/AddMaintenance.jsx';
+import AddTransferPopup from './assetDetails/Popups/AddTransfer.jsx';
+import AddDisposalPopup from './assetDetails/Popups/AddDisposal.jsx';
+import AddReturnPopup from './assetDetails/Popups/AddReturn.jsx';
 
 const STATUS_OPTIONS = ['available', 'assigned', 'maintenance'];
 const CATEGORY_OPTIONS = ['Laptop', 'Desktop', 'Tablet', 'Server', 'Monitor', 'Printer', 'Network', 'Other'];
@@ -33,6 +41,8 @@ export default function IctAssets() {
   const [total, setTotal] = useState(0);
   const limit = 20;
   const currentUser = getUser();
+  const [activeAsset, setActiveAsset] = useState(null);
+  const [popup, setPopup] = useState(null); // 'requisition' | 'issue' | 'assign' | 'maintenance' | 'transfer' | 'disposal' | 'return'
 
   const load = (p = page, q = search) => {
     setLoading(true);
@@ -119,21 +129,92 @@ export default function IctAssets() {
   const isServer = (form.category || '').toLowerCase() === 'server';
   const docStatus = editing ? (editing.status || 'Draft') : 'Draft';
   const isLocked = false;
+  const openPopupFor = (asset, type) => {
+    setActiveAsset(asset);
+    setPopup(type);
+  };
+
+  const getPrimaryAction = (asset) => {
+    const s = String(asset.status || '').toLowerCase();
+    if (s === 'available') return { label: 'Issue', type: 'issue' };
+    if (s === 'assigned' || s === 'maintenance') return { label: 'Return', type: 'return' };
+    return { label: 'View', type: null };
+  };
 
   const columns = [
-    { key: 'assetTag', label: 'Asset Tag' },
+    {
+      key: 'assetTag',
+      label: 'Asset Tag',
+      render: (r) => (
+        <Link
+          to={`/ict/assets/${r.id}`}
+          className="text-gov-accent hover:underline"
+        >
+          {r.assetTag}
+        </Link>
+      ),
+    },
     { key: 'name', label: 'Name' },
     { key: 'category', label: 'Category' },
-    { key: 'status', label: 'Status' },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (r) => {
+        const s = String(r.status || '').toLowerCase();
+        const tone =
+          s === 'available'
+            ? 'bg-green-100 text-green-800'
+            : s === 'assigned'
+              ? 'bg-blue-100 text-blue-800'
+              : s === 'maintenance'
+                ? 'bg-amber-100 text-amber-800'
+                : s === 'disposed'
+                  ? 'bg-gray-200 text-gray-700'
+                  : 'bg-gray-100 text-gray-700';
+        return (
+          <span className={`inline-flex px-2 py-0.5 rounded-full text-body-xs font-medium ${tone}`}>
+            {r.status || '—'}
+          </span>
+        );
+      },
+    },
     { key: 'location', label: 'Location', render: (r) => r.location ?? '—' },
     { key: 'assignedTo', label: 'Assigned To', render: (r) => r.assignedTo?.name ?? '—' },
     {
       key: 'actions',
       label: 'Actions',
       render: (r) => (
-        <span className="flex gap-2">
-          <button type="button" onClick={() => openEdit(r)} className="text-gov-primary hover:underline text-body-sm">Edit</button>
-          <button type="button" onClick={() => handleDelete(r)} className="text-gov-danger hover:underline text-body-sm">Delete</button>
+        <span className="flex items-center gap-2">
+          {getPrimaryAction(r).type ? (
+            <button
+              type="button"
+              onClick={() => openPopupFor(r, getPrimaryAction(r).type)}
+              className="ims-btn-primary py-1 px-2 text-body-xs"
+            >
+              {getPrimaryAction(r).label}
+            </button>
+          ) : (
+            <Link to={`/ict/assets/${r.id}`} className="ims-btn-secondary py-1 px-2 text-body-xs">
+              View
+            </Link>
+          )}
+
+          <details className="relative">
+            <summary className="list-none cursor-pointer ims-btn-secondary py-1 px-2 text-body-xs">
+              More
+            </summary>
+            <div className="absolute right-0 mt-1 w-44 bg-white border border-gov-border rounded-card shadow-card z-20">
+              <button type="button" onClick={() => openEdit(r)} className="w-full text-left px-3 py-2 text-body-sm hover:bg-gov-backgroundAlt">Edit</button>
+              <button type="button" onClick={() => openPopupFor(r, 'requisition')} className="w-full text-left px-3 py-2 text-body-sm hover:bg-gov-backgroundAlt">Stores requisition</button>
+              <button type="button" onClick={() => openPopupFor(r, 'issue')} className="w-full text-left px-3 py-2 text-body-sm hover:bg-gov-backgroundAlt">Issue to staff</button>
+              <button type="button" onClick={() => openPopupFor(r, 'assign')} className="w-full text-left px-3 py-2 text-body-sm hover:bg-gov-backgroundAlt">Assign staff</button>
+              <button type="button" onClick={() => openPopupFor(r, 'maintenance')} className="w-full text-left px-3 py-2 text-body-sm hover:bg-gov-backgroundAlt">Maintenance</button>
+              <button type="button" disabled={String(r.status).toLowerCase() !== 'available'} onClick={() => openPopupFor(r, 'transfer')} className="w-full text-left px-3 py-2 text-body-sm hover:bg-gov-backgroundAlt disabled:opacity-40">Transfer</button>
+              <button type="button" disabled={String(r.status).toLowerCase() !== 'available'} onClick={() => openPopupFor(r, 'disposal')} className="w-full text-left px-3 py-2 text-body-sm hover:bg-gov-backgroundAlt disabled:opacity-40">Disposal</button>
+              <button type="button" disabled={String(r.status).toLowerCase() === 'available'} onClick={() => openPopupFor(r, 'return')} className="w-full text-left px-3 py-2 text-body-sm hover:bg-gov-backgroundAlt disabled:opacity-40">Return</button>
+              <button type="button" onClick={() => handleDelete(r)} className="w-full text-left px-3 py-2 text-body-sm text-gov-danger hover:bg-gov-backgroundAlt">Delete</button>
+            </div>
+          </details>
         </span>
       ),
     },
@@ -142,9 +223,17 @@ export default function IctAssets() {
   return (
     <PageLayout
       title="ICT Assets Inventory"
-      actions={
-        <>
-          <form onSubmit={(e) => { e.preventDefault(); setSearch(searchInput); setPage(1); }} className="flex gap-2">
+      subtitle="Track availability, assignment, maintenance and lifecycle actions."
+      actions={(
+        <div className="flex items-center gap-3">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              setSearch(searchInput);
+              setPage(1);
+            }}
+            className="flex gap-2"
+          >
             <input
               type="text"
               placeholder="Search tag, name, serial"
@@ -154,9 +243,11 @@ export default function IctAssets() {
             />
             <button type="submit" className="ims-btn-secondary">Search</button>
           </form>
-          <button type="button" onClick={openCreate} className="ims-btn-primary">Add Asset</button>
-        </>
-      }
+          <Link to="/ict/assets/add" className="ims-btn-primary">
+            Bulk capture
+          </Link>
+        </div>
+      )}
     >
       {error && !showForm && <p className="text-body-sm text-gov-danger mb-4">{error}</p>}
 
@@ -257,6 +348,8 @@ export default function IctAssets() {
         </Modal>
       )}
 
+      {/* Placeholder: per-asset popups to be implemented next using popup + activeAsset */}
+
       <DataTable
         columns={columns}
         data={list}
@@ -274,6 +367,57 @@ export default function IctAssets() {
           ) : null
         }
       />
+
+      {popup === 'requisition' && activeAsset && (
+        <AddRequisitionPopup
+          asset={activeAsset}
+          onClose={() => { setPopup(null); setActiveAsset(null); }}
+          onSaved={() => load(page, search)}
+        />
+      )}
+      {popup === 'issue' && activeAsset && (
+        <AddIssuePopup
+          asset={activeAsset}
+          onClose={() => { setPopup(null); setActiveAsset(null); }}
+          onSaved={() => load(page, search)}
+        />
+      )}
+      {popup === 'assign' && activeAsset && (
+        <AssignUserPopup
+          asset={activeAsset}
+          onClose={() => { setPopup(null); setActiveAsset(null); }}
+          onSaved={() => load(page, search)}
+        />
+      )}
+      {popup === 'maintenance' && activeAsset && (
+        <AddMaintenancePopup
+          asset={activeAsset}
+          onClose={() => { setPopup(null); setActiveAsset(null); }}
+          onSaved={() => load(page, search)}
+        />
+      )}
+      {popup === 'transfer' && activeAsset && (
+        <AddTransferPopup
+          asset={activeAsset}
+          owner={activeAsset.owner}
+          onClose={() => { setPopup(null); setActiveAsset(null); }}
+          onSaved={() => load(page, search)}
+        />
+      )}
+      {popup === 'disposal' && activeAsset && (
+        <AddDisposalPopup
+          asset={activeAsset}
+          onClose={() => { setPopup(null); setActiveAsset(null); }}
+          onSaved={() => load(page, search)}
+        />
+      )}
+      {popup === 'return' && activeAsset && (
+        <AddReturnPopup
+          asset={activeAsset}
+          onClose={() => { setPopup(null); setActiveAsset(null); }}
+          onSaved={() => load(page, search)}
+        />
+      )}
     </PageLayout>
   );
 }

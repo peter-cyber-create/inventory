@@ -12,7 +12,7 @@ export default function DataTable({
   return (
     <div className={`ims-card overflow-hidden ${className}`}>
       {searchSlot && (
-        <div className="flex flex-wrap items-center justify-between gap-4 px-5 py-3 border-b border-gov-borderLight">
+        <div className="flex flex-wrap items-center justify-between gap-4 px-5 py-3 border-b border-gov-borderLight bg-gov-backgroundAlt/50">
           {searchSlot}
         </div>
       )}
@@ -23,7 +23,7 @@ export default function DataTable({
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className="px-4 py-3 text-left text-label text-gov-secondary uppercase tracking-wider"
+                  className="px-4 py-3 text-left text-label text-gov-secondary uppercase tracking-wider whitespace-nowrap"
                   style={col.width ? { width: col.width } : undefined}
                 >
                   {col.label}
@@ -35,7 +35,10 @@ export default function DataTable({
             {loading ? (
               <tr>
                 <td colSpan={columns.length} className="px-4 py-8 text-center text-body-sm text-gov-secondaryMuted">
-                  Loading…
+                  <span className="inline-flex items-center gap-2">
+                    <span className="h-3 w-3 rounded-full border-2 border-gov-border border-t-gov-accent animate-spin" />
+                    Loading…
+                  </span>
                 </td>
               </tr>
             ) : rows.length === 0 ? (
@@ -51,7 +54,7 @@ export default function DataTable({
                   className="ims-table-row"
                 >
                   {columns.map((col) => (
-                    <td key={col.key} className="px-4 py-3 text-body text-gov-primary">
+                    <td key={col.key} className="px-4 py-3 text-body text-gov-primary align-middle">
                       {typeof col.render === 'function' ? col.render(row) : row[col.key]}
                     </td>
                   ))}

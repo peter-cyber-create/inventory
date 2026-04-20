@@ -4,6 +4,8 @@ import Login from './pages/Login';
 import Dashboard from './modules/dashboard/Dashboard';
 import IctDashboard from './modules/ict/IctDashboard';
 import IctAssets from './modules/ict/IctAssets';
+import IctAssetDetails from './modules/ict/IctAssetDetails.jsx';
+import AddAssetBulk from './modules/ict/assetsInventory/AddAsset.jsx';
 import IctMaintenance from './modules/ict/IctMaintenance';
 import IctRequisitions from './modules/ict/IctRequisitions';
 import IctIssues from './modules/ict/IctIssues';
@@ -49,6 +51,8 @@ export default function App() {
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="ict/dashboard" element={<IctDashboard />} />
         <Route path="ict/assets" element={<IctAssets />} />
+        <Route path="ict/assets/add" element={<AddAssetBulk />} />
+        <Route path="ict/assets/:id" element={<IctAssetDetails />} />
         <Route path="ict/maintenance" element={<IctMaintenance />} />
         <Route path="ict/requisitions" element={<IctRequisitions />} />
         <Route path="ict/issues" element={<IctIssues />} />

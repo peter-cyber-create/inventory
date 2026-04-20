@@ -22,6 +22,7 @@ export default function AdminUsers() {
   const [editing, setEditing] = useState(null);
   const [departments, setDepartments] = useState([]);
   const [roles, setRoles] = useState([]);
+  const [designations, setDesignations] = useState([]);
   const [form, setForm] = useState(INITIAL_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -51,6 +52,10 @@ export default function AdminUsers() {
     if (showForm) {
       api.get('/api/admin/departments').then((res) => setDepartments(Array.isArray(res.data) ? res.data : (res.data?.data ?? []))).catch(() => setDepartments([]));
       api.get('/api/admin/roles').then((res) => setRoles(Array.isArray(res.data) ? res.data : (res.data?.data ?? []))).catch(() => setRoles([]));
+      api.get('/api/admin/lookups/departments-and-designations').then((res) => {
+        const data = res.data ?? {};
+        setDesignations(Array.isArray(data.designations) ? data.designations : []);
+      }).catch(() => setDesignations([]));
     }
   }, [showForm]);
 
@@ -184,7 +189,16 @@ export default function AdminUsers() {
                 <input type="text" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} className="ims-input" />
               </FormField>
               <FormField label="Designation">
-                <input type="text" value={form.designation} onChange={(e) => setForm((f) => ({ ...f, designation: e.target.value }))} className="ims-input" />
+                <select
+                  value={form.designation}
+                  onChange={(e) => setForm((f) => ({ ...f, designation: e.target.value }))}
+                  className="ims-input"
+                >
+                  <option value="">— None —</option>
+                  {[...new Set([form.designation, ...designations].filter(Boolean))].sort().map((d) => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
               </FormField>
               <FormField label="Module (category)">
                 <select value={form.module} onChange={(e) => setForm((f) => ({ ...f, module: e.target.value }))} className="ims-input">

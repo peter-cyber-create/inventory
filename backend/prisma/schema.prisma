@@ -73,6 +73,10 @@ model IctAsset {
   name          String
   category      String
   serialNumber  String?   @map("serial_number")
+  engravedNumber String?  @map("engraved_number")
+  fundingSource String?   @map("funding_source")
+  comments      String?
+  year          Int?
   status        String    @default("available")
   location      String?
   assignedToId  String?   @map("assigned_to")
@@ -81,6 +85,11 @@ model IctAsset {
   assignedTo    User?     @relation("AssignedTo", fields: [assignedToId], references: [id])
   maintenance   IctMaintenance[]
   issues        IctIssue[]
+  assetRequisitions IctAssetRequisition[]
+  directIssues      IctAssetDirectIssue[]
+  transfers         IctAssetTransfer[]
+  disposals         IctAssetDisposal[]
+  returns           IctAssetReturn[]
 }
 
 model IctRequisition {
@@ -136,6 +145,83 @@ model Server {
 
   hostServer     Server? @relation("VirtualHost", fields: [hostServerId], references: [id])
   virtualServers Server[] @relation("VirtualHost")
+}
+
+model IctAssetRequisition {
+  id          String   @id @default(cuid())
+  assetId     String   @map("asset_id")
+  serialNo    String?  @map("serial_no")
+  model       String?
+  requestedBy String   @map("requested_by")
+  comments    String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  asset IctAsset @relation(fields: [assetId], references: [id])
+}
+
+model IctAssetDirectIssue {
+  id         String   @id @default(cuid())
+  assetId    String   @map("asset_id")
+  serialNo   String?  @map("serial_no")
+  model      String?
+  issuedBy   String   @map("issued_by")
+  issuedTo   String   @map("issued_to")
+  department String?
+  title      String?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  asset IctAsset @relation(fields: [assetId], references: [id])
+}
+
+model IctAssetTransfer {
+  id           String   @id @default(cuid())
+  assetId      String   @map("asset_id")
+  previousUser String?  @map("previous_user")
+  previousDept String?  @map("previous_dept")
+  previousTitle String? @map("previous_title")
+  user         String
+  department   String
+  title        String?
+  officeNo     String?  @map("office_no")
+  reason       String?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  asset IctAsset @relation(fields: [assetId], references: [id])
+}
+
+model IctAssetDisposal {
+  id             String   @id @default(cuid())
+  assetId        String   @map("asset_id")
+  disposalDate   DateTime @map("disposal_date")
+  disposalMethod String   @map("disposal_method")
+  disposalReason String?  @map("disposal_reason")
+  disposalCost   Decimal? @map("disposal_cost") @db.Decimal(14, 2)
+  disposedBy     String   @map("disposed_by")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  asset IctAsset @relation(fields: [assetId], references: [id])
+}
+
+model IctAssetReturn {
+  id          String   @id @default(cuid())
+  assetId     String   @map("asset_id")
+  returnedBy String   @map("returned_by")
+  reason      String?  @map("reason")
+  returnDate  DateTime @default(now()) @map("return_date")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  asset IctAsset @relation(fields: [assetId], references: [id])
+}
+
+model Staff {
+  id         String   @id @default(cuid())
+  name       String
+  title      String?
+  department String?
+  division   String?
+  email      String?
+  phone      String?
+  createdAt  DateTime @default(now()) @map("created_at")
 }
 
 // ============== FLEET MODULE ==============

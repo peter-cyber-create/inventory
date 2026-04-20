@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { getToken, getUser } from '../services/auth';
+import { getToken, getUser, clearAuth } from '../services/auth';
+import api from '../services/api';
 import Header from '../components/layout/Header';
 import Sidebar from '../components/layout/Sidebar';
 
@@ -27,6 +28,8 @@ export default function Layout() {
   const location = useLocation();
   const token = getToken();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const lastActivityRef = useRef(Date.now());
+  const [sessionTimeoutMinutes, setSessionTimeoutMinutes] = useState(null);
 
   useEffect(() => {
     if (!token) {
@@ -38,6 +41,59 @@ export default function Layout() {
       navigate('/dashboard', { replace: true });
     }
   }, [token, navigate, location.pathname]);
+
+  // Load session timeout (in minutes) from System Settings key "session_timeout_minutes"
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .get('/api/admin/settings/key/session_timeout_minutes')
+      .then((res) => {
+        if (cancelled) return;
+        const raw = res.data?.settingValue ?? res.data?.value ?? res.data;
+        const m = parseInt(String(raw || ''), 10);
+        if (!Number.isNaN(m) && m > 0) setSessionTimeoutMinutes(m);
+      })
+      .catch(() => {
+        // ignore, fallback to JWT expiry behaviour
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Track user activity and auto-logout after configured idle time
+  useEffect(() => {
+    if (!sessionTimeoutMinutes) return;
+    const timeoutMs = sessionTimeoutMinutes * 60 * 1000;
+
+    const updateActivity = () => {
+      lastActivityRef.current = Date.now();
+    };
+
+    window.addEventListener('mousemove', updateActivity);
+    window.addEventListener('keydown', updateActivity);
+    window.addEventListener('click', updateActivity);
+
+    const interval = setInterval(() => {
+      if (!getToken()) return;
+      const idleFor = Date.now() - lastActivityRef.current;
+      if (idleFor > timeoutMs) {
+        clearInterval(interval);
+        window.removeEventListener('mousemove', updateActivity);
+        window.removeEventListener('keydown', updateActivity);
+        window.removeEventListener('click', updateActivity);
+        clearAuth();
+        navigate('/login?session=idle', { replace: true });
+      }
+    }, 30 * 1000);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('mousemove', updateActivity);
+      window.removeEventListener('keydown', updateActivity);
+      window.removeEventListener('click', updateActivity);
+    };
+  }, [sessionTimeoutMinutes, navigate]);
 
   if (!token) return null;
 

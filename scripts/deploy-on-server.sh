@@ -9,6 +9,7 @@ echo "=== Deploy started at ${BUILD_TIME} ==="
 echo "=== Installing dependencies ==="
 npm install
 cd backend && npm install && cd ..
+cd frontend && npm install && cd ..
 
 echo "=== Building backend + frontend (updates frontend/dist) ==="
 npm run build

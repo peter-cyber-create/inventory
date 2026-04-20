@@ -60,6 +60,7 @@ export default function IctRequisitions() {
   return (
     <PageLayout
       title="ICT Requisitions"
+      subtitle="Review pending requests and act through a clear approval workflow."
       actions={
         <button type="button" onClick={() => { setShowForm(true); setError(''); }} className="ims-btn-primary">
           Create Requisition

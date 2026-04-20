@@ -14,7 +14,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const [capsOn, setCapsOn] = useState(false);
 
   const sessionExpired = searchParams.get('session') === 'expired';
 
@@ -58,45 +58,28 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gov-background px-4 py-10">
+    <div className="gov-login-page">
       <div className="w-full max-w-lg">
         <div
-          className="ims-card px-10 py-12 border border-gov-border bg-white/95 backdrop-blur-sm shadow-card hover:shadow-card-hover transition-shadow duration-200"
-          onMouseMove={(e) => {
-            const rect = e.currentTarget.getBoundingClientRect();
-            const x = (e.clientY - rect.top - rect.height / 2) / rect.height;
-            const y = (e.clientX - rect.left - rect.width / 2) / rect.width;
-            const maxTilt = 3;
-            setTilt({
-              x: -(x * maxTilt),
-              y: y * maxTilt,
-            });
-          }}
-          onMouseLeave={() => setTilt({ x: 0, y: 0 })}
-          style={{
-            transform: `perspective(1200px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) translate3d(0,0,0)`,
-            transition: 'transform 160ms ease-out',
-          }}
+          className="gov-login-card"
         >
           <div className="mb-10">
-            <div className="flex items-center gap-3 mb-4">
-              <img
-                src="/mohgou.png"
-                alt="Government of Uganda / Ministry of Health"
-                className="h-10 w-10 rounded-full border border-gov-border bg-white object-contain"
-              />
-              <div>
-                <h1 className="text-heading text-gov-primary font-semibold tracking-[0.18em] uppercase">
-                  MINISTRY OF HEALTH
-                </h1>
-                <p className="text-label text-gov-secondary tracking-[0.16em] uppercase">
-                  INVENTORY MANAGEMENT SYSTEM
-                </p>
-              </div>
-            </div>
+            <p className="text-label text-gov-secondaryMuted uppercase tracking-[0.22em] text-center">
+              REPUBLIC OF UGANDA
+            </p>
+            <h1 className="mt-2 text-heading text-gov-primary font-semibold text-center">
+              Ministry of Health
+            </h1>
+            <p className="mt-1 text-body text-gov-secondary text-center">
+              Inventory Management System
+            </p>
           </div>
 
-          {error && <p className="mb-4 text-body-sm text-gov-danger">{error}</p>}
+          {error && (
+            <p className="mb-4 text-body-sm text-gov-danger gov-login-error">
+              {error}
+            </p>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-3">
@@ -148,6 +131,16 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="current-password"
+                  onKeyUp={(e) => {
+                    if (typeof e.getModifierState === 'function') {
+                      setCapsOn(e.getModifierState('CapsLock'));
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (typeof e.getModifierState === 'function') {
+                      setCapsOn(e.getModifierState('CapsLock'));
+                    }
+                  }}
                   required
                   className="peer ims-input pl-9 pr-20 pt-6 pb-2 text-body-sm placeholder-transparent"
                   placeholder="Password"
@@ -164,6 +157,11 @@ export default function Login() {
                   {showPassword ? 'Hide' : 'Show'}
                 </button>
               </div>
+              {capsOn && (
+                <p className="mt-1 text-body-xs text-gov-warning">
+                  Caps Lock is on.
+                </p>
+              )}
             </div>
 
             <div className="flex items-center justify-between gap-2">
@@ -187,9 +185,14 @@ export default function Login() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full ims-btn-primary h-12 text-body-sm font-medium"
+              className="gov-login-button"
             >
-              {submitting ? 'Signing in…' : 'Sign in'}
+              {submitting && (
+                <span className="inline-flex h-4 w-4 items-center justify-center">
+                  <span className="h-4 w-4 rounded-full border-2 border-white/80 border-t-transparent animate-spin" />
+                </span>
+              )}
+              <span>{submitting ? 'Signing in…' : 'Sign in'}</span>
             </button>
           </form>
 
@@ -210,8 +213,11 @@ export default function Login() {
                   ? new Date(__BUILD_TIME__).getFullYear()
                   : '2026'}
               </span>
-              <span>© 2026 Ministry of Health</span>
+              <span>© 2026 Ministry of Health – Government of Uganda</span>
             </div>
+            <p className="mt-2 text-[0.7rem] text-gov-secondaryMuted">
+              Authorized personnel only – access monitored.
+            </p>
           </div>
         </div>
       </div>

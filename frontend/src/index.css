@@ -64,119 +64,103 @@ body {
     @apply border-b border-gov-borderLight hover:bg-gov-background/60 transition-colors duration-fast;
   }
 
-  /* 4D login specific styles */
-  .ims-login-4d-bg {
-    @apply relative min-h-screen overflow-hidden;
-    background: radial-gradient(circle at top left, rgba(200, 169, 81, 0.08), transparent 55%),
-      radial-gradient(circle at bottom right, rgba(27, 107, 117, 0.08), transparent 55%),
-      linear-gradient(135deg, #020617 0%, #020617 40%, #0a1f33 75%, #0f3057 100%);
-    color: #e5edf7;
+  .gov-login-page {
+    @apply min-h-screen flex items-center justify-center px-4 py-10;
+    background:
+      radial-gradient(circle at top left, rgba(15, 42, 68, 0.06), transparent 55%),
+      radial-gradient(circle at bottom right, rgba(15, 76, 129, 0.04), transparent 55%),
+      #f5f7fa;
+    animation: gov-login-fade-in 300ms ease-out;
   }
 
-  .ims-login-4d-bg::before {
-    content: '';
-    position: absolute;
-    inset: -20%;
-    background-image:
-      radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.03) 0, transparent 55%),
-      radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.02) 0, transparent 50%),
-      linear-gradient(
-        135deg,
-        rgba(15, 48, 87, 0.8),
-        rgba(10, 31, 51, 0.8),
-        rgba(15, 48, 87, 0.8)
-      );
-    opacity: 0.9;
-    filter: blur(4px);
-    animation: ims-login-gradient-slow 40s ease-in-out infinite alternate;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .ims-login-4d-bg::after {
-    /* very subtle particle field */
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 0);
-    background-size: 120px 120px;
-    opacity: 0.06;
-    mix-blend-mode: screen;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .ims-login-4d-panel {
-    @apply relative rounded-card border border-white/10 shadow-2xl;
-    background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(18px);
+  .gov-login-card {
+    @apply w-full border rounded-[16px] shadow-card relative overflow-hidden;
+    border-color: rgba(148, 163, 184, 0.4);
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(14px);
+    padding: 2.75rem 2.5rem;
     box-shadow:
-      0 28px 80px rgba(0, 0, 0, 0.9),
-      0 0 0 1px rgba(255, 255, 255, 0.03);
+      0 22px 45px rgba(15, 23, 42, 0.25),
+      0 0 0 1px rgba(148, 163, 184, 0.35);
+    animation: gov-login-card-in 360ms ease-out;
   }
 
-  .ims-login-4d-panel::before {
-    /* thin gold accent line at the top */
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    height: 3px;
-    background: linear-gradient(
-      90deg,
-      rgba(200, 169, 81, 0) 0%,
-      rgba(200, 169, 81, 0.9) 40%,
-      rgba(200, 169, 81, 0.9) 60%,
-      rgba(200, 169, 81, 0) 100%
-    );
-  }
-
-  .ims-login-4d-button {
-    @apply w-full flex items-center justify-center gap-2 text-sm font-medium tracking-wide uppercase;
+  .gov-login-button {
+    @apply w-full inline-flex items-center justify-center gap-2 text-sm font-medium tracking-wide uppercase;
     height: 52px;
-    background: #0a1f33;
-    color: #f9fafb;
     border-radius: 9999px;
-    border: 1px solid rgba(200, 169, 81, 0.8);
+    background-image: linear-gradient(135deg, #0f2a44, #1d4ed8);
+    color: #f9fafb;
     box-shadow:
-      0 16px 32px rgba(0, 0, 0, 0.75),
-      0 0 0 1px rgba(15, 48, 87, 0.9);
+      0 16px 32px rgba(15, 23, 42, 0.55),
+      0 0 0 1px rgba(15, 42, 68, 0.9);
     transition:
-      transform 0.15s ease-out,
-      box-shadow 0.15s ease-out,
-      background 0.15s ease-out;
+      transform 150ms ease-out,
+      box-shadow 150ms ease-out,
+      filter 150ms ease-out,
+      background-image 150ms ease-out;
   }
 
-  .ims-login-4d-button:hover:not(:disabled) {
-    background: #0f3057;
-    box-shadow:
-      0 22px 40px rgba(0, 0, 0, 0.85),
-      0 0 0 1px rgba(200, 169, 81, 0.9);
+  .gov-login-button:hover:not(:disabled) {
     transform: translateY(-1px);
-  }
-
-  .ims-login-4d-button:active:not(:disabled) {
-    transform: translateY(1px) scale(0.995);
     box-shadow:
-      0 10px 24px rgba(0, 0, 0, 0.8),
-      0 0 0 1px rgba(200, 169, 81, 0.9);
+      0 20px 40px rgba(15, 23, 42, 0.65),
+      0 0 0 1px rgba(29, 78, 216, 0.95);
+    filter: brightness(1.03);
   }
 
-  .ims-login-4d-button:disabled {
-    opacity: 0.7;
+  .gov-login-button:active:not(:disabled) {
+    transform: translateY(1px) scale(0.99);
+    box-shadow:
+      0 10px 24px rgba(15, 23, 42, 0.6),
+      0 0 0 1px rgba(15, 42, 68, 0.95);
+  }
+
+  .gov-login-button:disabled {
+    opacity: 0.85;
     cursor: default;
+  }
+
+  .gov-login-error {
+    animation: gov-login-error 200ms ease-out;
+  }
+}
+@keyframes gov-login-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-@keyframes ims-login-gradient-slow {
+@keyframes gov-login-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gov-login-error {
   0% {
-    transform: translate3d(0, 0, 0) scale(1.02);
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-3px);
   }
   50% {
-    transform: translate3d(-1.5%, -1.5%, 0) scale(1.04);
+    transform: translateX(3px);
+  }
+  75% {
+    transform: translateX(-2px);
   }
   100% {
-    transform: translate3d(1.5%, 1.5%, 0) scale(1.03);
+    transform: translateX(0);
   }
 }

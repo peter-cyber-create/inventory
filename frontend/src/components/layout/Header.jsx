@@ -17,7 +17,7 @@ export default function Header() {
       <div className="flex items-center gap-3 sm:gap-4">
         <img
           src="/mohgou.png"
-          alt="Government of Uganda / Ministry of Health"
+          alt=""
           className="h-8 w-8 rounded-full border border-white/40 bg-white object-contain"
         />
         <div className="flex flex-col">
